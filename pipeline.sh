@@ -28,7 +28,6 @@ eoc "--parser=${EO}" print
 cp .eoc/print/app.eo app.eo
 
 eoc "--parser=${EO}" clean
-
 eoc "--parser=${EO}" link
 eoc "--parser=${EO}" --alone dataize app > after.txt
 
