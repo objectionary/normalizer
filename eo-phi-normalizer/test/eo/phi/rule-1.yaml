@@ -1,0 +1,15 @@
+- name: 'Program in normal form (1)'
+  input: |
+    {}
+  normalized: |
+    { ν ↦ { Δ ⤍ 00- } }
+  prettified: |
+    { }
+
+- name: 'Program in normal form (2)'
+  input: |
+    { φ ↦ { φ ↦ { φ ↦ { } } } }
+  normalized: |
+    { ν ↦ { Δ ⤍ 03- }, φ ↦ { ν ↦ { Δ ⤍ 02- }, φ ↦ { ν ↦ { Δ ⤍ 01- }, φ ↦ { ν ↦ { Δ ⤍ 00- } } } } }
+  prettified: |
+    { φ ↦ { φ ↦ { φ ↦ { } } } }

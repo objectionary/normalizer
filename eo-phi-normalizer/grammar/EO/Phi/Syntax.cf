@@ -4,7 +4,10 @@
 --
 -- This is a non-ambiguous grammar for φ-programs.
 
-token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])* {"--"}) ;
+token Bytes ({"--"}
+            | ["0123456789ABCDEF"] ["0123456789ABCDEF"] {"-"}
+            | (["0123456789ABCDEF"] ["0123456789ABCDEF"] {"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])+)
+            ;
 token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token LabelId  lower (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
@@ -27,7 +30,7 @@ separator Binding "," ;
 Phi.    Attribute ::= "φ" ;   -- decoratee object
 Rho.    Attribute ::= "ρ" ;   -- parent object
 Sigma.  Attribute ::= "σ" ;   -- home object
-VTX.    Attribute ::= "ν" ;   -- ???
+VTX.    Attribute ::= "ν" ;   -- an object that represents the unique identifier of the containing object
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
 

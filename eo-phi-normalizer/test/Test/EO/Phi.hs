@@ -24,7 +24,7 @@ data PhiTest = PhiTest
   }
   deriving (Generic, FromJSON)
 
-allPhiTests :: FilePath -> IO [PhiTest]
+allPhiTests :: FilePath -> IO [[PhiTest]]
 allPhiTests dir = do
   paths <- listDirectory dir
   forM (sort paths) $ \path ->

@@ -1,14 +1,23 @@
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RecordWildCards #-}
 
-module Language.EO.Phi.Normalize where
+module Language.EO.Phi.Normalize (
+  normalizeObject,
+  normalize,
+  peelObject,
+  unpeelObject,
+) where
 
+import Control.Monad.State
 import Data.Maybe (fromMaybe)
+import Numeric (showHex)
+
+import Control.Monad (forM)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
   { globalObject :: [Binding]
   , thisObject :: [Binding]
+  , totalNuCount :: Int
   }
 
 lookupBinding :: Attribute -> [Binding] -> Maybe Object
@@ -18,27 +27,67 @@ lookupBinding a (AlphaBinding a' object : bindings)
   | otherwise = lookupBinding a bindings
 lookupBinding _ _ = Nothing
 
+isNu :: Binding -> Bool
+isNu (AlphaBinding VTX _) = True
+isNu (EmptyBinding VTX) = True
+isNu _ = False
+
 -- | Normalize an input 𝜑-program.
 normalize :: Program -> Program
-normalize (Program bindings) = Program (map (normalizeBindingWith context) bindings)
+normalize (Program bindings) = evalState (Program . objectBindings <$> normalizeObject (Formation bindings)) context
  where
   context =
     Context
       { globalObject = bindings
       , thisObject = bindings
+      , totalNuCount = nuCount bindings
       }
+  nuCount binds = count isNu binds + sum (map (sum . map (nuCount . objectBindings) . values) binds)
+  count = (length .) . filter
+  values (AlphaBinding _ obj) = [obj]
+  values _ = []
+  objectBindings (Formation bs) = bs
+  objectBindings _ = []
 
-normalizeBindingWith :: Context -> Binding -> Binding
-normalizeBindingWith context = \case
-  AlphaBinding a object -> AlphaBinding a (normalizeObjectWith context object)
-  binding -> binding
+rule1 :: Object -> State Context Object
+rule1 (Formation bindings) = do
+  normalizedBindings <- forM bindings $ \case
+    AlphaBinding a object
+      | a /= VTX ->
+          do
+            object' <- rule1 object
+            pure (AlphaBinding a object')
+    b -> pure b
+  finalBindings <-
+    if not $ any isNu normalizedBindings
+      then do
+        nus <- gets totalNuCount
+        modify (\c -> c{totalNuCount = totalNuCount c + 1})
+        let pad s = (if even (length s) then "" else "0") ++ s
+        let insertDashes s
+              | length s <= 2 = s ++ "-"
+              | otherwise =
+                  let go = \case
+                        [] -> []
+                        [x] -> [x]
+                        [x, y] -> [x, y, '-']
+                        (x : y : xs) -> x : y : '-' : go xs
+                   in go s
+        let dataObject = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ showHex nus ""]
+        pure (AlphaBinding VTX dataObject : normalizedBindings)
+      else do
+        pure normalizedBindings
+  pure (Formation finalBindings)
+rule1 object = pure object
 
-normalizeObjectWith :: Context -> Object -> Object
-normalizeObjectWith Context{..} object =
+normalizeObject :: Object -> State Context Object
+normalizeObject object = do
+  this <- gets thisObject
   case object of
-    ThisDispatch a ->
-      fromMaybe object (lookupBinding a thisObject)
-    _ -> object
+    -- Rule 1
+    obj@(Formation _) -> rule1 obj
+    ThisDispatch a -> pure $ fromMaybe object (lookupBinding a this)
+    _ -> pure object
 
 -- | Split compound object into its head and applications/dispatch actions.
 peelObject :: Object -> PeeledObject
