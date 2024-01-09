@@ -1,3 +1,7 @@
+.eoc
+before.txt
+after.txt
+app.eo
 *.bak
 eo-phi-normalizer/src/Language/EO/Phi/Syntax/Lex.hs
 eo-phi-normalizer/src/Language/EO/Phi/Syntax/Par.hs
