@@ -1,0 +1,891 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span id="local-6989586621679500576"><span id="local-6989586621679500577"><span id="local-6989586621679500578"><span id="local-6989586621679500579"></span></span></span></span><span class="hs-pragma">{-# LANGUAGE DeriveDataTypeable #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Module      :  Language.Haskell.Exts.Comments</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Copyright   :  (c) JP Moresmau 2015</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE.txt)</span><span>
+</span><span id="line-7"></span><span class="hs-comment">--</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Maintainer  :  Niklas Broberg, d00nibro@chalmers.se</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Stability   :  experimental</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-11"></span><span class="hs-comment">--</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- This module processes comments along with an annotated AST,</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- to be able to associate Haddock comments with the actual item</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- they refer to.</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Example:</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- let</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--  parse1Result :: ParseResult (Module SrcSpanInfo,[Comment])</span><span>
+</span><span id="line-21"></span><span class="hs-comment">--  parse1Result =</span><span>
+</span><span id="line-22"></span><span class="hs-comment">--    parseFileContentsWithComments</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--     (defaultParseMode { parseFilename = file })</span><span>
+</span><span id="line-24"></span><span class="hs-comment">--      contents</span><span>
+</span><span id="line-25"></span><span class="hs-comment">--  withC :: ParseResult (Module (SrcSpanInfo,[Comment]))</span><span>
+</span><span id="line-26"></span><span class="hs-comment">--  withC = case parse1Result of</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--            ParseOk res         -&gt; ParseOk $ associateHaddock res</span><span>
+</span><span id="line-28"></span><span class="hs-comment">--            ParseFailed sloc msg -&gt; ParseFailed sloc msg</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- In this code sample, parse1Result is what you get when you parse a file:</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- a 'Module' annotated wth 'SrcSpanInfo', and a list of comments</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- After passing the result to 'associateHaddock', you get a 'Module'</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- annotated with both a 'SrcSpanInfo' and the list of 'Comment' related to the</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- specific AST node.</span><span>
+</span><span id="line-36"></span><span class="hs-comment">--</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Haskell.Exts.Comments</span><span>
+</span><span id="line-39"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associateHaddock"><span class="hs-identifier">associateHaddock</span></a></span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier">Comment</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#UnknownPragma"><span class="hs-identifier">UnknownPragma</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Syntax.html"><span class="hs-identifier">Language.Haskell.Exts.Syntax</span></a></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html"><span class="hs-identifier">Language.Haskell.Exts.SrcLoc</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isSpace</span></span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Traversable</span></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Data</span></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="annot"><span class="hs-comment">-- | A Haskell comment. The 'Bool' is 'True' if the comment is multi-line, i.e. @{- -}@.</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">data</span><span> </span><span id="Comment"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-var">Comment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Comment"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-var">Comment</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpan"><span class="hs-identifier hs-type">SrcSpan</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500600"><span id="local-6989586621679500609"><span class="annot"><span class="annottext">Comment -&gt; Comment -&gt; Bool
+(Comment -&gt; Comment -&gt; Bool)
+-&gt; (Comment -&gt; Comment -&gt; Bool) -&gt; Eq Comment
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Comment -&gt; Comment -&gt; Bool
+== :: Comment -&gt; Comment -&gt; Bool
+$c/= :: Comment -&gt; Comment -&gt; Bool
+/= :: Comment -&gt; Comment -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679500615"><span id="local-6989586621679500626"><span id="local-6989586621679500630"><span class="annot"><span class="annottext">Int -&gt; Comment -&gt; ShowS
+[Comment] -&gt; ShowS
+Comment -&gt; String
+(Int -&gt; Comment -&gt; ShowS)
+-&gt; (Comment -&gt; String) -&gt; ([Comment] -&gt; ShowS) -&gt; Show Comment
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Comment -&gt; ShowS
+showsPrec :: Int -&gt; Comment -&gt; ShowS
+$cshow :: Comment -&gt; String
+show :: Comment -&gt; String
+$cshowList :: [Comment] -&gt; ShowS
+showList :: [Comment] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">,</span><span id="local-6989586621679500637"><span id="local-6989586621679500646"><span id="local-6989586621679500652"><span id="local-6989586621679500654"><span id="local-6989586621679500656"><span id="local-6989586621679500662"><span id="local-6989586621679500667"><span id="local-6989586621679500670"><span id="local-6989586621679500673"><span id="local-6989586621679500676"><span id="local-6989586621679500679"><span id="local-6989586621679500682"><span id="local-6989586621679500687"><span id="local-6989586621679500692"><span class="annot"><span class="annottext">Typeable Comment
+Typeable Comment =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; Comment -&gt; c Comment)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Comment)
+-&gt; (Comment -&gt; Constr)
+-&gt; (Comment -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Comment))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Comment))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; Comment -&gt; Comment)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment)
+-&gt; Data Comment
+Comment -&gt; Constr
+Comment -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; Comment -&gt; Comment
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Comment
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Comment -&gt; c Comment
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Comment)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Comment)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Comment -&gt; c Comment
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; Comment -&gt; c Comment
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Comment
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c Comment
+$ctoConstr :: Comment -&gt; Constr
+toConstr :: Comment -&gt; Constr
+$cdataTypeOf :: Comment -&gt; DataType
+dataTypeOf :: Comment -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Comment)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c Comment)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Comment)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c Comment)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Comment -&gt; Comment
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; Comment -&gt; Comment
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; Comment -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; Comment -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; Comment -&gt; m Comment
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="annot"><span class="hs-comment">-- | An unknown pragma.</span></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">data</span><span> </span><span id="UnknownPragma"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#UnknownPragma"><span class="hs-identifier hs-var">UnknownPragma</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="UnknownPragma"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#UnknownPragma"><span class="hs-identifier hs-var">UnknownPragma</span></a></span></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpan"><span class="hs-identifier hs-type">SrcSpan</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500700"><span id="local-6989586621679500705"><span class="annot"><span class="annottext">UnknownPragma -&gt; UnknownPragma -&gt; Bool
+(UnknownPragma -&gt; UnknownPragma -&gt; Bool)
+-&gt; (UnknownPragma -&gt; UnknownPragma -&gt; Bool) -&gt; Eq UnknownPragma
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: UnknownPragma -&gt; UnknownPragma -&gt; Bool
+== :: UnknownPragma -&gt; UnknownPragma -&gt; Bool
+$c/= :: UnknownPragma -&gt; UnknownPragma -&gt; Bool
+/= :: UnknownPragma -&gt; UnknownPragma -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679500709"><span id="local-6989586621679500715"><span id="local-6989586621679500719"><span class="annot"><span class="annottext">Int -&gt; UnknownPragma -&gt; ShowS
+[UnknownPragma] -&gt; ShowS
+UnknownPragma -&gt; String
+(Int -&gt; UnknownPragma -&gt; ShowS)
+-&gt; (UnknownPragma -&gt; String)
+-&gt; ([UnknownPragma] -&gt; ShowS)
+-&gt; Show UnknownPragma
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; UnknownPragma -&gt; ShowS
+showsPrec :: Int -&gt; UnknownPragma -&gt; ShowS
+$cshow :: UnknownPragma -&gt; String
+show :: UnknownPragma -&gt; String
+$cshowList :: [UnknownPragma] -&gt; ShowS
+showList :: [UnknownPragma] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">Typeable</span></span><span class="hs-special">,</span><span id="local-6989586621679500724"><span id="local-6989586621679500729"><span id="local-6989586621679500734"><span id="local-6989586621679500736"><span id="local-6989586621679500738"><span id="local-6989586621679500744"><span id="local-6989586621679500749"><span id="local-6989586621679500752"><span id="local-6989586621679500755"><span id="local-6989586621679500758"><span id="local-6989586621679500761"><span id="local-6989586621679500764"><span id="local-6989586621679500769"><span id="local-6989586621679500774"><span class="annot"><span class="annottext">Typeable UnknownPragma
+Typeable UnknownPragma =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; UnknownPragma -&gt; c UnknownPragma)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c UnknownPragma)
+-&gt; (UnknownPragma -&gt; Constr)
+-&gt; (UnknownPragma -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c UnknownPragma))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c UnknownPragma))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; UnknownPragma -&gt; UnknownPragma)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma)
+-&gt; Data UnknownPragma
+UnknownPragma -&gt; Constr
+UnknownPragma -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b) -&gt; UnknownPragma -&gt; UnknownPragma
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; u
+forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c UnknownPragma
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; UnknownPragma -&gt; c UnknownPragma
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c UnknownPragma)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c UnknownPragma)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; UnknownPragma -&gt; c UnknownPragma
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g) -&gt; UnknownPragma -&gt; c UnknownPragma
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c UnknownPragma
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c UnknownPragma
+$ctoConstr :: UnknownPragma -&gt; Constr
+toConstr :: UnknownPragma -&gt; Constr
+$cdataTypeOf :: UnknownPragma -&gt; DataType
+dataTypeOf :: UnknownPragma -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c UnknownPragma)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c UnknownPragma)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c UnknownPragma)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c UnknownPragma)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; UnknownPragma -&gt; UnknownPragma
+gmapT :: (forall b. Data b =&gt; b -&gt; b) -&gt; UnknownPragma -&gt; UnknownPragma
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; UnknownPragma -&gt; r
+$cgmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; [u]
+gmapQ :: forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; [u]
+$cgmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; u
+gmapQi :: forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; UnknownPragma -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d) -&gt; UnknownPragma -&gt; m UnknownPragma
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Data</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- | Associates an AST with Source Span Information</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- with relevant Haddock comments</span><span>
+</span><span id="line-62"></span><span id="local-6989586621679500496"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associateHaddock"><span class="hs-identifier hs-type">associateHaddock</span></a></span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-glyph">::</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Syntax.html#Annotated"><span class="hs-identifier hs-type">Annotated</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679500496"><span class="hs-identifier hs-type">ast</span></a></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier hs-type">Traversable</span></span><span> </span><span class="annot"><a href="#local-6989586621679500496"><span class="hs-identifier hs-type">ast</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679500496"><span class="hs-identifier hs-type">ast</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679500496"><span class="hs-identifier hs-type">ast</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span></span><span>
+</span><span id="line-66"></span><span id="associateHaddock"><span class="annot"><span class="annottext">associateHaddock :: forall (ast :: * -&gt; *).
+(Annotated ast, Traversable ast) =&gt;
+(ast SrcSpanInfo, [Comment]) -&gt; ast (SrcSpanInfo, [Comment])
+</span><a href="Language.Haskell.Exts.Comments.html#associateHaddock"><span class="hs-identifier hs-var hs-var">associateHaddock</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500786"><span class="annot"><span class="annottext">ast SrcSpanInfo
+</span><a href="#local-6989586621679500786"><span class="hs-identifier hs-var">ast</span></a></span></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo -&gt; (SrcSpanInfo, [Comment]))
+-&gt; ast SrcSpanInfo -&gt; ast (SrcSpanInfo, [Comment])
+forall a b. (a -&gt; b) -&gt; ast a -&gt; ast b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679500787"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500787"><span class="hs-identifier hs-var">src</span></a></span></span><span class="hs-glyph">-&gt;</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500787"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ast SrcSpanInfo
+</span><a href="#local-6989586621679500786"><span class="hs-identifier hs-var">ast</span></a></span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associateHaddock"><span class="hs-identifier hs-var">associateHaddock</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500788"><span class="annot"><span class="annottext">ast SrcSpanInfo
+</span><a href="#local-6989586621679500788"><span class="hs-identifier hs-var">ast</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679500789"><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500789"><span class="hs-identifier hs-var">comments</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-68"></span><span>  </span><span class="hs-keyword">let</span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679500793"><span class="annot"><span class="annottext">CommentAccumulator
+</span><a href="#local-6989586621679500793"><span class="hs-identifier hs-var">ca</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679500794"><span class="annot"><span class="annottext">ast (SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500794"><span class="hs-identifier hs-var">assocs1</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(CommentAccumulator
+ -&gt; SrcSpanInfo -&gt; (CommentAccumulator, (SrcSpanInfo, [Comment])))
+-&gt; CommentAccumulator
+-&gt; ast SrcSpanInfo
+-&gt; (CommentAccumulator, ast (SrcSpanInfo, [Comment]))
+forall (t :: * -&gt; *) s a b.
+Traversable t =&gt;
+(s -&gt; a -&gt; (s, b)) -&gt; s -&gt; t a -&gt; (s, t b)
+</span><span class="hs-identifier hs-var">mapAccumL</span></span><span> </span><span class="annot"><span class="annottext">CommentAccumulator
+-&gt; SrcSpanInfo -&gt; (CommentAccumulator, (SrcSpanInfo, [Comment]))
+</span><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-var">associate1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Comment] -&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#newAccumulator"><span class="hs-identifier hs-var">newAccumulator</span></a></span><span> </span><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500789"><span class="hs-identifier hs-var">comments</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ast SrcSpanInfo
+</span><a href="#local-6989586621679500788"><span class="hs-identifier hs-var">ast</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">([(SrcSpanInfo, [Comment])], ast (SrcSpanInfo, [Comment]))
+-&gt; ast (SrcSpanInfo, [Comment])
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(([(SrcSpanInfo, [Comment])], ast (SrcSpanInfo, [Comment]))
+ -&gt; ast (SrcSpanInfo, [Comment]))
+-&gt; ([(SrcSpanInfo, [Comment])], ast (SrcSpanInfo, [Comment]))
+-&gt; ast (SrcSpanInfo, [Comment])
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">([(SrcSpanInfo, [Comment])]
+ -&gt; (SrcSpanInfo, [Comment])
+ -&gt; ([(SrcSpanInfo, [Comment])], (SrcSpanInfo, [Comment])))
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; ast (SrcSpanInfo, [Comment])
+-&gt; ([(SrcSpanInfo, [Comment])], ast (SrcSpanInfo, [Comment]))
+forall (t :: * -&gt; *) s a b.
+Traversable t =&gt;
+(s -&gt; a -&gt; (s, b)) -&gt; s -&gt; t a -&gt; (s, t b)
+</span><span class="hs-identifier hs-var">mapAccumL</span></span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+-&gt; (SrcSpanInfo, [Comment])
+-&gt; ([(SrcSpanInfo, [Comment])], (SrcSpanInfo, [Comment]))
+</span><a href="Language.Haskell.Exts.Comments.html#merge"><span class="hs-identifier hs-var">merge</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CommentAccumulator -&gt; [(SrcSpanInfo, [Comment])]
+</span><a href="Language.Haskell.Exts.Comments.html#lastPost"><span class="hs-identifier hs-var">lastPost</span></a></span><span> </span><span class="annot"><span class="annottext">CommentAccumulator
+</span><a href="#local-6989586621679500793"><span class="hs-identifier hs-var">ca</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">ast (SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500794"><span class="hs-identifier hs-var">assocs1</span></a></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="annot"><span class="hs-comment">-- | Merge existing association with post comment associations</span></span><span>
+</span><span id="line-74"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#merge"><span class="hs-identifier hs-type">merge</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span id="merge"><span class="annot"><span class="annottext">merge :: [(SrcSpanInfo, [Comment])]
+-&gt; (SrcSpanInfo, [Comment])
+-&gt; ([(SrcSpanInfo, [Comment])], (SrcSpanInfo, [Comment]))
+</span><a href="Language.Haskell.Exts.Comments.html#merge"><span class="hs-identifier hs-var hs-var">merge</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span id="local-6989586621679500801"><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500801"><span class="hs-identifier hs-var">ret</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500801"><span class="hs-identifier hs-var">ret</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#merge"><span class="hs-identifier hs-var">merge</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500802"><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500802"><span class="hs-identifier hs-var">x</span></a></span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679500803"><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500803"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500804"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500804"><span class="hs-identifier hs-var">src</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679500805"><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500805"><span class="hs-identifier hs-var">cmts</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment]) -&gt; SrcSpanInfo
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500802"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo -&gt; SrcSpanInfo -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500804"><span class="hs-identifier hs-var">src</span></a></span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-keyword">then</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500803"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500804"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500805"><span class="hs-identifier hs-var">cmts</span></a></span><span> </span><span class="annot"><span class="annottext">[Comment] -&gt; [Comment] -&gt; [Comment]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment]) -&gt; [Comment]
+forall a b. (a, b) -&gt; b
+</span><span class="hs-identifier hs-var">snd</span></span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500802"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500802"><span class="hs-identifier hs-var">x</span></a></span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+-&gt; [(SrcSpanInfo, [Comment])] -&gt; [(SrcSpanInfo, [Comment])]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500803"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500804"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500805"><span class="hs-identifier hs-var">cmts</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span>
+</span><span id="line-85"></span><span class="annot"><span class="hs-comment">-- | Ensure that if file ends with comment we process it</span></span><span>
+</span><span id="line-86"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#lastPost"><span class="hs-identifier hs-type">lastPost</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-87"></span><span id="lastPost"><span class="annot"><span class="annottext">lastPost :: CommentAccumulator -&gt; [(SrcSpanInfo, [Comment])]
+</span><a href="Language.Haskell.Exts.Comments.html#lastPost"><span class="hs-identifier hs-var hs-var">lastPost</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Post"><span class="hs-identifier hs-type">Post</span></a></span><span> </span><span id="local-6989586621679500809"><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500809"><span class="hs-identifier hs-var">cmt</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679500810"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500810"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500811"><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500811"><span class="hs-identifier hs-var">past</span></a></span></span><span> </span><span id="local-6989586621679500812"><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500812"><span class="hs-identifier hs-var">assocs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500813"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500813"><span class="hs-identifier hs-var">toMerge</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HaddockComment -&gt; Bool)
+-&gt; [HaddockComment] -&gt; ([HaddockComment], [HaddockComment])
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><span class="hs-identifier hs-var">span</span></span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isNone"><span class="hs-identifier hs-var">isNone</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500810"><span class="hs-identifier hs-var">rest</span></a></span><span>
+</span><span id="line-89"></span><span>      </span><span id="local-6989586621679500816"><span class="annot"><span class="annottext">psrc :: SrcSpanInfo
+</span><a href="#local-6989586621679500816"><span class="hs-identifier hs-var hs-var">psrc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo] -&gt; SrcSpanInfo
+</span><a href="Language.Haskell.Exts.Comments.html#matchPreviousSrc"><span class="hs-identifier hs-var">matchPreviousSrc</span></a></span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500811"><span class="hs-identifier hs-var">past</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500812"><span class="hs-identifier hs-var">assocs</span></a></span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+-&gt; [(SrcSpanInfo, [Comment])] -&gt; [(SrcSpanInfo, [Comment])]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500816"><span class="hs-identifier hs-var">psrc</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500809"><span class="hs-identifier hs-var">cmt</span></a></span><span> </span><span class="annot"><span class="annottext">Comment -&gt; [Comment] -&gt; [Comment]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">(HaddockComment -&gt; Comment) -&gt; [HaddockComment] -&gt; [Comment]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; Comment
+</span><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var">hcComment</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500813"><span class="hs-identifier hs-var">toMerge</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-91"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#lastPost"><span class="hs-identifier hs-var">lastPost</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679500819"><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500819"><span class="hs-identifier hs-var">assocs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500819"><span class="hs-identifier hs-var">assocs</span></a></span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- | Accumulate comments mappings, either directly with the source</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- or in another association list for later processing</span><span>
+</span><span id="line-96"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-type">associate1</span></a></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span id="associate1"><span class="annot"><span class="annottext">associate1 :: CommentAccumulator
+-&gt; SrcSpanInfo -&gt; (CommentAccumulator, (SrcSpanInfo, [Comment]))
+</span><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-var hs-var">associate1</span></a></span></span><span> </span><span id="local-6989586621679500820"><span class="annot"><span class="annottext">ca :: CommentAccumulator
+</span><a href="#local-6989586621679500820"><span class="hs-identifier hs-var">ca</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500821"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500821"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">CommentAccumulator
+</span><a href="#local-6989586621679500820"><span class="hs-identifier hs-var">ca</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500821"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-var">associate1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500822"><span class="annot"><span class="annottext">hc :: HaddockComment
+</span><a href="#local-6989586621679500822"><span class="hs-identifier hs-var">hc</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Pre"><span class="hs-identifier hs-type">Pre</span></a></span><span> </span><span id="local-6989586621679500824"><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500824"><span class="hs-identifier hs-var">cmt</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679500825"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500825"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679500826"><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500826"><span class="hs-identifier hs-var">assocs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500827"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500827"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; SrcSpanInfo -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isBefore"><span class="hs-identifier hs-var">isBefore</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500822"><span class="hs-identifier hs-var">hc</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500827"><span class="hs-identifier hs-var">src</span></a></span><span>
+</span><span id="line-103"></span><span>    </span><span class="hs-keyword">then</span><span>
+</span><span id="line-104"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500829"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500829"><span class="hs-identifier hs-var">toMerge</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679500830"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500830"><span class="hs-identifier hs-var">next</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+-&gt; [HaddockComment] -&gt; ([HaddockComment], [HaddockComment])
+</span><a href="Language.Haskell.Exts.Comments.html#getToMerge"><span class="hs-identifier hs-var">getToMerge</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500827"><span class="hs-identifier hs-var">src</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500825"><span class="hs-identifier hs-var">rest</span></a></span><span>
+</span><span id="line-105"></span><span>          </span><span id="local-6989586621679500832"><span class="annot"><span class="annottext">newAssoc :: (SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500832"><span class="hs-identifier hs-var hs-var">newAssoc</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500827"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500824"><span class="hs-identifier hs-var">cmt</span></a></span><span> </span><span class="annot"><span class="annottext">Comment -&gt; [Comment] -&gt; [Comment]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">(HaddockComment -&gt; Comment) -&gt; [HaddockComment] -&gt; [Comment]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; Comment
+</span><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var">hcComment</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500829"><span class="hs-identifier hs-var">toMerge</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>      </span><span class="hs-keyword">in</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HaddockComment]
+-&gt; [SrcSpanInfo]
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500830"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500826"><span class="hs-identifier hs-var">assocs</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">(SrcSpanInfo, [Comment])
+</span><a href="#local-6989586621679500832"><span class="hs-identifier hs-var">newAssoc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HaddockComment]
+-&gt; [SrcSpanInfo]
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500822"><span class="hs-identifier hs-var">hc</span></a></span><span class="annot"><span class="annottext">HaddockComment -&gt; [HaddockComment] -&gt; [HaddockComment]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500825"><span class="hs-identifier hs-var">rest</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500826"><span class="hs-identifier hs-var">assocs</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500827"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-var">associate1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500833"><span class="annot"><span class="annottext">hc :: HaddockComment
+</span><a href="#local-6989586621679500833"><span class="hs-identifier hs-var">hc</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Post"><span class="hs-identifier hs-type">Post</span></a></span><span> </span><span id="local-6989586621679500834"><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500834"><span class="hs-identifier hs-var">cmt</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679500835"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500835"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500836"><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500836"><span class="hs-identifier hs-var">past</span></a></span></span><span> </span><span id="local-6989586621679500837"><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500837"><span class="hs-identifier hs-var">assocs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500838"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500838"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; SrcSpanInfo -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isBefore"><span class="hs-identifier hs-var">isBefore</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500833"><span class="hs-identifier hs-var">hc</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500838"><span class="hs-identifier hs-var">src</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-keyword">then</span><span>
+</span><span id="line-111"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679500839"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500839"><span class="hs-identifier hs-var">toMerge</span></a></span></span><span class="hs-special">,</span><span id="local-6989586621679500840"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500840"><span class="hs-identifier hs-var">next</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+-&gt; [HaddockComment] -&gt; ([HaddockComment], [HaddockComment])
+</span><a href="Language.Haskell.Exts.Comments.html#getToMerge"><span class="hs-identifier hs-var">getToMerge</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500838"><span class="hs-identifier hs-var">src</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500835"><span class="hs-identifier hs-var">rest</span></a></span><span>
+</span><span id="line-112"></span><span>          </span><span id="local-6989586621679500843"><span class="annot"><span class="annottext">newAssocs :: [(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500843"><span class="hs-identifier hs-var hs-var">newAssocs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>            </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo] -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500836"><span class="hs-identifier hs-var">past</span></a></span><span>
+</span><span id="line-114"></span><span>              </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500837"><span class="hs-identifier hs-var">assocs</span></a></span><span>
+</span><span id="line-115"></span><span>              </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500837"><span class="hs-identifier hs-var">assocs</span></a></span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+-&gt; [(SrcSpanInfo, [Comment])] -&gt; [(SrcSpanInfo, [Comment])]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="annottext">[SrcSpanInfo] -&gt; SrcSpanInfo
+</span><a href="Language.Haskell.Exts.Comments.html#matchPreviousSrc"><span class="hs-identifier hs-var">matchPreviousSrc</span></a></span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500836"><span class="hs-identifier hs-var">past</span></a></span><span class="hs-special">,</span><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500834"><span class="hs-identifier hs-var">cmt</span></a></span><span> </span><span class="annot"><span class="annottext">Comment -&gt; [Comment] -&gt; [Comment]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">(HaddockComment -&gt; Comment) -&gt; [HaddockComment] -&gt; [Comment]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; Comment
+</span><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var">hcComment</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500839"><span class="hs-identifier hs-var">toMerge</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-116"></span><span>      </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">CommentAccumulator
+-&gt; SrcSpanInfo -&gt; (CommentAccumulator, (SrcSpanInfo, [Comment]))
+</span><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-var">associate1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HaddockComment]
+-&gt; [SrcSpanInfo]
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500840"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500843"><span class="hs-identifier hs-var">newAssocs</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500838"><span class="hs-identifier hs-var">src</span></a></span><span>
+</span><span id="line-117"></span><span>    </span><span class="hs-keyword">else</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HaddockComment]
+-&gt; [SrcSpanInfo]
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500833"><span class="hs-identifier hs-var">hc</span></a></span><span class="annot"><span class="annottext">HaddockComment -&gt; [HaddockComment] -&gt; [HaddockComment]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500835"><span class="hs-identifier hs-var">rest</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500838"><span class="hs-identifier hs-var">src</span></a></span><span class="annot"><span class="annottext">SrcSpanInfo -&gt; [SrcSpanInfo] -&gt; [SrcSpanInfo]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500836"><span class="hs-identifier hs-var">past</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500837"><span class="hs-identifier hs-var">assocs</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500838"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#associate1"><span class="hs-identifier hs-var">associate1</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HaddockComment
+</span><span class="hs-identifier">_</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679500845"><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500845"><span class="hs-identifier hs-var">rest</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500846"><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500846"><span class="hs-identifier hs-var">past</span></a></span></span><span> </span><span id="local-6989586621679500847"><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500847"><span class="hs-identifier hs-var">assocs</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679500848"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500848"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-119"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HaddockComment]
+-&gt; [SrcSpanInfo]
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+</span><a href="#local-6989586621679500845"><span class="hs-identifier hs-var">rest</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500848"><span class="hs-identifier hs-var">src</span></a></span><span class="annot"><span class="annottext">SrcSpanInfo -&gt; [SrcSpanInfo] -&gt; [SrcSpanInfo]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500846"><span class="hs-identifier hs-var">past</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(SrcSpanInfo, [Comment])]
+</span><a href="#local-6989586621679500847"><span class="hs-identifier hs-var">assocs</span></a></span><span class="hs-special">,</span><span class="hs-special">(</span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500848"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span>
+</span><span id="line-122"></span><span class="annot"><span class="hs-comment">-- | The comment accumulator</span></span><span>
+</span><span id="line-123"></span><span class="hs-keyword">data</span><span> </span><span id="CommentAccumulator"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="CommentAccumulator"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span class="hs-special">]</span><span>          </span><span class="hs-comment">-- The Haddock comments to process</span><span>
+</span><span id="line-125"></span><span>  </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">]</span><span>             </span><span class="hs-comment">-- The past src infos to resolve post comments</span><span>
+</span><span id="line-126"></span><span>  </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-comment">-- The additional associations between src and comments</span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="annot"><span class="hs-comment">-- | Create a new accumulator</span></span><span>
+</span><span id="line-130"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#newAccumulator"><span class="hs-identifier hs-type">newAccumulator</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-type">CommentAccumulator</span></a></span><span>
+</span><span id="line-131"></span><span id="newAccumulator"><span class="annot"><span class="annottext">newAccumulator :: [Comment] -&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#newAccumulator"><span class="hs-identifier hs-var hs-var">newAccumulator</span></a></span></span><span> </span><span id="local-6989586621679500849"><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500849"><span class="hs-identifier hs-var">comments</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[HaddockComment]
+-&gt; [SrcSpanInfo]
+-&gt; [(SrcSpanInfo, [Comment])]
+-&gt; CommentAccumulator
+</span><a href="Language.Haskell.Exts.Comments.html#CommentAccumulator"><span class="hs-identifier hs-var">CommentAccumulator</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Comment] -&gt; [HaddockComment]
+</span><a href="Language.Haskell.Exts.Comments.html#commentsToHaddock"><span class="hs-identifier hs-var">commentsToHaddock</span></a></span><span> </span><span class="annot"><span class="annottext">[Comment]
+</span><a href="#local-6989586621679500849"><span class="hs-identifier hs-var">comments</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-132"></span><span>
+</span><span id="line-133"></span><span class="annot"><span class="hs-comment">-- | Get comments to merge</span></span><span>
+</span><span id="line-134"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#getToMerge"><span class="hs-identifier hs-type">getToMerge</span></a></span><span>
+</span><span id="line-135"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span>                         </span><span class="annot"><span class="hs-comment">-- ^ Stop before src</span></span><span>
+</span><span id="line-136"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span class="hs-special">]</span><span>                    </span><span class="annot"><span class="hs-comment">-- ^ All remaining comments</span></span><span>
+</span><span id="line-137"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-comment">-- ^ Comments to merge, left overs</span></span><span>
+</span><span id="line-138"></span><span id="getToMerge"><span class="annot"><span class="annottext">getToMerge :: SrcSpanInfo
+-&gt; [HaddockComment] -&gt; ([HaddockComment], [HaddockComment])
+</span><a href="Language.Haskell.Exts.Comments.html#getToMerge"><span class="hs-identifier hs-var hs-var">getToMerge</span></a></span></span><span> </span><span id="local-6989586621679500851"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500851"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HaddockComment -&gt; Bool)
+-&gt; [HaddockComment] -&gt; ([HaddockComment], [HaddockComment])
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><span class="hs-identifier hs-var">span</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679500852"><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500852"><span class="hs-identifier hs-var">hc</span></a></span></span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isNone"><span class="hs-identifier hs-var">isNone</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500852"><span class="hs-identifier hs-var">hc</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; SrcSpanInfo -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isBefore"><span class="hs-identifier hs-var">isBefore</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500852"><span class="hs-identifier hs-var">hc</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500851"><span class="hs-identifier hs-var">src</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span>
+</span><span id="line-141"></span><span class="annot"><span class="hs-comment">-- | Get the biggest src that ends where the first one does</span></span><span>
+</span><span id="line-142"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#matchPreviousSrc"><span class="hs-identifier hs-type">matchPreviousSrc</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span>
+</span><span id="line-143"></span><span id="matchPreviousSrc"><span class="annot"><span class="annottext">matchPreviousSrc :: [SrcSpanInfo] -&gt; SrcSpanInfo
+</span><a href="Language.Haskell.Exts.Comments.html#matchPreviousSrc"><span class="hs-identifier hs-var hs-var">matchPreviousSrc</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-144"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; SrcSpanInfo
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Language.Haskell.Exts.Annotated.Comments.matchPreviousSrc: empty list&quot;</span></span><span>
+</span><span id="line-145"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#matchPreviousSrc"><span class="hs-identifier hs-var">matchPreviousSrc</span></a></span><span> </span><span id="local-6989586621679500855"><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500855"><span class="hs-identifier hs-var">srcs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679500858"><span class="annot"><span class="annottext">end :: (Int, Int)
+</span><a href="#local-6989586621679500858"><span class="hs-identifier hs-var hs-var">end</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SrcSpan -&gt; (Int, Int)
+</span><a href="Language.Haskell.Exts.SrcLoc.html#srcSpanEnd"><span class="hs-identifier hs-var">srcSpanEnd</span></a></span><span> </span><span class="annot"><span class="annottext">(SrcSpan -&gt; (Int, Int)) -&gt; SrcSpan -&gt; (Int, Int)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo -&gt; SrcSpan
+</span><a href="Language.Haskell.Exts.SrcLoc.html#srcInfoSpan"><span class="hs-identifier hs-var">srcInfoSpan</span></a></span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo -&gt; SrcSpan) -&gt; SrcSpanInfo -&gt; SrcSpan
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo] -&gt; SrcSpanInfo
+forall a. HasCallStack =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500855"><span class="hs-identifier hs-var">srcs</span></a></span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo] -&gt; SrcSpanInfo
+forall a. HasCallStack =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">last</span></span><span> </span><span class="annot"><span class="annottext">([SrcSpanInfo] -&gt; SrcSpanInfo) -&gt; [SrcSpanInfo] -&gt; SrcSpanInfo
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(SrcSpanInfo -&gt; Bool) -&gt; [SrcSpanInfo] -&gt; [SrcSpanInfo]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Int, Int)
+</span><a href="#local-6989586621679500858"><span class="hs-identifier hs-var">end</span></a></span><span> </span><span class="annot"><span class="annottext">(Int, Int) -&gt; (Int, Int) -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Int, Int) -&gt; Bool)
+-&gt; (SrcSpanInfo -&gt; (Int, Int)) -&gt; SrcSpanInfo -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">SrcSpan -&gt; (Int, Int)
+</span><a href="Language.Haskell.Exts.SrcLoc.html#srcSpanEnd"><span class="hs-identifier hs-var">srcSpanEnd</span></a></span><span> </span><span class="annot"><span class="annottext">(SrcSpan -&gt; (Int, Int))
+-&gt; (SrcSpanInfo -&gt; SrcSpan) -&gt; SrcSpanInfo -&gt; (Int, Int)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo -&gt; SrcSpan
+</span><a href="Language.Haskell.Exts.SrcLoc.html#srcInfoSpan"><span class="hs-identifier hs-var">srcInfoSpan</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[SrcSpanInfo]
+</span><a href="#local-6989586621679500855"><span class="hs-identifier hs-var">srcs</span></a></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="annot"><span class="hs-comment">-- | Is a Haddock comment before a given location</span></span><span>
+</span><span id="line-150"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#isBefore"><span class="hs-identifier hs-type">isBefore</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#SrcSpanInfo"><span class="hs-identifier hs-type">SrcSpanInfo</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-151"></span><span id="isBefore"><span class="annot"><span class="annottext">isBefore :: HaddockComment -&gt; SrcSpanInfo -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isBefore"><span class="hs-identifier hs-var hs-var">isBefore</span></a></span></span><span> </span><span id="local-6989586621679500864"><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500864"><span class="hs-identifier hs-var">hc</span></a></span></span><span> </span><span id="local-6989586621679500865"><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500865"><span class="hs-identifier hs-var">src</span></a></span></span><span class="hs-glyph">=</span><span>
+</span><span id="line-152"></span><span>  </span><span class="hs-keyword">let</span><span>
+</span><span id="line-153"></span><span>    </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679500866"><span class="annot"><span class="annottext">SrcSpan
+</span><a href="#local-6989586621679500866"><span class="hs-identifier hs-var">csrc</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HaddockComment -&gt; Comment
+</span><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var">hcComment</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockComment
+</span><a href="#local-6989586621679500864"><span class="hs-identifier hs-var">hc</span></a></span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">SrcSpan
+</span><a href="#local-6989586621679500866"><span class="hs-identifier hs-var">csrc</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpan -&gt; SrcSpan -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&lt;</span></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo -&gt; SrcSpan
+</span><a href="Language.Haskell.Exts.SrcLoc.html#srcInfoSpan"><span class="hs-identifier hs-var">srcInfoSpan</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpanInfo
+</span><a href="#local-6989586621679500865"><span class="hs-identifier hs-var">src</span></a></span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="annot"><span class="hs-comment">-- | Represents a Haddock Comment</span></span><span>
+</span><span id="line-157"></span><span class="hs-keyword">data</span><span> </span><span id="HaddockComment"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-var">HaddockComment</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-158"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Comment before declaration</span></span><span>
+</span><span id="line-159"></span><span>  </span><span id="Pre"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Pre"><span class="hs-identifier hs-var">Pre</span></a></span></span><span>
+</span><span id="line-160"></span><span>   </span><span class="hs-special">{</span><span>
+</span><span id="line-161"></span><span>     </span><span id="hcComment"><span class="annot"><span class="annottext">HaddockComment -&gt; Comment
+</span><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var hs-var">hcComment</span></a></span></span><span class="hs-glyph">::</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span>
+</span><span id="line-162"></span><span>   </span><span class="hs-special">}</span><span>
+</span><span id="line-163"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Comment after declaration</span></span><span>
+</span><span id="line-164"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Post"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Post"><span class="hs-identifier hs-var">Post</span></a></span></span><span>  </span><span class="hs-special">{</span><span>
+</span><span id="line-165"></span><span>     </span><span id="hcComment"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var">hcComment</span></a></span></span><span class="hs-glyph">::</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span>
+</span><span id="line-166"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-167"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Non Haddock comment</span></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="None"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#None"><span class="hs-identifier hs-var">None</span></a></span></span><span>  </span><span class="hs-special">{</span><span>
+</span><span id="line-169"></span><span>     </span><span id="hcComment"><span class="annot"><a href="Language.Haskell.Exts.Comments.html#hcComment"><span class="hs-identifier hs-var">hcComment</span></a></span></span><span class="hs-glyph">::</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-171"></span><span>
+</span><span id="line-172"></span><span class="annot"><span class="hs-comment">-- | Is a comment not haddock?</span></span><span>
+</span><span id="line-173"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#isNone"><span class="hs-identifier hs-type">isNone</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-174"></span><span id="isNone"><span class="annot"><span class="annottext">isNone :: HaddockComment -&gt; Bool
+</span><a href="Language.Haskell.Exts.Comments.html#isNone"><span class="hs-identifier hs-var hs-var">isNone</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#None"><span class="hs-identifier hs-type">None</span></a></span><span> </span><span class="annot"><span class="annottext">Comment
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-175"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#isNone"><span class="hs-identifier hs-var">isNone</span></a></span><span> </span><span class="annot"><span class="annottext">HaddockComment
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span>
+</span><span id="line-178"></span><span class="annot"><span class="hs-comment">-- | Comments to Haddock Comments</span></span><span>
+</span><span id="line-179"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#commentsToHaddock"><span class="hs-identifier hs-type">commentsToHaddock</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-180"></span><span id="commentsToHaddock"><span class="annot"><span class="annottext">commentsToHaddock :: [Comment] -&gt; [HaddockComment]
+</span><a href="Language.Haskell.Exts.Comments.html#commentsToHaddock"><span class="hs-identifier hs-var hs-var">commentsToHaddock</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Comment -&gt; HaddockComment) -&gt; [Comment] -&gt; [HaddockComment]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Comment -&gt; HaddockComment
+</span><a href="Language.Haskell.Exts.Comments.html#commentToHaddock"><span class="hs-identifier hs-var">commentToHaddock</span></a></span><span>
+</span><span id="line-181"></span><span>
+</span><span id="line-182"></span><span class="annot"><span class="hs-comment">-- | Comment to Haddock Comment</span></span><span>
+</span><span id="line-183"></span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#commentToHaddock"><span class="hs-identifier hs-type">commentToHaddock</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#HaddockComment"><span class="hs-identifier hs-type">HaddockComment</span></a></span><span>
+</span><span id="line-184"></span><span id="commentToHaddock"><span class="annot"><span class="annottext">commentToHaddock :: Comment -&gt; HaddockComment
+</span><a href="Language.Haskell.Exts.Comments.html#commentToHaddock"><span class="hs-identifier hs-var hs-var">commentToHaddock</span></a></span></span><span> </span><span id="local-6989586621679500870"><span class="annot"><span class="annottext">c :: Comment
+</span><a href="#local-6989586621679500870"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.Comments.html#Comment"><span class="hs-identifier hs-type">Comment</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">SrcSpan
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679500871"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679500871"><span class="hs-identifier hs-var">txt</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-185"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; ShowS
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">dropWhile</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679500871"><span class="hs-identifier hs-var">txt</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-186"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'|'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Comment -&gt; HaddockComment
+</span><a href="Language.Haskell.Exts.Comments.html#Pre"><span class="hs-identifier hs-var">Pre</span></a></span><span> </span><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500870"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-187"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'^'</span></span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Comment -&gt; HaddockComment
+</span><a href="Language.Haskell.Exts.Comments.html#Post"><span class="hs-identifier hs-var">Post</span></a></span><span> </span><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500870"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-188"></span><span>    </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Comment -&gt; HaddockComment
+</span><a href="Language.Haskell.Exts.Comments.html#None"><span class="hs-identifier hs-var">None</span></a></span><span> </span><span class="annot"><span class="annottext">Comment
+</span><a href="#local-6989586621679500870"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-189"></span></pre></body></html>

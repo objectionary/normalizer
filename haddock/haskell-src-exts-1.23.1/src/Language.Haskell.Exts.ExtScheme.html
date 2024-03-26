@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# OPTIONS_HADDOCK hide #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Module      :  Language.Haskell.Exts.ExtScheme</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Copyright   :  (c) Niklas Broberg 2009</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE.txt)</span><span>
+</span><span id="line-7"></span><span class="hs-comment">--</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Maintainer  :  Niklas Broberg, d00nibro@chalmers.se</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Stability   :  stable</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-11"></span><span class="hs-comment">--</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Internal scheme for handling extensions in a</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- convenient fashion.</span><span>
+</span><span id="line-14"></span><span class="hs-comment">--</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Haskell.Exts.ExtScheme</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Extension.html"><span class="hs-identifier">Language.Haskell.Exts.Extension</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="ExtScheme"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#ExtScheme"><span class="hs-identifier hs-var">ExtScheme</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Any"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Any"><span class="hs-identifier hs-var">Any</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Extension.html#KnownExtension"><span class="hs-identifier hs-type">KnownExtension</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">|</span><span> </span><span id="All"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#All"><span class="hs-identifier hs-var">All</span></a></span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Extension.html#KnownExtension"><span class="hs-identifier hs-type">KnownExtension</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679458855"><span id="local-6989586621679458861"><span class="annot"><span class="annottext">ExtScheme -&gt; ExtScheme -&gt; Bool
+(ExtScheme -&gt; ExtScheme -&gt; Bool)
+-&gt; (ExtScheme -&gt; ExtScheme -&gt; Bool) -&gt; Eq ExtScheme
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ExtScheme -&gt; ExtScheme -&gt; Bool
+== :: ExtScheme -&gt; ExtScheme -&gt; Bool
+$c/= :: ExtScheme -&gt; ExtScheme -&gt; Bool
+/= :: ExtScheme -&gt; ExtScheme -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span id="local-6989586621679458867"><span id="local-6989586621679458876"><span id="local-6989586621679458880"><span class="annot"><span class="annottext">Int -&gt; ExtScheme -&gt; ShowS
+[ExtScheme] -&gt; ShowS
+ExtScheme -&gt; String
+(Int -&gt; ExtScheme -&gt; ShowS)
+-&gt; (ExtScheme -&gt; String)
+-&gt; ([ExtScheme] -&gt; ShowS)
+-&gt; Show ExtScheme
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ExtScheme -&gt; ShowS
+showsPrec :: Int -&gt; ExtScheme -&gt; ShowS
+$cshow :: ExtScheme -&gt; String
+show :: ExtScheme -&gt; String
+$cshowList :: [ExtScheme] -&gt; ShowS
+showList :: [ExtScheme] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">type</span><span> </span><span id="MExtScheme"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#MExtScheme"><span class="hs-identifier hs-var">MExtScheme</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#ExtScheme"><span class="hs-identifier hs-type">ExtScheme</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">class</span><span> </span><span id="Enabled"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Enabled"><span class="hs-identifier hs-var">Enabled</span></a></span></span><span> </span><span id="local-6989586621679458843"><span class="annot"><a href="#local-6989586621679458843"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-26"></span><span>  </span><span id="isEnabled"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-type">isEnabled</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679458843"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.Extension.html#KnownExtension"><span class="hs-identifier hs-type">KnownExtension</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Enabled"><span class="hs-identifier hs-type">Enabled</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Extension.html#KnownExtension"><span class="hs-identifier hs-type">KnownExtension</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-29"></span><span>  </span><span id="local-6989586621679458892"><span class="annot"><span class="annottext">isEnabled :: KnownExtension -&gt; [KnownExtension] -&gt; Bool
+</span><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-var hs-var hs-var hs-var">isEnabled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; [KnownExtension] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">elem</span></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Enabled"><span class="hs-identifier hs-type">Enabled</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#ExtScheme"><span class="hs-identifier hs-type">ExtScheme</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-32"></span><span>  </span><span id="local-6989586621679458902"><span class="annot"><span class="annottext">isEnabled :: ExtScheme -&gt; [KnownExtension] -&gt; Bool
+</span><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-var hs-var hs-var hs-var">isEnabled</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Any"><span class="hs-identifier hs-type">Any</span></a></span><span> </span><span id="local-6989586621679458903"><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458903"><span class="hs-identifier hs-var">exts</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679458904"><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458904"><span class="hs-identifier hs-var">enabled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(KnownExtension -&gt; Bool) -&gt; [KnownExtension] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension -&gt; [KnownExtension] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458904"><span class="hs-identifier hs-var">enabled</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458903"><span class="hs-identifier hs-var">exts</span></a></span><span>
+</span><span id="line-33"></span><span>  </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-var">isEnabled</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#All"><span class="hs-identifier hs-type">All</span></a></span><span> </span><span id="local-6989586621679458906"><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458906"><span class="hs-identifier hs-var">exts</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679458907"><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458907"><span class="hs-identifier hs-var">enabled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(KnownExtension -&gt; Bool) -&gt; [KnownExtension] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">KnownExtension -&gt; [KnownExtension] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458907"><span class="hs-identifier hs-var">enabled</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[KnownExtension]
+</span><a href="#local-6989586621679458906"><span class="hs-identifier hs-var">exts</span></a></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679458849"><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Enabled"><span class="hs-identifier hs-type">Enabled</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679458849"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#Enabled"><span class="hs-identifier hs-type">Enabled</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679458849"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-36"></span><span>  </span><span id="local-6989586621679458913"><span class="annot"><span class="annottext">isEnabled :: Maybe a -&gt; [KnownExtension] -&gt; Bool
+</span><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-var hs-var hs-var hs-var">isEnabled</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; [KnownExtension] -&gt; Bool
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-var">isEnabled</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679458915"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679458915"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; [KnownExtension] -&gt; Bool
+forall a. Enabled a =&gt; a -&gt; [KnownExtension] -&gt; Bool
+</span><a href="Language.Haskell.Exts.ExtScheme.html#isEnabled"><span class="hs-identifier hs-var">isEnabled</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679458915"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-38"></span></pre></body></html>

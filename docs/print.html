@@ -1,0 +1,1022 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>phi-normalizer</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/pagetoc.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="commands.html"><strong aria-hidden="true">3.</strong> Commands</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="commands/normalizer.html"><strong aria-hidden="true">3.1.</strong> normalizer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="commands/normalizer-transform.html"><strong aria-hidden="true">3.1.1.</strong> normalizer transform</a></li><li class="chapter-item expanded "><a href="commands/normalizer-dataize.html"><strong aria-hidden="true">3.1.2.</strong> normalizer dataize</a></li><li class="chapter-item expanded "><a href="commands/normalizer-metrics.html"><strong aria-hidden="true">3.1.3.</strong> normalizer metrics</a></li><li class="chapter-item expanded "><a href="commands/normalizer-report.html"><strong aria-hidden="true">3.1.4.</strong> normalizer report</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">phi-normalizer</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <div class="content-wrap">
+                            <h1 id="normalizer-for-𝜑-calculus"><a class="header" href="#normalizer-for-𝜑-calculus">Normalizer for 𝜑-calculus</a></h1>
+<p>Command line normalizer of 𝜑-calculus (<code>PHI</code>) expressions (as produced by the <a href="https://github.com/objectionary/eo">EO compiler</a>).</p>
+<p>This project aims to apply term rewriting techniques to "simplify" an input <code>PHI</code> expression and prepare it for further optimization passes. The simplification procedure will be a form of partial evaluation and normalization (see <a href="./commands/normalizer-transform.html">normalizer transform</a>).</p>
+<p>Contrary to traditional normalization in λ-calculus, we aim at rewriting rules that would help reduce certain metrics of expressions (see <a href="./commands/normalizer-metrics.html">normalizer metrics</a>).</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<p>Install the <code>normalizer</code> executable globally via <a href="https://docs.haskellstack.org/en/stable">stack</a>.
+Then, the <code>normalizer</code> executable will be available on <code>PATH</code>.</p>
+<h2 id="install-from-the-repository"><a class="header" href="#install-from-the-repository">Install from the repository</a></h2>
+<pre><code class="language-sh">git clone https://github.com/objectionary/normalizer --recurse-submodules
+cd normalizer
+export LC_ALL=C.UTF-8
+stack install normalizer
+</code></pre>
+<h2 id="install-from-hackage"><a class="header" href="#install-from-hackage">Install from Hackage</a></h2>
+<pre><code class="language-sh">stack update
+export LC_ALL=C.UTF-8
+stack install --resolver lts-22.11 eo-phi-normalizer
+</code></pre>
+<h2 id="uninstall"><a class="header" href="#uninstall">Uninstall</a></h2>
+<p>Learn where <code>stack</code> installs programs.</p>
+<pre><code class="language-sh">stack path --programs
+</code></pre>
+<p>Learn how to uninstall a program.</p>
+<pre><code class="language-sh">stack uninstall
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="commands"><a class="header" href="#commands">Commands</a></h1>
+<p>This section lists commands and options that you can use when you work with <code>normalizer</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="normalizer"><a class="header" href="#normalizer">normalizer</a></h1>
+<p>See commands supported by the <code>normalizer</code> executable.</p>
+<pre><code class="language-$ as console">normalizer --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer COMMAND
+
+  Work with PHI expressions.
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  transform                Transform a PHI program.
+  metrics                  Collect metrics for a PHI program.
+  dataize                  Dataize a PHI program.
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="normalizer-transform"><a class="header" href="#normalizer-transform">normalizer transform</a></h1>
+<h2 id="metaphi"><a class="header" href="#metaphi"><code>MetaPHI</code></a></h2>
+<p>You can define <a href="https://en.wikipedia.org/wiki/Rewriting#Term_rewriting_systems">rewrite rules</a> for the <code>PHI</code> language (the $\varphi$-calculus language) using <code>YAML</code> and the <code>MetaPHI</code> language that is a superset of <code>PHI</code>.</p>
+<p>See the <code>MetaPHI</code> <a href="https://bnfc.readthedocs.io/en/latest/lbnf.html">Labelled BNF</a> in <a href="https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/grammar/EO/Phi/Syntax.cf">Syntax.cf</a>.</p>
+<h2 id="phi-paper-rules"><a class="header" href="#phi-paper-rules">phi-paper rules</a></h2>
+<p>Currently, the <code>PHI</code> normalizer supports rules defined in an unpublished paper by Yegor Bugayenko.</p>
+<p><img src="commands/media/rules.jpg" alt="Rules" /></p>
+<h3 id="yegoryaml"><a class="header" href="#yegoryaml">yegor.yaml</a></h3>
+<p>These rules translated to <code>MetaPHI</code> are in <a href="https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/test/eo/phi/rules/yegor.yaml">yegor.yaml</a>.</p>
+<p>Each rule has the following structure:</p>
+<ul>
+<li><code>name</code> - Rule name.</li>
+<li><code>description</code> - Rule description.</li>
+<li><code>context</code> - (optional) Rule context. A context may contain:
+<ul>
+<li><code>global-object</code> - (optional) Global object <code>MetaId</code>.</li>
+<li><code>current-object</code> - (optional) Current object <code>MetaId</code>.</li>
+</ul>
+</li>
+<li><code>pattern</code> - Term pattern.
+<ul>
+<li>When this term pattern matches a subterm of a <code>PHI</code> term, <code>MetaId</code>s from the term pattern become associated with matching subexpressions of that subterm.</li>
+</ul>
+</li>
+<li><code>result</code> - Substitution result.
+<ul>
+<li><code>MetaId</code>s in the subterm pattern get replaced by their associated subexpressions.</li>
+</ul>
+</li>
+<li><code>when</code> - A list of conditions for pattern matching.
+<ul>
+<li><code>nf</code> - A list of <code>MetaId</code>s associated with subexpressions that shoud be in <a href="commands/normalizer-transform.html#normal-form">normal form</a>.</li>
+<li><code>present_attrs</code> - A list of attributes that must be present in subexpression bindings.
+<ul>
+<li><code>attrs</code> - A list of attributes. Can include <code>MetaId</code>s.</li>
+<li><code>bindings</code> - A list of bindings that must contain these attributes.</li>
+</ul>
+</li>
+<li><code>absent_attrs</code> - A list of attributes that must not be present in subexpression bindings.
+<ul>
+<li><code>attrs</code> - A list of attributes. Can include <code>MetaId</code>s.</li>
+<li><code>bindings</code> - A list of bindings that must not contain these attributes.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>tests</code> - A list of unit tests for this rule.
+<ul>
+<li><code>name</code> - Test name.</li>
+<li><code>input</code> - An initial <code>PHI</code> term.</li>
+<li><code>output</code> - The initial <code>PHI</code> term after this rule was applied.</li>
+<li><code>matches</code> - Whether the term pattern should match any subterm.</li>
+</ul>
+</li>
+</ul>
+<h3 id="normal-form"><a class="header" href="#normal-form">Normal form</a></h3>
+<p>An expression is in normal form when no rule can be applied to that expression.</p>
+<h2 id="environment"><a class="header" href="#environment">Environment</a></h2>
+<h3 id="repository"><a class="header" href="#repository">Repository</a></h3>
+<p>The commands in the following sections access files that are available in the project repository.
+Clone and enter the repository directory.</p>
+<pre><code class="language-sh">git clone https://github.com/objectionary/normalizer --recurse-submodules
+cd normalizer
+</code></pre>
+<h3 id="sample-program"><a class="header" href="#sample-program">Sample program</a></h3>
+<p>Save a <code>PHI</code> program to a file.
+This program will be used in subsequent commands.</p>
+<pre><code class="language-$">cat &gt; program.phi &lt;&lt;EOM
+{
+  ⟦
+    a ↦
+      ⟦
+        b ↦
+            ⟦
+              c ↦ ∅,
+              d ↦ ⟦ φ ↦ ξ.ρ.c ⟧
+            ⟧,
+        e ↦ ξ.b(c ↦ ⟦⟧).d
+      ⟧
+  ⟧
+}
+EOM
+</code></pre>
+<h2 id="cli"><a class="header" href="#cli">CLI</a></h2>
+<h3 id="--help"><a class="header" href="#--help"><code>--help</code></a></h3>
+<pre><code class="language-$ as console">normalizer transform --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
+                            [-o|--output-file FILE] [-s|--single]
+                            [--max-depth INT] [--max-growth-factor INT] [FILE]
+
+  Transform a PHI program.
+
+Available options:
+  -r,--rules FILE          FILE with user-defined rules. Must be specified.
+  -c,--chain               Output transformation steps.
+  -j,--json                Output JSON.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  -s,--single              Output a single expression.
+  --max-depth INT          Maximum depth of rules application. Defaults to 10.
+  --max-growth-factor INT  The factor by which to allow the input term to grow
+                           before stopping. Defaults to 10.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
+  -h,--help                Show this help text
+</code></pre>
+<h3 id="--rules"><a class="header" href="#--rules"><code>--rules</code></a></h3>
+<p>Normalize a 𝜑-expression from <code>program.phi</code> using the <a href="commands/normalizer-transform.html#yegoryaml">yegor.yaml</a> rules.</p>
+<p>There can be multiple numbered results that correspond to multiple rule application sequences.</p>
+<pre><code class="language-$ as console">normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+</code></pre>
+<pre><code class="language-console">Rule set based on Yegor's draft
+Input:
+{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+====================================================
+Result 1 out of 1:
+{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+----------------------------------------------------
+</code></pre>
+<h3 id="--chain"><a class="header" href="#--chain"><code>--chain</code></a></h3>
+<p>Use <code>--chain</code> to see numbered normalization steps for each normalization result.</p>
+<pre><code class="language-$ as console">normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+</code></pre>
+<pre><code class="language-console">Rule set based on Yegor's draft
+Input:
+{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+====================================================
+Result 1 out of 1:
+[ 1 / 1 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+----------------------------------------------------
+</code></pre>
+<h3 id="--json"><a class="header" href="#--json"><code>--json</code></a></h3>
+<pre><code class="language-$ as json">normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+</code></pre>
+<pre><code class="language-json">{
+  "input": "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }",
+  "output": [
+    ["{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"]
+  ]
+}
+</code></pre>
+<h3 id="--single"><a class="header" href="#--single"><code>--single</code></a></h3>
+<pre><code class="language-$ as console">normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+</code></pre>
+<pre><code class="language-console">{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+</code></pre>
+<h3 id="--single---json"><a class="header" href="#--single---json"><code>--single</code> <code>--json</code></a></h3>
+<pre><code class="language-$ as console">normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+</code></pre>
+<pre><code class="language-console">"{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"
+</code></pre>
+<h3 id="file-not-specified-read-from-stdin"><a class="header" href="#file-not-specified-read-from-stdin"><code>FILE</code> not specified (read from stdin)</a></h3>
+<pre><code class="language-$ as console">cat program.phi | normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+</code></pre>
+<pre><code class="language-console">"{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="normalizer-dataize"><a class="header" href="#normalizer-dataize"><code>normalizer dataize</code></a></h1>
+<p>Dataization is the process through which data is extracted from a given program/object.</p>
+<h2 id="dataization-process"><a class="header" href="#dataization-process">Dataization process</a></h2>
+<p>To dataize a given program written in $\varphi$-calculus, the first step is to normalize it according to the process outlined in <a href="commands/./normalizer-transform.html"><code>normalize tranform</code> docs</a>.
+Then, a single step of dataization is performed according to the following rules in order of priority:</p>
+<ol>
+<li>If the object is a formation that contains a $\Delta$-binding, the bytes attached to it are returned</li>
+<li>If the object is a formation that contains a $\lambda$-binding, the attached value is evaluated as a known built-in function and its result is returned. Currently, the following functions are supported:
+<ul>
+<li><code>Times</code></li>
+<li><code>Plus</code></li>
+<li><code>Package</code>: this $\lambda$-binding is currently ignored (dataization proceeds as if it was not there) until proper support is added for specifying the path of the object to be dataized.</li>
+</ul>
+</li>
+<li>If the object is a formation that contains a $\phi$-binding, the result becomes the dataization of its attached object</li>
+<li>If the object is an application, the object on which the bindings are applied is dataized and then the application is reapplied on its result. In other words, $\mathbb{D}\left(obj(a \mapsto b, ...)\right) = \mathbb{D}\left(obj\right)(a \mapsto b, ...)$</li>
+<li>If the object is a dispatch, the object on which the attribute is being dispatched is dataized and then the attribute is dispatched on its result. In other words, $\mathbb{D}\left(obj.\alpha\right) = \mathbb{D}\left(obj\right).\alpha$</li>
+</ol>
+<p>The full dataization process is achieved by recursively normalizing and dataizing according to the rules above until bytes are reached or the object does not change (in which case the dataization is considered to have failed).</p>
+<h2 id="cli-1"><a class="header" href="#cli-1">CLI</a></h2>
+<p>The examples in the following sections assume the existence a file <code>celsius.phi</code> with the following content:</p>
+<pre><code>{⟦
+  σ ↦ Φ,
+  c ↦ Φ.org.eolang.float(Δ ⤍ 19-), // 0x19 = 25
+  // The 02- should technically be 1.8 (or its float representation in bytes), but only integers are supported for now
+  φ ↦ ξ.c.times(α0 ↦ ⟦ Δ ⤍ 02- ⟧)
+          .plus(α0 ↦ ⟦ Δ ⤍ 20- ⟧), // 0x20 = 32
+  org ↦ ⟦
+    eolang ↦ ⟦
+      float ↦ ⟦
+        Δ ⤍ ∅,
+        times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧,
+        plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧
+      ⟧
+    ⟧
+  ⟧
+⟧}
+</code></pre>
+<p>Dataization is done using the <code>dataize</code> subcommand, and it supports the following arguments:</p>
+<h3 id="--help-1"><a class="header" href="#--help-1"><code>--help</code></a></h3>
+<pre><code class="language-$ as console">normalizer dataize --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer dataize (-r|--rules FILE) [FILE] [-o|--output-file FILE]
+                          [--recursive] [--chain]
+
+  Dataize a PHI program.
+
+Available options:
+  -r,--rules FILE          FILE with user-defined rules. Must be specified.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  --recursive              Apply dataization + normalization recursively.
+  --chain                  Display all the intermediate steps.
+  -h,--help                Show this help text
+</code></pre>
+<h3 id="--rules-1"><a class="header" href="#--rules-1"><code>--rules</code></a></h3>
+<p>Similar to <code>--rules</code> for the <code>transform</code> subcommand, this argument accepts the path to a YAML file containing the rules to be used in the normalization phase.</p>
+<h3 id="--chain-1"><a class="header" href="#--chain-1"><code>--chain</code></a></h3>
+<p>If the <code>--chain</code> argument is passed, all the intermediate steps of normalization + dataization are printed to the console (or the output file if chosen).</p>
+<pre><code class="language-$ as console">normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">Normal form: ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧
+Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Dataizing inside application: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus
+Dataizing inside dispatch: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧) (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Dataizing inside application: ξ.c.times.plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Dataizing inside dispatch: ξ.c (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Dataizing inside dispatch: ξ.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Nothing to dataize: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+</code></pre>
+<h3 id="--output-file"><a class="header" href="#--output-file"><code>--output-file</code></a></h3>
+<p>Redirects the output to file of the given path instead of <code>stdout</code>.</p>
+<h3 id="--recursive"><a class="header" href="#--recursive"><code>--recursive</code></a></h3>
+<p>Applies the normalization+dataization process recursively until it reaches bytes or no longer modifies the object (stalls).</p>
+<pre><code class="language-$ as console">normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">52-
+</code></pre>
+<p>Can be combined with <code>--chain</code> to print all the intermediate steps of both normalization and dataization.</p>
+<h3 id="file-not-specified-read-from-stdin-1"><a class="header" href="#file-not-specified-read-from-stdin-1"><code>FILE</code> not specified (read from stdin)</a></h3>
+<p>If no argument is given for the input file, <code>stdin</code> is consumed until <code>EOF</code>.</p>
+<pre><code class="language-$ as console">cat celsius.phi | normalizer dataize --recursive --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+</code></pre>
+<pre><code class="language-console">52-
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="normalizer-metrics"><a class="header" href="#normalizer-metrics">normalizer metrics</a></h1>
+<h2 id="metrics"><a class="header" href="#metrics">Metrics</a></h2>
+<p>We count:</p>
+<ul>
+<li><a href="commands/normalizer-metrics.html#object-applications">Object applications</a></li>
+<li><a href="commands/normalizer-metrics.html#object-formations">Object formations</a></li>
+<li><a href="commands/normalizer-metrics.html#dynamic-dispatches">Dynamic dispatches</a></li>
+<li><a href="commands/normalizer-metrics.html#dataless-formations">Dataless formations</a></li>
+</ul>
+<h3 id="phi-grammar"><a class="header" href="#phi-grammar">PHI grammar</a></h3>
+<p><img src="commands/../media/phi-grammar.png" alt="phi-grammar" /></p>
+<h3 id="object-formations"><a class="header" href="#object-formations">Object formations</a></h3>
+<ul>
+<li><code>⟦ d ↦ ∅, c ↦ ∅ ⟧</code></li>
+</ul>
+<h3 id="object-applications"><a class="header" href="#object-applications">Object applications</a></h3>
+<ul>
+<li><code>ξ.b(c ↦ ⟦ ⟧)</code></li>
+</ul>
+<h3 id="dynamic-dispatches"><a class="header" href="#dynamic-dispatches">Dynamic dispatches</a></h3>
+<ul>
+<li><code>ξ.ρ.c</code></li>
+</ul>
+<h3 id="dataless-formations"><a class="header" href="#dataless-formations">Dataless formations</a></h3>
+<ul>
+<li><code>Primitive formation</code> - a formation that has a <code>Δ</code> attribute.
+<ul>
+<li><code>⟦ Δ ⤍ 00- ⟧</code></li>
+</ul>
+</li>
+<li><code>Dataless formation</code> - not primitive and does not have attributes that map to primitive formations.
+<ul>
+<li><code>⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧</code>
+<ul>
+<li>the outermost formation with attributes <code>d</code> and <code>c</code> is dataless because it is not primitive and its attributes do not map to primitive formations.</li>
+<li><code>d</code> is not dataless because it has an attribute <code>ν</code> that maps to a primitive formation.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="environment-1"><a class="header" href="#environment-1">Environment</a></h2>
+<p>Save a <code>PHI</code> program to a file.
+This program will be used in subsequent commands.</p>
+<pre><code class="language-$">cat &gt; program.phi &lt;&lt;EOM
+{
+  ⟦
+    a ↦
+      ⟦
+        b ↦
+            ⟦
+              c ↦ ∅,
+              d ↦ ⟦ φ ↦ ξ.ρ.c ⟧
+            ⟧,
+        e ↦ ξ.b(c ↦ ⟦⟧).d
+      ⟧
+  ⟧
+}
+EOM
+</code></pre>
+<h2 id="cli-2"><a class="header" href="#cli-2">CLI</a></h2>
+<h3 id="--help-2"><a class="header" href="#--help-2"><code>--help</code></a></h3>
+<pre><code class="language-$ as console">normalizer metrics --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer metrics [FILE] [-o|--output-file FILE]
+                          [-b|--bindings-by-path PATH]
+
+  Collect metrics for a PHI program.
+
+Available options:
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  -b,--bindings-by-path PATH
+                           Report metrics for bindings of a formation accessible
+                           in a program by a PATH. The default PATH is empty.
+                           Example of a PATH: 'org.eolang'.
+  -h,--help                Show this help text
+</code></pre>
+<h3 id="file"><a class="header" href="#file"><code>FILE</code></a></h3>
+<pre><code class="language-$ as json">normalizer metrics program.phi
+</code></pre>
+<pre><code class="language-json">{
+  "bindingsByPathMetrics": {
+    "bindingsMetrics": [
+      {
+        "metrics": {
+          "applications": 1,
+          "dataless": 1,
+          "dispatches": 4,
+          "formations": 4
+        },
+        "name": "a"
+      }
+    ],
+    "path": []
+  },
+  "programMetrics": {
+    "applications": 1,
+    "dataless": 1,
+    "dispatches": 4,
+    "formations": 5
+  }
+}
+</code></pre>
+<h3 id="file-not-specified-read-from-stdin-2"><a class="header" href="#file-not-specified-read-from-stdin-2"><code>FILE</code> not specified (read from stdin)</a></h3>
+<pre><code class="language-$ as json">cat program.phi | normalizer metrics
+</code></pre>
+<pre><code class="language-json">{
+  "bindingsByPathMetrics": {
+    "bindingsMetrics": [
+      {
+        "metrics": {
+          "applications": 1,
+          "dataless": 1,
+          "dispatches": 4,
+          "formations": 4
+        },
+        "name": "a"
+      }
+    ],
+    "path": []
+  },
+  "programMetrics": {
+    "applications": 1,
+    "dataless": 1,
+    "dispatches": 4,
+    "formations": 5
+  }
+}
+</code></pre>
+<h3 id="--bindings-by-path"><a class="header" href="#--bindings-by-path"><code>--bindings-by-path</code></a></h3>
+<pre><code class="language-$ as console">normalizer metrics --bindings-by-path "a" program.phi
+</code></pre>
+<pre><code class="language-console">{
+  "bindingsByPathMetrics": {
+    "bindingsMetrics": [
+      {
+        "metrics": {
+          "applications": 0,
+          "dataless": 0,
+          "dispatches": 2,
+          "formations": 2
+        },
+        "name": "b"
+      },
+      {
+        "metrics": {
+          "applications": 1,
+          "dataless": 1,
+          "dispatches": 2,
+          "formations": 1
+        },
+        "name": "e"
+      }
+    ],
+    "path": [
+      "a"
+    ]
+  },
+  "programMetrics": {
+    "applications": 1,
+    "dataless": 1,
+    "dispatches": 4,
+    "formations": 5
+  }
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="normalizer-report"><a class="header" href="#normalizer-report">normalizer report</a></h1>
+<h2 id="reports"><a class="header" href="#reports">Reports</a></h2>
+<p>The <code>report</code> command generates reports about initial and normalized <code>PHI</code> programs.</p>
+<p>The reports contain detailed information about metrics collected for these programs.</p>
+<p>The reports are in <code>HTML</code>, <code>GitHub Flavored Markdown</code>, and <code>JSON</code> formats.</p>
+<h2 id="environment-2"><a class="header" href="#environment-2">Environment</a></h2>
+<p>The command requires that there are:</p>
+<ul>
+<li>Initial <code>PHI</code> programs</li>
+<li>Normalized <code>PHI</code> programs</li>
+<li>A report configuration file</li>
+</ul>
+<h3 id="phi-programs"><a class="header" href="#phi-programs"><code>PHI</code> programs</a></h3>
+<p>Currently, we translate <code>EO</code> programs and get initial <code>PHI</code> programs.</p>
+<p>Next, we normalize these <code>PHI</code> programs and get normalized <code>PHI</code> programs.</p>
+<h3 id="report-configuration-file"><a class="header" href="#report-configuration-file">Report configuration file</a></h3>
+<p>The report configuration file has several attributes:</p>
+<ul>
+<li><code>input</code>
+<ul>
+<li><code>js</code> - Optional path to a <code>JavaScript</code> file that should be inlined into an <code>HTML</code> report.
+<ul>
+<li>If no path is specified, <code>normalizer</code> will use <code>report/main.js</code> from the <code>eo-phi-normalizer</code> package.</li>
+</ul>
+</li>
+<li><code>css</code> - Optional path to a <code>CSS</code> file that should be inlined into an <code>HTML</code> report.
+<ul>
+<li>If no path is specified, <code>normalizer</code> will use <code>report/styles.css</code> from the <code>eo-phi-normalizer</code> package.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>output</code>
+<ul>
+<li><code>html</code> - Optional path to an <code>HTML</code> report.
+<ul>
+<li>If no path is specified, the <code>HTML</code> report won't be generated.</li>
+</ul>
+</li>
+<li><code>json</code> - Optional path to a <code>JSON</code> report.
+<ul>
+<li>If no path is specified, the <code>JSON</code> report won't be generated.</li>
+</ul>
+</li>
+<li><code>markdown</code> - Optional path to a <code>GitHub Flavored Markdown</code> report.
+<ul>
+<li>If no path is specified, the <code>GitHub Flavored Markdown</code> report won't be generated.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>expected-metrics-change</code> - Specifies expected changes of metrics for normalized <code>PHI</code> programs relative to the initial <code>PHI</code> programs. Values represent <code>(metric_initial - metric_normalized) / metric_ initial</code>. Attributes:
+<ul>
+<li><code>dataless</code></li>
+<li><code>applications</code></li>
+<li><code>formations</code></li>
+<li><code>dispatches</code></li>
+</ul>
+</li>
+<li><code>items</code>
+<ul>
+<li><code>phi</code> - path to an initial <code>PHI</code> program.</li>
+<li><code>phi-normalized</code> - path to a normalized <code>PHI</code> program.
+<ul>
+<li>The normalized <code>PHI</code> program should correspond to the initial <code>PHI</code> program.</li>
+</ul>
+</li>
+<li><code>bindings-path-phi</code> - path to bindings of a formation in the initial <code>PHI</code> program.
+<ul>
+<li><code>org.eolang</code> corresponds to a formation <code>Φ.org.eolang</code>.</li>
+</ul>
+</li>
+<li><code>bindings-path-phi-normalized</code> - path to bindings of a formation in the normalized <code>PHI</code> program.
+<ul>
+<li><code>org.eolang</code> corresponds to a formation <code>Φ.org.eolang</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="sample-report-configuration-file"><a class="header" href="#sample-report-configuration-file">Sample report configuration file</a></h4>
+<p>The <code>normalizer</code> repository contains the <code>report/config.yaml</code> report configuration file.</p>
+<details>
+<summary>Click to view the file</summary>
+<pre><code class="language-yaml">output:
+  html: report/report.html
+  json: report/report.json
+  markdown: report/report.md
+expected-metrics-change:
+  dataless: 0.2
+  applications: 0.2
+  formations: 0.1
+  dispatches: 0.2
+items:
+- phi: pipeline/phi/as-phi-tests.phi
+  phi-normalized: pipeline/phi-normalized/as-phi-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/bytes-tests.phi
+  phi-normalized: pipeline/phi-normalized/bytes-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/cage-tests.phi
+  phi-normalized: pipeline/phi-normalized/cage-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/cti-test.phi
+  phi-normalized: pipeline/phi-normalized/cti-test.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/float-tests.phi
+  phi-normalized: pipeline/phi-normalized/float-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/goto-tests.phi
+  phi-normalized: pipeline/phi-normalized/goto-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/heap-tests.phi
+  phi-normalized: pipeline/phi-normalized/heap-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/int-tests.phi
+  phi-normalized: pipeline/phi-normalized/int-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/memory-tests.phi
+  phi-normalized: pipeline/phi-normalized/memory-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/nan-tests.phi
+  phi-normalized: pipeline/phi-normalized/nan-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/negative-infinity-tests.phi
+  phi-normalized: pipeline/phi-normalized/negative-infinity-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/nop-tests.phi
+  phi-normalized: pipeline/phi-normalized/nop-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/positive-infinity-tests.phi
+  phi-normalized: pipeline/phi-normalized/positive-infinity-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/ram-tests.phi
+  phi-normalized: pipeline/phi-normalized/ram-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/runtime-tests.phi
+  phi-normalized: pipeline/phi-normalized/runtime-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/seq-tests.phi
+  phi-normalized: pipeline/phi-normalized/seq-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/string-tests.phi
+  phi-normalized: pipeline/phi-normalized/string-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/switch-tests.phi
+  phi-normalized: pipeline/phi-normalized/switch-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/try-tests.phi
+  phi-normalized: pipeline/phi-normalized/try-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/tuple-tests.phi
+  phi-normalized: pipeline/phi-normalized/tuple-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/unit-tests.phi
+  phi-normalized: pipeline/phi-normalized/unit-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+</code></pre>
+</details>
+<h2 id="cli-3"><a class="header" href="#cli-3">CLI</a></h2>
+<h3 id="--help-3"><a class="header" href="#--help-3"><code>--help</code></a></h3>
+<pre><code class="language-$ as console">normalizer report --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer report (-c|--config FILE)
+
+  Generate reports about initial and normalized PHI programs.
+
+Available options:
+  -c,--config FILE         The FILE with a report configuration.
+  -h,--help                Show this help text
+</code></pre>
+<h3 id="--config"><a class="header" href="#--config"><code>--config</code></a></h3>
+<p>Generate reports using a configuration file <code>report/config.yaml</code>.</p>
+<pre><code class="language-$ as console">normalizer report --config report/config.yaml
+ls report/report*
+</code></pre>
+<pre><code class="language-console">report/report.html
+report/report.json
+report/report.md
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
+<p>We recommend using <a href="https://docs.haskellstack.org/en/stable/README/">stack</a> for quick local development and testing.</p>
+<p>Clone this project and run <code>stack build</code>.</p>
+<pre><code class="language-sh">git clone https://github.com/objectionary/normalizer --recurse-submodules
+cd normalizer
+stack build
+</code></pre>
+<h2 id="run"><a class="header" href="#run">Run</a></h2>
+<p>Run the executable via <code>stack run</code>.</p>
+<pre><code class="language-$ as console">stack run normalizer -- --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer COMMAND
+
+  Work with PHI expressions.
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  transform                Transform a PHI program.
+  metrics                  Collect metrics for a PHI program.
+</code></pre>
+<p>Or, omit the executable name.</p>
+<pre><code class="language-$ as console">stack run -- --help
+</code></pre>
+<pre><code class="language-console">Usage: normalizer COMMAND
+
+  Work with PHI expressions.
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  transform                Transform a PHI program.
+  metrics                  Collect metrics for a PHI program.
+</code></pre>
+<h2 id="test"><a class="header" href="#test">Test</a></h2>
+<p>Run all tests</p>
+<pre><code class="language-sh">stack test
+</code></pre>
+<h2 id="contribute"><a class="header" href="#contribute">Contribute</a></h2>
+<h2 id="math-expressions"><a class="header" href="#math-expressions">Math expressions</a></h2>
+<p>Use the syntax supported by <code>mdBook</code> - see <a href="https://rust-lang.github.io/mdBook/format/mathjax.html">docs</a>.</p>
+<h2 id="pre-commit"><a class="header" href="#pre-commit">pre-commit</a></h2>
+<p>We use <a href="https://pre-commit.com/">pre-commit</a> to ensure code quality.</p>
+<p>Collaborators <strong>MUST</strong> set them up before commiting any code to our repository.</p>
+<p>Otherwise, the triggered CI jobs will fail.</p>
+<h3 id="set-up-pre-commit"><a class="header" href="#set-up-pre-commit">Set up pre-commit</a></h3>
+<h4 id="single-command"><a class="header" href="#single-command">Single command</a></h4>
+<pre><code class="language-console">pip3 install
+pre-commit install
+stack install fourmolu
+chmod +x scripts/run-fourmolu.sh
+</code></pre>
+<h4 id="step-by-step"><a class="header" href="#step-by-step">Step by step</a></h4>
+<ol>
+<li>
+<p>Install <a href="https://www.python.org/downloads/">Python 3</a> (e.g., Python 3.10).</p>
+</li>
+<li>
+<p><a href="https://pre-commit.com/#1-install-pre-commit">Install pre-commit</a>.</p>
+<ul>
+<li>Alternatively, run <code>pip3 install</code>.</li>
+</ul>
+</li>
+<li>
+<p><a href="https://pre-commit.com/#3-install-the-git-hook-scripts">Install the git hook scripts</a>.</p>
+</li>
+<li>
+<p>Install <a href="https://github.com/fourmolu/fourmolu">fourmolu</a>.</p>
+<pre><code class="language-console">stack install fourmolu
+</code></pre>
+<ul>
+<li>You can remove <code>fourmolu</code> later (see <a href="https://stackoverflow.com/a/38639959">SO post</a>)</li>
+</ul>
+</li>
+<li>
+<p>Make a script executable.</p>
+<pre><code class="language-console">chmod +x scripts/run-fourmolu.sh
+</code></pre>
+</li>
+</ol>
+<h3 id="pre-commit-configs"><a class="header" href="#pre-commit-configs">pre-commit configs</a></h3>
+<p>See <a href="https://pre-commit.com/#adding-pre-commit-plugins-to-your-project">docs</a>.</p>
+<p>See <a href=".pre-commit-config.yaml">.pre-commit-config.yaml</a>.</p>
+<p>You can run a specific hook (see <a href="https://pre-commit.com/#pre-commit-run">docs</a>):</p>
+<pre><code class="language-console">pre-commit run -c .pre-commit-config.yaml fourmolu-format --all
+</code></pre>
+<h3 id="pre-commit-workflow"><a class="header" href="#pre-commit-workflow">pre-commit workflow</a></h3>
+<ul>
+<li>
+<p><code>pre-commit</code> runs before a commit (at the <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks#_committing_workflow_hooks">pre-commit phase</a>)</p>
+<blockquote>
+<p>The pre-commit hook is run first, before you even type in a commit message. It's used to inspect the snapshot that's about to be committed, to see if you've forgotten something, to make sure tests run, or to examine whatever you need to inspect in the code. Exiting non-zero from this hook aborts the commit ...</p>
+</blockquote>
+</li>
+<li>
+<p><code>pre-commit</code> stashes (<a href="https://git-scm.com/docs/git-stash">link</a>) unstaged (<a href="https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F#_the_three_states">link</a>) files.</p>
+<pre><code class="language-console">[WARNING] Unstaged files detected.
+[INFO] Stashing unstaged files to /home/eyjafjallajokull/.cache/pre-commit/patch1705090051-437857.
+</code></pre>
+</li>
+<li>
+<p><code>pre-commit</code> runs hooks.</p>
+</li>
+<li>
+<p>A hook may exit with an error, e.g.:</p>
+<pre><code class="language-md">Format Haskell (.hs) files...............................................Failed
+
+- hook id: fourmolu
+- exit code: 102
+- files were modified by this hook
+</code></pre>
+<ul>
+<li>In case of the <a href="https://github.com/fourmolu/fourmolu">fourmolu</a> formatter,
+it's assumed that formatting a formatted <code>Haskell</code> file doesn't modify it.
+However, <code>pre-commit</code> runs the <code>fourmolu</code> hook and reports that it has modified some files.
+This error won't allow you to commit.</li>
+</ul>
+</li>
+<li>
+<p><code>pre-commit</code> unstashes files.</p>
+</li>
+<li>
+<p>You should stage all changes so that <code>pre-commit</code> does not complain.</p>
+<ul>
+<li>In case of <code>fourmolu</code>, stage the formatted code regions.</li>
+</ul>
+</li>
+<li>
+<p>Now, you can commit.</p>
+</li>
+</ul>
+
+                        </div>
+                        <div class="sidetoc">
+                            <nav class="pagetoc"></nav>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="theme/pagetoc.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            MathJax.Hub.Register.StartupHook('End', function() {
+                window.setTimeout(window.print, 100);
+            });
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

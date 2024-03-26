@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.String.Interpolate.Types</span><span>
+</span><span id="line-2"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Data.String.Interpolate.Types.html#InterpSegment"><span class="hs-identifier">InterpSegment</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-3"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.String.Interpolate.Types.html#Line"><span class="hs-identifier">Line</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.String.Interpolate.Types.html#Lines"><span class="hs-identifier">Lines</span></a></span><span>
+</span><span id="line-4"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">data</span><span> </span><span id="InterpSegment"><span class="annot"><a href="Data.String.Interpolate.Types.html#InterpSegment"><span class="hs-identifier hs-var">InterpSegment</span></a></span></span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Expression"><span class="annot"><a href="Data.String.Interpolate.Types.html#Expression"><span class="hs-identifier hs-var">Expression</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-9"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Verbatim"><span class="annot"><a href="Data.String.Interpolate.Types.html#Verbatim"><span class="hs-identifier hs-var">Verbatim</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Spaces"><span class="annot"><a href="Data.String.Interpolate.Types.html#Spaces"><span class="hs-identifier hs-var">Spaces</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-11"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="Tabs"><span class="annot"><a href="Data.String.Interpolate.Types.html#Tabs"><span class="hs-identifier hs-var">Tabs</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679099766"><span id="local-6989586621679099775"><span class="annot"><span class="annottext">InterpSegment -&gt; InterpSegment -&gt; Bool
+(InterpSegment -&gt; InterpSegment -&gt; Bool)
+-&gt; (InterpSegment -&gt; InterpSegment -&gt; Bool) -&gt; Eq InterpSegment
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: InterpSegment -&gt; InterpSegment -&gt; Bool
+== :: InterpSegment -&gt; InterpSegment -&gt; Bool
+$c/= :: InterpSegment -&gt; InterpSegment -&gt; Bool
+/= :: InterpSegment -&gt; InterpSegment -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679099781"><span id="local-6989586621679099795"><span id="local-6989586621679099799"><span class="annot"><span class="annottext">Int -&gt; InterpSegment -&gt; ShowS
+[InterpSegment] -&gt; ShowS
+InterpSegment -&gt; String
+(Int -&gt; InterpSegment -&gt; ShowS)
+-&gt; (InterpSegment -&gt; String)
+-&gt; ([InterpSegment] -&gt; ShowS)
+-&gt; Show InterpSegment
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; InterpSegment -&gt; ShowS
+showsPrec :: Int -&gt; InterpSegment -&gt; ShowS
+$cshow :: InterpSegment -&gt; String
+show :: InterpSegment -&gt; String
+$cshowList :: [InterpSegment] -&gt; ShowS
+showList :: [InterpSegment] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">type</span><span> </span><span id="Line"><span class="annot"><a href="Data.String.Interpolate.Types.html#Line"><span class="hs-identifier hs-var">Line</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Data.String.Interpolate.Types.html#InterpSegment"><span class="hs-identifier hs-type">InterpSegment</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">type</span><span> </span><span id="Lines"><span class="annot"><a href="Data.String.Interpolate.Types.html#Lines"><span class="hs-identifier hs-var">Lines</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Data.String.Interpolate.Types.html#Line"><span class="hs-identifier hs-type">Line</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-16"></span></pre></body></html>

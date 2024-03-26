@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Module      :  Language.Haskell.Exts.Lexer</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright   :  (c) The GHC Team, 1997-2000</span><span>
+</span><span id="line-5"></span><span class="hs-comment">--                (c) Niklas Broberg, 2004-2012</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- License     :  BSD-style (see the file LICENSE.txt)</span><span>
+</span><span id="line-7"></span><span class="hs-comment">--</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Maintainer  :  Niklas Broberg, niklas.broberg@chalmers.se</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Stability   :  stable</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- Portability :  portable</span><span>
+</span><span id="line-11"></span><span class="hs-comment">--</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- Lexer for Haskell with extensions.</span><span>
+</span><span id="line-13"></span><span class="hs-comment">--</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Haskell.Exts.Lexer</span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">(</span><span>
+</span><span id="line-18"></span><span>      </span><span class="annot"><a href="Language.Haskell.Exts.Lexer.html#lexTokenStream"><span class="hs-identifier">lexTokenStream</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.Lexer.html#lexTokenStreamWithMode"><span class="hs-identifier">lexTokenStreamWithMode</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span>      </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#Token"><span class="hs-identifier">Token</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier">Loc</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span>      </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#showToken"><span class="hs-identifier">showToken</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html"><span class="hs-identifier">Language.Haskell.Exts.InternalLexer</span></a></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ParseMonad.html"><span class="hs-identifier">Language.Haskell.Exts.ParseMonad</span></a></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html"><span class="hs-identifier">Language.Haskell.Exts.SrcLoc</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="annot"><span class="hs-comment">-- | Lex a string into a list of Haskell 2010 source tokens.</span></span><span>
+</span><span id="line-31"></span><span class="annot"><a href="Language.Haskell.Exts.Lexer.html#lexTokenStream"><span class="hs-identifier hs-type">lexTokenStream</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ParseMonad.html#ParseResult"><span class="hs-identifier hs-type">ParseResult</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier hs-type">Loc</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-32"></span><span id="lexTokenStream"><span class="annot"><span class="annottext">lexTokenStream :: String -&gt; ParseResult [Loc Token]
+</span><a href="Language.Haskell.Exts.Lexer.html#lexTokenStream"><span class="hs-identifier hs-var hs-var">lexTokenStream</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParseMode -&gt; String -&gt; ParseResult [Loc Token]
+</span><a href="Language.Haskell.Exts.Lexer.html#lexTokenStreamWithMode"><span class="hs-identifier hs-var">lexTokenStreamWithMode</span></a></span><span> </span><span class="annot"><span class="annottext">ParseMode
+</span><a href="Language.Haskell.Exts.ParseMonad.html#defaultParseMode"><span class="hs-identifier hs-var">defaultParseMode</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><span class="hs-comment">-- | Lex a string into a list of Haskell source tokens, using an explicit mode.</span></span><span>
+</span><span id="line-35"></span><span class="annot"><a href="Language.Haskell.Exts.Lexer.html#lexTokenStreamWithMode"><span class="hs-identifier hs-type">lexTokenStreamWithMode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ParseMonad.html#ParseMode"><span class="hs-identifier hs-type">ParseMode</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ParseMonad.html#ParseResult"><span class="hs-identifier hs-type">ParseResult</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier hs-type">Loc</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-36"></span><span id="lexTokenStreamWithMode"><span class="annot"><span class="annottext">lexTokenStreamWithMode :: ParseMode -&gt; String -&gt; ParseResult [Loc Token]
+</span><a href="Language.Haskell.Exts.Lexer.html#lexTokenStreamWithMode"><span class="hs-identifier hs-var hs-var">lexTokenStreamWithMode</span></a></span></span><span> </span><span id="local-6989586621679506273"><span class="annot"><span class="annottext">ParseMode
+</span><a href="#local-6989586621679506273"><span class="hs-identifier hs-var">mode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParseMode -&gt; P [Loc Token] -&gt; String -&gt; ParseResult [Loc Token]
+forall a. ParseMode -&gt; P a -&gt; String -&gt; ParseResult a
+</span><a href="Language.Haskell.Exts.ParseMonad.html#runParserWithMode"><span class="hs-identifier hs-var">runParserWithMode</span></a></span><span> </span><span class="annot"><span class="annottext">ParseMode
+</span><a href="#local-6989586621679506273"><span class="hs-identifier hs-var">mode</span></a></span><span> </span><span class="annot"><span class="annottext">P [Loc Token]
+</span><a href="#local-6989586621679506275"><span class="hs-identifier hs-var">lexIt</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-keyword">where</span><span> </span><span class="annot"><a href="#local-6989586621679506275"><span class="hs-identifier hs-type">lexIt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ParseMonad.html#P"><span class="hs-identifier hs-type">P</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier hs-type">Loc</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-38"></span><span>        </span><span id="local-6989586621679506275"><span class="annot"><span class="annottext">lexIt :: P [Loc Token]
+</span><a href="#local-6989586621679506275"><span class="hs-identifier hs-var hs-var">lexIt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Lex [Loc Token] [Loc Token]
+-&gt; ([Loc Token] -&gt; P [Loc Token]) -&gt; P [Loc Token]
+forall r a. Lex r a -&gt; (a -&gt; P r) -&gt; P r
+</span><a href="Language.Haskell.Exts.ParseMonad.html#runL"><span class="hs-identifier hs-var">runL</span></a></span><span> </span><span class="annot"><span class="annottext">Lex [Loc Token] [Loc Token]
+</span><a href="#local-6989586621679506277"><span class="hs-identifier hs-var">go</span></a></span><span> </span><span class="annot"><span class="annottext">[Loc Token] -&gt; P [Loc Token]
+forall a. a -&gt; P a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span>
+</span><span id="line-39"></span><span>        </span><span class="annot"><a href="#local-6989586621679506277"><span class="hs-identifier hs-type">go</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.Haskell.Exts.ParseMonad.html#Lex"><span class="hs-identifier hs-type">Lex</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier hs-type">Loc</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier hs-type">Loc</span></a></span><span> </span><span class="annot"><a href="Language.Haskell.Exts.InternalLexer.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-40"></span><span>        </span><span id="local-6989586621679506277"><span class="annot"><span class="annottext">go :: Lex [Loc Token] [Loc Token]
+</span><a href="#local-6989586621679506277"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-41"></span><span>          </span><span id="local-6989586621679506278"><span class="annot"><span class="annottext">Loc Token
+</span><a href="#local-6989586621679506278"><span class="hs-identifier hs-var">ltok</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Lex [Loc Token] (Loc Token)
+forall a. Lex a (Loc Token)
+</span><a href="Language.Haskell.Exts.InternalLexer.html#topLexer"><span class="hs-identifier hs-var">topLexer</span></a></span><span>
+</span><span id="line-42"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Loc Token
+</span><a href="#local-6989586621679506278"><span class="hs-identifier hs-var">ltok</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-43"></span><span>            </span><span class="annot"><a href="Language.Haskell.Exts.SrcLoc.html#Loc"><span class="hs-identifier hs-type">Loc</span></a></span><span> </span><span class="annot"><span class="annottext">SrcSpan
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Token
+</span><a href="Language.Haskell.Exts.InternalLexer.html#EOF"><span class="hs-identifier hs-var">EOF</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Loc Token] -&gt; Lex [Loc Token] [Loc Token]
+forall a. a -&gt; Lex [Loc Token] a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-44"></span><span>            </span><span class="annot"><span class="annottext">Loc Token
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span> </span><span id="local-6989586621679506282"><span class="annot"><span class="annottext">[Loc Token]
+</span><a href="#local-6989586621679506282"><span class="hs-identifier hs-var">ts</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Lex [Loc Token] [Loc Token]
+</span><a href="#local-6989586621679506277"><span class="hs-identifier hs-var">go</span></a></span><span>
+</span><span id="line-45"></span><span>                    </span><span class="annot"><span class="annottext">[Loc Token] -&gt; Lex [Loc Token] [Loc Token]
+forall a. a -&gt; Lex [Loc Token] a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Loc Token
+</span><a href="#local-6989586621679506278"><span class="hs-identifier hs-var">ltok</span></a></span><span class="annot"><span class="annottext">Loc Token -&gt; [Loc Token] -&gt; [Loc Token]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[Loc Token]
+</span><a href="#local-6989586621679506282"><span class="hs-identifier hs-var">ts</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span></pre></body></html>

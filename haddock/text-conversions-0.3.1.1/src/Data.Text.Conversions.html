@@ -1,0 +1,546 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveFunctor #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="annot"><span class="hs-comment">{-|
+  Module: Data.Text.Conversions
+
+  This module provides a set of typeclasses for safely converting between
+  textual data. The built-in 'String' type, as well as strict 'T.Text' and lazy
+  'TL.Text', are safely convertible between one another. The 'B.ByteString' type
+  is frequently treated in much the same manner, but this is unsafe for two
+  reasons:
+
+  * Since 'B.ByteString' encodes binary data, it does not specify a particular
+    encoding, so assuming a particular encoding like UTF-8 would be incorrect.
+
+  * Furthermore, decoding binary data into text given a particular encoding can
+    fail. Most systems simply use 'T.decodeUtf8' and similar functions, which
+    will dangerously throw exceptions when given invalid data.
+
+  This module addresses both problems by providing a 'DecodeText' typeclass for
+  decoding binary data in a way that can fail and by providing a 'UTF8' wrapper
+  type for selecting the desired encoding.
+
+  Most of the time, you will not need to create your own instances or use the
+  underlying functions that make the conversion machinery tick. Instead, just
+  use the 'convertText' method to convert between two textual datatypes or the
+  'decodeConvertText' method to perform a conversion that can fail.
+
+  Examples:
+
+  &gt;&gt;&gt; convertText (&quot;hello&quot; :: String) :: Text
+  &quot;hello&quot;
+  &gt;&gt;&gt; decodeConvertText (UTF8 (&quot;hello&quot; :: ByteString)) :: Maybe Text
+  Just &quot;hello&quot;
+  &gt;&gt;&gt; decodeConvertText (UTF8 (&quot;\xc3\x28&quot; :: ByteString)) :: Maybe Text
+  Nothing
+-}</span></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Text.Conversions</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-39"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Conversion typeclasses and functions</span></span><span>
+</span><span id="line-40"></span><span>    </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier">FromText</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier">ToText</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#DecodeText"><span class="hs-identifier">DecodeText</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#convertText"><span class="hs-identifier">convertText</span></a></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#decodeConvertText"><span class="hs-identifier">decodeConvertText</span></a></span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="hs-comment">-- * Encoding newtypes</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier">UTF8</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier">Base16</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier">Base64</span></a></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Encoding</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TL</span></span><span>
+</span><span id="line-54"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy.Encoding</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TL</span></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">B</span></span><span>
+</span><span id="line-57"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">BL</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Base16</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Base16</span></span><span>
+</span><span id="line-60"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Base16.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Base16L</span></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Base64</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Base64</span></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString.Base64.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Base64L</span></span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="annot"><span class="hs-comment">{-|
+  Simple wrapper type that is used to select a desired encoding when encoding or
+  decoding text from binary data, such as 'B.ByteString's. The conversion is not
+  partial; it will result in 'Nothing' when a 'B.ByteString' is provided with
+  data that is not valid in UTF-8.
+
+  &gt;&gt;&gt; convertText (&quot;hello&quot; :: Text) :: UTF8 ByteString
+  UTF8 &quot;hello&quot;
+  &gt;&gt;&gt; decodeConvertText (UTF8 (&quot;hello&quot; :: ByteString)) :: Maybe Text
+  Just &quot;hello&quot;
+  &gt;&gt;&gt; decodeConvertText (UTF8 (&quot;invalid \xc3\x28&quot; :: ByteString)) :: Maybe Text
+  Nothing
+-}</span></span><span>
+</span><span id="line-77"></span><span class="hs-keyword">newtype</span><span> </span><span id="UTF8"><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-var">UTF8</span></a></span></span><span> </span><span id="local-6989586621679040560"><span class="annot"><a href="#local-6989586621679040560"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="UTF8"><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-var">UTF8</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unUTF8"><span class="annot"><span class="annottext">forall a. UTF8 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unUTF8"><span class="hs-identifier hs-var hs-var">unUTF8</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679040560"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-78"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679040633"><span id="local-6989586621679040637"><span class="annot"><span class="annottext">UTF8 a -&gt; UTF8 a -&gt; Bool
+(UTF8 a -&gt; UTF8 a -&gt; Bool)
+-&gt; (UTF8 a -&gt; UTF8 a -&gt; Bool) -&gt; Eq (UTF8 a)
+forall a. Eq a =&gt; UTF8 a -&gt; UTF8 a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; UTF8 a -&gt; UTF8 a -&gt; Bool
+== :: UTF8 a -&gt; UTF8 a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; UTF8 a -&gt; UTF8 a -&gt; Bool
+/= :: UTF8 a -&gt; UTF8 a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040644"><span id="local-6989586621679040649"><span id="local-6989586621679040653"><span class="annot"><span class="annottext">Int -&gt; UTF8 a -&gt; ShowS
+[UTF8 a] -&gt; ShowS
+UTF8 a -&gt; String
+(Int -&gt; UTF8 a -&gt; ShowS)
+-&gt; (UTF8 a -&gt; String) -&gt; ([UTF8 a] -&gt; ShowS) -&gt; Show (UTF8 a)
+forall a. Show a =&gt; Int -&gt; UTF8 a -&gt; ShowS
+forall a. Show a =&gt; [UTF8 a] -&gt; ShowS
+forall a. Show a =&gt; UTF8 a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; UTF8 a -&gt; ShowS
+showsPrec :: Int -&gt; UTF8 a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; UTF8 a -&gt; String
+show :: UTF8 a -&gt; String
+$cshowList :: forall a. Show a =&gt; [UTF8 a] -&gt; ShowS
+showList :: [UTF8 a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040657"><span id="local-6989586621679040659"><span class="annot"><span class="annottext">(forall a b. (a -&gt; b) -&gt; UTF8 a -&gt; UTF8 b)
+-&gt; (forall a b. a -&gt; UTF8 b -&gt; UTF8 a) -&gt; Functor UTF8
+forall a b. a -&gt; UTF8 b -&gt; UTF8 a
+forall a b. (a -&gt; b) -&gt; UTF8 a -&gt; UTF8 b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; UTF8 a -&gt; UTF8 b
+fmap :: forall a b. (a -&gt; b) -&gt; UTF8 a -&gt; UTF8 b
+$c&lt;$ :: forall a b. a -&gt; UTF8 b -&gt; UTF8 a
+&lt;$ :: forall a b. a -&gt; UTF8 b -&gt; UTF8 a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="annot"><span class="hs-comment">{-|
+  Wrapper type used to select a base 16 encoding when encoding or decoding
+  binary data. Safe because base 16 encoding will always produce ASCII output.
+-}</span></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">newtype</span><span> </span><span id="Base16"><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-var">Base16</span></a></span></span><span> </span><span id="local-6989586621679040578"><span class="annot"><a href="#local-6989586621679040578"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Base16"><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-var">Base16</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unBase16"><span class="annot"><span class="annottext">forall a. Base16 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unBase16"><span class="hs-identifier hs-var hs-var">unBase16</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679040578"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679040666"><span id="local-6989586621679040670"><span class="annot"><span class="annottext">Base16 a -&gt; Base16 a -&gt; Bool
+(Base16 a -&gt; Base16 a -&gt; Bool)
+-&gt; (Base16 a -&gt; Base16 a -&gt; Bool) -&gt; Eq (Base16 a)
+forall a. Eq a =&gt; Base16 a -&gt; Base16 a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; Base16 a -&gt; Base16 a -&gt; Bool
+== :: Base16 a -&gt; Base16 a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Base16 a -&gt; Base16 a -&gt; Bool
+/= :: Base16 a -&gt; Base16 a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040676"><span id="local-6989586621679040680"><span id="local-6989586621679040684"><span class="annot"><span class="annottext">Int -&gt; Base16 a -&gt; ShowS
+[Base16 a] -&gt; ShowS
+Base16 a -&gt; String
+(Int -&gt; Base16 a -&gt; ShowS)
+-&gt; (Base16 a -&gt; String) -&gt; ([Base16 a] -&gt; ShowS) -&gt; Show (Base16 a)
+forall a. Show a =&gt; Int -&gt; Base16 a -&gt; ShowS
+forall a. Show a =&gt; [Base16 a] -&gt; ShowS
+forall a. Show a =&gt; Base16 a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Base16 a -&gt; ShowS
+showsPrec :: Int -&gt; Base16 a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; Base16 a -&gt; String
+show :: Base16 a -&gt; String
+$cshowList :: forall a. Show a =&gt; [Base16 a] -&gt; ShowS
+showList :: [Base16 a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040687"><span id="local-6989586621679040689"><span class="annot"><span class="annottext">(forall a b. (a -&gt; b) -&gt; Base16 a -&gt; Base16 b)
+-&gt; (forall a b. a -&gt; Base16 b -&gt; Base16 a) -&gt; Functor Base16
+forall a b. a -&gt; Base16 b -&gt; Base16 a
+forall a b. (a -&gt; b) -&gt; Base16 a -&gt; Base16 b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Base16 a -&gt; Base16 b
+fmap :: forall a b. (a -&gt; b) -&gt; Base16 a -&gt; Base16 b
+$c&lt;$ :: forall a b. a -&gt; Base16 b -&gt; Base16 a
+&lt;$ :: forall a b. a -&gt; Base16 b -&gt; Base16 a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="annot"><span class="hs-comment">{-|
+  Wrapper type used to select a base 64 encoding when encoding or decoding
+  binary data. Safe because base 64 encoding will always produce ASCII output.
+-}</span></span><span>
+</span><span id="line-91"></span><span class="hs-keyword">newtype</span><span> </span><span id="Base64"><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-var">Base64</span></a></span></span><span> </span><span id="local-6989586621679040585"><span class="annot"><a href="#local-6989586621679040585"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Base64"><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-var">Base64</span></a></span></span><span> </span><span class="hs-special">{</span><span> </span><span id="unBase64"><span class="annot"><span class="annottext">forall a. Base64 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unBase64"><span class="hs-identifier hs-var hs-var">unBase64</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679040585"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-special">}</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679040695"><span id="local-6989586621679040699"><span class="annot"><span class="annottext">Base64 a -&gt; Base64 a -&gt; Bool
+(Base64 a -&gt; Base64 a -&gt; Bool)
+-&gt; (Base64 a -&gt; Base64 a -&gt; Bool) -&gt; Eq (Base64 a)
+forall a. Eq a =&gt; Base64 a -&gt; Base64 a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; Base64 a -&gt; Base64 a -&gt; Bool
+== :: Base64 a -&gt; Base64 a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Base64 a -&gt; Base64 a -&gt; Bool
+/= :: Base64 a -&gt; Base64 a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040705"><span id="local-6989586621679040709"><span id="local-6989586621679040713"><span class="annot"><span class="annottext">Int -&gt; Base64 a -&gt; ShowS
+[Base64 a] -&gt; ShowS
+Base64 a -&gt; String
+(Int -&gt; Base64 a -&gt; ShowS)
+-&gt; (Base64 a -&gt; String) -&gt; ([Base64 a] -&gt; ShowS) -&gt; Show (Base64 a)
+forall a. Show a =&gt; Int -&gt; Base64 a -&gt; ShowS
+forall a. Show a =&gt; [Base64 a] -&gt; ShowS
+forall a. Show a =&gt; Base64 a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Base64 a -&gt; ShowS
+showsPrec :: Int -&gt; Base64 a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; Base64 a -&gt; String
+show :: Base64 a -&gt; String
+$cshowList :: forall a. Show a =&gt; [Base64 a] -&gt; ShowS
+showList :: [Base64 a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679040716"><span id="local-6989586621679040718"><span class="annot"><span class="annottext">(forall a b. (a -&gt; b) -&gt; Base64 a -&gt; Base64 b)
+-&gt; (forall a b. a -&gt; Base64 b -&gt; Base64 a) -&gt; Functor Base64
+forall a b. a -&gt; Base64 b -&gt; Base64 a
+forall a b. (a -&gt; b) -&gt; Base64 a -&gt; Base64 b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Base64 a -&gt; Base64 b
+fmap :: forall a b. (a -&gt; b) -&gt; Base64 a -&gt; Base64 b
+$c&lt;$ :: forall a b. a -&gt; Base64 b -&gt; Base64 a
+&lt;$ :: forall a b. a -&gt; Base64 b -&gt; Base64 a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="annot"><span class="hs-comment">{-|
+  A simple typeclass that handles converting arbitrary datatypes to 'T.Text'
+  when the operation cannot fail. If you have a type that satisfies that
+  requirement, implement this typeclass, but if the operation can fail, use
+  'DecodeText' instead.
+-}</span></span><span>
+</span><span id="line-100"></span><span class="hs-keyword">class</span><span> </span><span id="ToText"><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-var">ToText</span></a></span></span><span> </span><span id="local-6989586621679040606"><span class="annot"><a href="#local-6989586621679040606"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-101"></span><span>  </span><span id="toText"><span class="annot"><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-type">toText</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679040606"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>
+</span><span id="line-102"></span><span>
+</span><span id="line-103"></span><span class="annot"><span class="hs-comment">{-|
+  A simple typeclass that handles converting 'T.Text' to arbitrary datatypes. If
+  you have a type that can be produced from text, implement this typeclass.
+  However, you probably do not want to call 'fromText' directly; call
+  'convertText', instead.
+-}</span></span><span>
+</span><span id="line-109"></span><span class="hs-keyword">class</span><span> </span><span id="FromText"><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-var">FromText</span></a></span></span><span> </span><span id="local-6989586621679040602"><span class="annot"><a href="#local-6989586621679040602"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-110"></span><span>  </span><span id="fromText"><span class="annot"><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-type">fromText</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679040602"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="annot"><span class="hs-comment">{-|
+  A simple typeclass that handles converting arbitrary datatypes to
+  'T.Text' when the operation can fail. If you have a type that satisfies that
+  requirement, implement this typeclass, but if the operation cannot fail, use
+  'ToText' instead.
+-}</span></span><span>
+</span><span id="line-118"></span><span class="hs-keyword">class</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679040592"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span id="DecodeText"><span class="annot"><a href="Data.Text.Conversions.html#DecodeText"><span class="hs-identifier hs-var">DecodeText</span></a></span></span><span> </span><span id="local-6989586621679040592"><span class="annot"><a href="#local-6989586621679040592"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679040593"><span class="annot"><a href="#local-6989586621679040593"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-119"></span><span>  </span><span id="decodeText"><span class="annot"><a href="Data.Text.Conversions.html#decodeText"><span class="hs-identifier hs-type">decodeText</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679040593"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679040592"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="annot"><span class="hs-comment">{-|
+  A function that provides a way to /safely/ convert between arbitrary textual
+  datatypes where the conversion to text cannot fail.
+
+  &gt;&gt;&gt; convertText (&quot;hello&quot; :: String) :: Text
+  &quot;hello&quot;
+-}</span></span><span>
+</span><span id="line-128"></span><span id="local-6989586621679040595"><span id="local-6989586621679040597"><span class="annot"><a href="Data.Text.Conversions.html#convertText"><span class="hs-identifier hs-type">convertText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040595"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040597"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679040595"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679040597"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-129"></span><span id="convertText"><span class="annot"><span class="annottext">convertText :: forall a b. (ToText a, FromText b) =&gt; a -&gt; b
+</span><a href="Data.Text.Conversions.html#convertText"><span class="hs-identifier hs-var hs-var">convertText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; b
+forall a. FromText a =&gt; Text -&gt; a
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var">fromText</span></a></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; b) -&gt; (a -&gt; Text) -&gt; a -&gt; b
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Text
+forall a. ToText a =&gt; a -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var">toText</span></a></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="annot"><span class="hs-comment">{-|
+  A function that provides a way to /safely/ convert between arbitrary textual
+  datatypes where the conversion to text can fail, such as decoding binary data
+  to text. Since binary data can represent text in many different potential
+  encodings, it is necessary to use a newtype that picks the particular
+  encoding, like 'UTF8':
+
+  &gt;&gt;&gt; decodeConvertText (UTF8 (&quot;hello&quot; :: ByteString)) :: Maybe Text
+  Just &quot;hello&quot;
+-}</span></span><span>
+</span><span id="line-142"></span><span id="local-6989586621679040607"><span id="local-6989586621679040608"><span id="local-6989586621679040609"><span class="annot"><a href="Data.Text.Conversions.html#decodeConvertText"><span class="hs-identifier hs-type">decodeConvertText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#DecodeText"><span class="hs-identifier hs-type">DecodeText</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040607"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040608"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040609"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679040608"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679040607"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040609"><span class="hs-identifier hs-type">b</span></a></span></span></span></span><span>
+</span><span id="line-143"></span><span id="decodeConvertText"><span class="annot"><span class="annottext">decodeConvertText :: forall (f :: * -&gt; *) a b. (DecodeText f a, FromText b) =&gt; a -&gt; f b
+</span><a href="Data.Text.Conversions.html#decodeConvertText"><span class="hs-identifier hs-var hs-var">decodeConvertText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Text -&gt; b) -&gt; f Text -&gt; f b
+forall a b. (a -&gt; b) -&gt; f a -&gt; f b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; b
+forall a. FromText a =&gt; Text -&gt; a
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var">fromText</span></a></span><span> </span><span class="annot"><span class="annottext">(f Text -&gt; f b) -&gt; (a -&gt; f Text) -&gt; a -&gt; f b
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; f Text
+forall (f :: * -&gt; *) a. DecodeText f a =&gt; a -&gt; f Text
+</span><a href="Data.Text.Conversions.html#decodeText"><span class="hs-identifier hs-var">decodeText</span></a></span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span id="local-6989586621679040613"><span id="local-6989586621679040614"><span class="annot"><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-type">hush</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679040613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679040614"><span class="hs-identifier hs-type">b</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679040614"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-146"></span><span id="hush"><span class="annot"><span class="annottext">hush :: forall a b. Either a b -&gt; Maybe b
+</span><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-var hs-var">hush</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span>  </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe b
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-147"></span><span class="annot"><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-var">hush</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679040736"><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679040736"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">b -&gt; Maybe b
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">b
+</span><a href="#local-6989586621679040736"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-148"></span><span>
+</span><span id="line-149"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span>   </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040740"><span class="annot"><span class="annottext">toText :: Text -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-150"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">T.Text</span></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040745"><span class="annot"><span class="annottext">fromText :: Text -&gt; Text
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-151"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span>   </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040748"><span class="annot"><span class="annottext">toText :: String -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span>
+</span><span id="line-152"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040752"><span class="annot"><span class="annottext">fromText :: Text -&gt; String
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span>
+</span><span id="line-153"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span>   </span><span class="annot"><span class="hs-identifier hs-type">TL.Text</span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040756"><span class="annot"><span class="annottext">toText :: Text -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.toStrict</span></span><span>
+</span><span id="line-154"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">TL.Text</span></span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040760"><span class="annot"><span class="annottext">fromText :: Text -&gt; Text
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.fromStrict</span></span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#DecodeText"><span class="hs-identifier hs-type">DecodeText</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-type">UTF8</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span class="hs-special">)</span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040768"><span class="annot"><span class="annottext">decodeText :: UTF8 ByteString -&gt; Maybe Text
+</span><a href="Data.Text.Conversions.html#decodeText"><span class="hs-identifier hs-var hs-var hs-var hs-var">decodeText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either UnicodeException Text -&gt; Maybe Text
+forall a b. Either a b -&gt; Maybe b
+</span><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-var">hush</span></a></span><span> </span><span class="annot"><span class="annottext">(Either UnicodeException Text -&gt; Maybe Text)
+-&gt; (UTF8 ByteString -&gt; Either UnicodeException Text)
+-&gt; UTF8 ByteString
+-&gt; Maybe Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either UnicodeException Text
+</span><span class="hs-identifier hs-var">T.decodeUtf8'</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Either UnicodeException Text)
+-&gt; (UTF8 ByteString -&gt; ByteString)
+-&gt; UTF8 ByteString
+-&gt; Either UnicodeException Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">UTF8 ByteString -&gt; ByteString
+forall a. UTF8 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unUTF8"><span class="hs-identifier hs-var">unUTF8</span></a></span><span>
+</span><span id="line-157"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span>         </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-type">UTF8</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span class="hs-special">)</span><span>  </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040772"><span class="annot"><span class="annottext">fromText :: Text -&gt; UTF8 ByteString
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; UTF8 ByteString
+forall a. a -&gt; UTF8 a
+</span><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-var">UTF8</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; UTF8 ByteString)
+-&gt; (Text -&gt; ByteString) -&gt; Text -&gt; UTF8 ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">T.encodeUtf8</span></span><span>
+</span><span id="line-158"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#DecodeText"><span class="hs-identifier hs-type">DecodeText</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-type">UTF8</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BL.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040780"><span class="annot"><span class="annottext">decodeText :: UTF8 ByteString -&gt; Maybe Text
+</span><a href="Data.Text.Conversions.html#decodeText"><span class="hs-identifier hs-var hs-var hs-var hs-var">decodeText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Either UnicodeException Text -&gt; Maybe Text
+forall a b. Either a b -&gt; Maybe b
+</span><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-var">hush</span></a></span><span> </span><span class="annot"><span class="annottext">(Either UnicodeException Text -&gt; Maybe Text)
+-&gt; (UTF8 ByteString -&gt; Either UnicodeException Text)
+-&gt; UTF8 ByteString
+-&gt; Maybe Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Text)
+-&gt; Either UnicodeException Text -&gt; Either UnicodeException Text
+forall a b.
+(a -&gt; b) -&gt; Either UnicodeException a -&gt; Either UnicodeException b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.toStrict</span></span><span> </span><span class="annot"><span class="annottext">(Either UnicodeException Text -&gt; Either UnicodeException Text)
+-&gt; (UTF8 ByteString -&gt; Either UnicodeException Text)
+-&gt; UTF8 ByteString
+-&gt; Either UnicodeException Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either UnicodeException Text
+</span><span class="hs-identifier hs-var">TL.decodeUtf8'</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Either UnicodeException Text)
+-&gt; (UTF8 ByteString -&gt; ByteString)
+-&gt; UTF8 ByteString
+-&gt; Either UnicodeException Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">UTF8 ByteString -&gt; ByteString
+forall a. UTF8 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unUTF8"><span class="hs-identifier hs-var">unUTF8</span></a></span><span>
+</span><span id="line-159"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span>         </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-type">UTF8</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BL.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span> </span><span id="local-6989586621679040784"><span class="annot"><span class="annottext">fromText :: Text -&gt; UTF8 ByteString
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span>   </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; UTF8 ByteString
+forall a. a -&gt; UTF8 a
+</span><a href="Data.Text.Conversions.html#UTF8"><span class="hs-identifier hs-var">UTF8</span></a></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; UTF8 ByteString)
+-&gt; (Text -&gt; ByteString) -&gt; Text -&gt; UTF8 ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">TL.encodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; ByteString) -&gt; (Text -&gt; Text) -&gt; Text -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.fromStrict</span></span><span>
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-type">Base16</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-162"></span><span>  </span><span id="local-6989586621679040788"><span class="annot"><span class="annottext">toText :: Base16 ByteString -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><span class="hs-identifier hs-var">T.decodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Text)
+-&gt; (Base16 ByteString -&gt; ByteString) -&gt; Base16 ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Base16.encode</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; ByteString)
+-&gt; (Base16 ByteString -&gt; ByteString)
+-&gt; Base16 ByteString
+-&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Base16 ByteString -&gt; ByteString
+forall a. Base16 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unBase16"><span class="hs-identifier hs-var">unBase16</span></a></span><span>
+</span><span id="line-163"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-type">Base16</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+#if MIN_VERSION_base16_bytestring(1,0,0)
+</span><span>  </span><span id="local-6989586621679040792"><span class="annot"><span class="annottext">fromText :: Text -&gt; Maybe (Base16 ByteString)
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span id="local-6989586621679040793"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040793"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either String ByteString
+</span><span class="hs-identifier hs-var">Base16.decode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">T.encodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040793"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-166"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679040795"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679040795"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Base16 ByteString -&gt; Maybe (Base16 ByteString)
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Base16 ByteString -&gt; Maybe (Base16 ByteString))
+-&gt; Base16 ByteString -&gt; Maybe (Base16 ByteString)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Base16 ByteString
+forall a. a -&gt; Base16 a
+</span><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-var">Base16</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679040795"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-167"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe (Base16 ByteString)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">fromText</span><span> </span><span class="hs-identifier">txt</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="hs-identifier">Base16.decode</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">T.encodeUtf8</span><span> </span><span class="hs-identifier">txt</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-170"></span><span>    </span><span class="hs-special">(</span><span class="hs-identifier">bs</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;&quot;</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Just</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">Base16</span><span> </span><span class="hs-identifier">bs</span><span>
+</span><span id="line-171"></span><span>    </span><span class="hs-special">(</span><span class="hs-identifier">_</span><span class="hs-special">,</span><span>  </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-174"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-type">Base64</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-175"></span><span>  </span><span id="local-6989586621679040798"><span class="annot"><span class="annottext">toText :: Base64 ByteString -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><span class="hs-identifier hs-var">T.decodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Text)
+-&gt; (Base64 ByteString -&gt; ByteString) -&gt; Base64 ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Base64.encode</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; ByteString)
+-&gt; (Base64 ByteString -&gt; ByteString)
+-&gt; Base64 ByteString
+-&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Base64 ByteString -&gt; ByteString
+forall a. Base64 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unBase64"><span class="hs-identifier hs-var">unBase64</span></a></span><span>
+</span><span id="line-176"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-type">Base64</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">B.ByteString</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-177"></span><span>  </span><span id="local-6989586621679040803"><span class="annot"><span class="annottext">fromText :: Text -&gt; Maybe (Base64 ByteString)
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Base64 ByteString)
+-&gt; Maybe ByteString -&gt; Maybe (Base64 ByteString)
+forall a b. (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Base64 ByteString
+forall a. a -&gt; Base64 a
+</span><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-var">Base64</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe ByteString -&gt; Maybe (Base64 ByteString))
+-&gt; (Text -&gt; Maybe ByteString) -&gt; Text -&gt; Maybe (Base64 ByteString)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Either String ByteString -&gt; Maybe ByteString
+forall a b. Either a b -&gt; Maybe b
+</span><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-var">hush</span></a></span><span> </span><span class="annot"><span class="annottext">(Either String ByteString -&gt; Maybe ByteString)
+-&gt; (Text -&gt; Either String ByteString) -&gt; Text -&gt; Maybe ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either String ByteString
+</span><span class="hs-identifier hs-var">Base64.decode</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Either String ByteString)
+-&gt; (Text -&gt; ByteString) -&gt; Text -&gt; Either String ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">T.encodeUtf8</span></span><span>
+</span><span id="line-178"></span><span>
+</span><span id="line-179"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-type">Base16</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BL.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-180"></span><span>  </span><span id="local-6989586621679040807"><span class="annot"><span class="annottext">toText :: Base16 ByteString -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.toStrict</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Text)
+-&gt; (Base16 ByteString -&gt; Text) -&gt; Base16 ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><span class="hs-identifier hs-var">TL.decodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Text)
+-&gt; (Base16 ByteString -&gt; ByteString) -&gt; Base16 ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Base16L.encode</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; ByteString)
+-&gt; (Base16 ByteString -&gt; ByteString)
+-&gt; Base16 ByteString
+-&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Base16 ByteString -&gt; ByteString
+forall a. Base16 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unBase16"><span class="hs-identifier hs-var">unBase16</span></a></span><span>
+</span><span id="line-181"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-type">Base16</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BL.ByteString</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+#if MIN_VERSION_base16_bytestring(1,0,0)
+</span><span>  </span><span id="local-6989586621679040812"><span class="annot"><span class="annottext">fromText :: Text -&gt; Maybe (Base16 ByteString)
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span id="local-6989586621679040813"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040813"><span class="hs-identifier hs-var">txt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either String ByteString
+</span><span class="hs-identifier hs-var">Base16L.decode</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">TL.encodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; ByteString) -&gt; Text -&gt; ByteString
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.fromStrict</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679040813"><span class="hs-identifier hs-var">txt</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-184"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679040815"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679040815"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Base16 ByteString -&gt; Maybe (Base16 ByteString)
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Base16 ByteString -&gt; Maybe (Base16 ByteString))
+-&gt; Base16 ByteString -&gt; Maybe (Base16 ByteString)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Base16 ByteString
+forall a. a -&gt; Base16 a
+</span><a href="Data.Text.Conversions.html#Base16"><span class="hs-identifier hs-var">Base16</span></a></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679040815"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-185"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe (Base16 ByteString)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">fromText</span><span> </span><span class="hs-identifier">txt</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="hs-identifier">Base16L.decode</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">TL.encodeUtf8</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">TL.fromStrict</span><span> </span><span class="hs-identifier">txt</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-188"></span><span>    </span><span class="hs-special">(</span><span class="hs-identifier">bs</span><span class="hs-special">,</span><span> </span><span class="hs-string">&quot;&quot;</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Just</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">Base16</span><span> </span><span class="hs-identifier">bs</span><span>
+</span><span id="line-189"></span><span>    </span><span class="hs-special">(</span><span class="hs-identifier">_</span><span class="hs-special">,</span><span>  </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-192"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#ToText"><span class="hs-identifier hs-type">ToText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-type">Base64</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BL.ByteString</span></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-193"></span><span>  </span><span id="local-6989586621679040818"><span class="annot"><span class="annottext">toText :: Base64 ByteString -&gt; Text
+</span><a href="Data.Text.Conversions.html#toText"><span class="hs-identifier hs-var hs-var hs-var hs-var">toText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.toStrict</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Text)
+-&gt; (Base64 ByteString -&gt; Text) -&gt; Base64 ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><span class="hs-identifier hs-var">TL.decodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Text)
+-&gt; (Base64 ByteString -&gt; ByteString) -&gt; Base64 ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; ByteString
+</span><span class="hs-identifier hs-var">Base64L.encode</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; ByteString)
+-&gt; (Base64 ByteString -&gt; ByteString)
+-&gt; Base64 ByteString
+-&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Base64 ByteString -&gt; ByteString
+forall a. Base64 a -&gt; a
+</span><a href="Data.Text.Conversions.html#unBase64"><span class="hs-identifier hs-var">unBase64</span></a></span><span>
+</span><span id="line-194"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Data.Text.Conversions.html#FromText"><span class="hs-identifier hs-type">FromText</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-type">Base64</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">BL.ByteString</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-195"></span><span>  </span><span id="local-6989586621679040823"><span class="annot"><span class="annottext">fromText :: Text -&gt; Maybe (Base64 ByteString)
+</span><a href="Data.Text.Conversions.html#fromText"><span class="hs-identifier hs-var hs-var hs-var hs-var">fromText</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Base64 ByteString)
+-&gt; Maybe ByteString -&gt; Maybe (Base64 ByteString)
+forall a b. (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Base64 ByteString
+forall a. a -&gt; Base64 a
+</span><a href="Data.Text.Conversions.html#Base64"><span class="hs-identifier hs-var">Base64</span></a></span><span> </span><span class="annot"><span class="annottext">(Maybe ByteString -&gt; Maybe (Base64 ByteString))
+-&gt; (Text -&gt; Maybe ByteString) -&gt; Text -&gt; Maybe (Base64 ByteString)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Either String ByteString -&gt; Maybe ByteString
+forall a b. Either a b -&gt; Maybe b
+</span><a href="Data.Text.Conversions.html#hush"><span class="hs-identifier hs-var">hush</span></a></span><span> </span><span class="annot"><span class="annottext">(Either String ByteString -&gt; Maybe ByteString)
+-&gt; (Text -&gt; Either String ByteString) -&gt; Text -&gt; Maybe ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Either String ByteString
+</span><span class="hs-identifier hs-var">Base64L.decode</span></span><span> </span><span class="annot"><span class="annottext">(ByteString -&gt; Either String ByteString)
+-&gt; (Text -&gt; ByteString) -&gt; Text -&gt; Either String ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; ByteString
+</span><span class="hs-identifier hs-var">TL.encodeUtf8</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; ByteString) -&gt; (Text -&gt; Text) -&gt; Text -&gt; ByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Text -&gt; Text
+</span><span class="hs-identifier hs-var">TL.fromStrict</span></span><span>
+</span><span id="line-196"></span></pre></body></html>

@@ -1,0 +1,883 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE BlockArguments #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE InstanceSigs #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE OverloadedRecordDot #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# LANGUAGE QuasiQuotes #-}</span><span>
+</span><span id="line-10"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-11"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-12"></span><span class="hs-pragma">{-# LANGUAGE TypeApplications #-}</span><span>
+</span><span id="line-13"></span><span class="hs-pragma">{-# LANGUAGE NoImplicitPrelude #-}</span><span>
+</span><span id="line-14"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-orphans #-}</span><span>
+</span><span id="line-15"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-partial-fields #-}</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Report.Html</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.FileEmbed</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">embedFileRelative</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">intercalate</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fromMaybe</span></span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.String.Interpolate</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Encoding</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html"><span class="hs-identifier">Language.EO.Phi.Metrics.Data</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier">Metrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier">MetricsCount</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#SafeNumber"><span class="hs-identifier">SafeNumber</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier">toListMetrics</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html"><span class="hs-identifier">Language.EO.Phi.Report.Data</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChange"><span class="hs-identifier">MetricsChange</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChangeCategorized"><span class="hs-identifier">MetricsChangeCategorized</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChangeCategory"><span class="hs-identifier">MetricsChangeCategory</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Percent"><span class="hs-identifier">Percent</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier">ProgramReport</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier">Report</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier">ReportRow</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Html.Renderer.String</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">renderHtml</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Html5</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">i</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Blaze.Html5.Attributes</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">class_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">colspan</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">id</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">onclick</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">type_</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">value</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Printf</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">printf</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">div</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">id</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">span</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="annot"><span class="hs-comment">-- | JavaScript file to embed into HTML reports</span></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#reportJS"><span class="hs-identifier hs-type">reportJS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-35"></span><span id="reportJS"><span class="annot"><span class="annottext">reportJS :: String
+</span><a href="Language.EO.Phi.Report.Html.html#reportJS"><span class="hs-identifier hs-var hs-var">reportJS</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><span class="hs-identifier hs-var">T.decodeUtf8</span></span><span> </span><span class="hs-special">$</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">embedFileRelative</span></span><span> </span><span class="annot"><span class="hs-string">&quot;report/main.js&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="annot"><span class="hs-comment">-- | CSS file to embed into HTML reports</span></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#reportCSS"><span class="hs-identifier hs-type">reportCSS</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-39"></span><span id="reportCSS"><span class="annot"><span class="annottext">reportCSS :: String
+</span><a href="Language.EO.Phi.Report.Html.html#reportCSS"><span class="hs-identifier hs-var hs-var">reportCSS</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; Text -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ByteString -&gt; Text
+</span><span class="hs-identifier hs-var">T.decodeUtf8</span></span><span> </span><span class="hs-special">$</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">embedFileRelative</span></span><span> </span><span class="annot"><span class="hs-string">&quot;report/styles.css&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#metricsNames"><span class="hs-identifier hs-type">metricsNames</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-42"></span><span id="metricsNames"><span class="annot"><span class="annottext">metricsNames :: Metrics String
+</span><a href="Language.EO.Phi.Report.Html.html#metricsNames"><span class="hs-identifier hs-var hs-var">metricsNames</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-43"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span>
+</span><span id="line-44"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:dataless:Metrics :: String
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adataless%3AMetrics"><span class="hs-identifier hs-var">dataless</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Dataless formations&quot;</span></span><span>
+</span><span id="line-45"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:applications:Metrics :: String
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aapplications%3AMetrics"><span class="hs-identifier hs-var">applications</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Applications&quot;</span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:formations:Metrics :: String
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aformations%3AMetrics"><span class="hs-identifier hs-var">formations</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Formations&quot;</span></span><span>
+</span><span id="line-47"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:dispatches:Metrics :: String
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adispatches%3AMetrics"><span class="hs-identifier hs-var">dispatches</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Dispatches&quot;</span></span><span>
+</span><span id="line-48"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toHtmlReportHeader"><span class="hs-identifier hs-type">toHtmlReportHeader</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Html</span></span><span>
+</span><span id="line-51"></span><span id="toHtmlReportHeader"><span class="annot"><span class="annottext">toHtmlReportHeader :: Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlReportHeader"><span class="hs-identifier hs-var hs-var">toHtmlReportHeader</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">thead</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-53"></span><span>    </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-54"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">tr</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-55"></span><span>          </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-56"></span><span>            </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">th</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">colspan</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;2&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;no-sort&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Attribute&quot;</span></span><span>
+</span><span id="line-57"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">th</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">colspan</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;4&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;no-sort&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Improvement = (Initial - Normalized) / Initial&quot;</span></span><span>
+</span><span id="line-58"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">th</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">colspan</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;4&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;no-sort&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Initial&quot;</span></span><span>
+</span><span id="line-59"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">th</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">colspan</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;4&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;no-sort&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Normalized&quot;</span></span><span>
+</span><span id="line-60"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">th</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">colspan</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;4&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;no-sort&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Location&quot;</span></span><span>
+</span><span id="line-61"></span><span>            </span><span class="hs-special">]</span><span>
+</span><span id="line-62"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">tr</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; ([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-63"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">th</span></span><span>
+</span><span id="line-64"></span><span>            </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; [Html] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Attribute Initial&quot;</span></span><span>
+</span><span id="line-65"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Attribute Normalized&quot;</span></span><span>
+</span><span id="line-66"></span><span>                </span><span class="hs-special">]</span><span>
+</span><span id="line-67"></span><span>              </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">[[Html]] -&gt; [Html]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span>
+</span><span id="line-68"></span><span>                    </span><span class="annot"><span class="annottext">([[Html]] -&gt; [Html])
+-&gt; ([String] -&gt; [[Html]]) -&gt; [String] -&gt; [Html]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Html] -&gt; [[Html]]
+forall a. Int -&gt; a -&gt; [a]
+</span><span class="hs-identifier hs-var">replicate</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">3</span></span><span>
+</span><span id="line-69"></span><span>                    </span><span class="annot"><span class="annottext">([Html] -&gt; [[Html]])
+-&gt; ([String] -&gt; [Html]) -&gt; [String] -&gt; [[Html]]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; [String] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span>                    </span><span class="annot"><span class="annottext">([String] -&gt; [Html]) -&gt; [String] -&gt; [Html]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Metrics String -&gt; [String]
+forall a. Metrics a -&gt; [a]
+</span><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-var">toListMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics String
+</span><a href="Language.EO.Phi.Report.Html.html#metricsNames"><span class="hs-identifier hs-var">metricsNames</span></a></span><span>
+</span><span id="line-71"></span><span>                 </span><span class="hs-special">)</span><span>
+</span><span id="line-72"></span><span>              </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;File Initial&quot;</span></span><span>
+</span><span id="line-73"></span><span>                 </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Bindings Path Initial&quot;</span></span><span>
+</span><span id="line-74"></span><span>                 </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;File Normalized&quot;</span></span><span>
+</span><span id="line-75"></span><span>                 </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Bindings Path Normalized&quot;</span></span><span>
+</span><span id="line-76"></span><span>                 </span><span class="hs-special">]</span><span>
+</span><span id="line-77"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-keyword">data</span><span> </span><span id="ReportFormat"><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportFormat"><span class="hs-identifier hs-var">ReportFormat</span></a></span></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="ReportFormat%27Html"><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportFormat%27Html"><span class="hs-identifier hs-var">ReportFormat'Html</span></a></span></span><span>
+</span><span id="line-81"></span><span>      </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Acss%3AReportFormat%27Html"><span class="annot"><span class="annottext">ReportFormat -&gt; String
+</span><a href="Language.EO.Phi.Report.Html.html#%24sel%3Acss%3AReportFormat%27Html"><span class="hs-identifier hs-var hs-var">css</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-82"></span><span>      </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Ajs%3AReportFormat%27Html"><span class="annot"><span class="annottext">ReportFormat -&gt; String
+</span><a href="Language.EO.Phi.Report.Html.html#%24sel%3Ajs%3AReportFormat%27Html"><span class="hs-identifier hs-var hs-var">js</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-83"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | GitHub Flavored Markdown</span></span><span>
+</span><span id="line-85"></span><span>    </span><span id="ReportFormat%27Markdown"><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportFormat%27Markdown"><span class="hs-identifier hs-var">ReportFormat'Markdown</span></a></span></span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679403732"><span id="local-6989586621679403738"><span class="annot"><span class="annottext">ReportFormat -&gt; ReportFormat -&gt; Bool
+(ReportFormat -&gt; ReportFormat -&gt; Bool)
+-&gt; (ReportFormat -&gt; ReportFormat -&gt; Bool) -&gt; Eq ReportFormat
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ReportFormat -&gt; ReportFormat -&gt; Bool
+== :: ReportFormat -&gt; ReportFormat -&gt; Bool
+$c/= :: ReportFormat -&gt; ReportFormat -&gt; Bool
+/= :: ReportFormat -&gt; ReportFormat -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="hs-keyword">data</span><span> </span><span id="ReportConfig"><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-var">ReportConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ReportConfig"><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-var">ReportConfig</span></a></span></span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AexpectedMetricsChange%3AReportConfig"><span class="annot"><span class="annottext">ReportConfig -&gt; Metrics (SafeNumber Double)
+</span><a href="Language.EO.Phi.Report.Html.html#%24sel%3AexpectedMetricsChange%3AReportConfig"><span class="hs-identifier hs-var hs-var">expectedMetricsChange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChange"><span class="hs-identifier hs-type">MetricsChange</span></a></span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aformat%3AReportConfig"><span class="annot"><span class="annottext">ReportConfig -&gt; ReportFormat
+</span><a href="Language.EO.Phi.Report.Html.html#%24sel%3Aformat%3AReportConfig"><span class="hs-identifier hs-var hs-var">format</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportFormat"><span class="hs-identifier hs-type">ReportFormat</span></a></span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679403331"><span id="local-6989586621679403749"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="annot"><a href="#local-6989586621679403331"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#SafeNumber"><span class="hs-identifier hs-type">SafeNumber</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679403331"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-94"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">toMarkup</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#SafeNumber"><span class="hs-identifier hs-type">SafeNumber</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679403331"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Markup</span></span><span>
+</span><span id="line-95"></span><span>  </span><span id="local-6989586621679403756"><span class="annot"><span class="annottext">toMarkup :: SafeNumber a -&gt; Html
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toMarkup</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#SafeNumber%27Number"><span class="hs-identifier hs-type">SafeNumber'Number</span></a></span><span> </span><span id="local-6989586621679403758"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679403758"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toMarkup</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679403758"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><span class="hs-identifier hs-var">toMarkup</span></span><span> </span><span class="annot"><span class="annottext">SafeNumber a
+</span><a href="Language.EO.Phi.Metrics.Data.html#SafeNumber%27NaN"><span class="hs-identifier hs-var">SafeNumber'NaN</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toMarkup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;NaN&quot;</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#roundToStr"><span class="hs-identifier hs-type">roundToStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-99"></span><span id="roundToStr"><span class="annot"><span class="annottext">roundToStr :: Int -&gt; Double -&gt; String
+</span><a href="Language.EO.Phi.Report.Html.html#roundToStr"><span class="hs-identifier hs-var hs-var">roundToStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; Double -&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span><span class="hs-identifier hs-var">printf</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;%0.*f%%&quot;</span></span><span>
+</span><span id="line-100"></span><span>
+</span><span id="line-101"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679403763"><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-102"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">toMarkup</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Markup</span></span><span>
+</span><span id="line-103"></span><span>  </span><span id="local-6989586621679403769"><span class="annot"><span class="annottext">toMarkup :: Percent -&gt; Html
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toMarkup</span></span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span class="hs-special">{</span><span id="local-6989586621679403771"><span class="annot"><span class="annottext">Double
+percent :: Double
+$sel:percent:Percent :: Percent -&gt; Double
+</span><a href="#local-6989586621679403771"><span class="hs-glyph hs-var hs-var">..</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toMarkup</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; String -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double -&gt; String
+</span><a href="Language.EO.Phi.Report.Html.html#roundToStr"><span class="hs-identifier hs-var">roundToStr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679403771"><span class="hs-identifier hs-var">percent</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">100</span></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- &gt;&gt;&gt; import Text.Blaze.Html.Renderer.String (renderHtml)</span><span>
+</span><span id="line-106"></span><span class="hs-comment">-- &gt;&gt;&gt; reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }</span><span>
+</span><span id="line-107"></span><span class="hs-comment">--</span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- &gt;&gt;&gt; renderHtml $ toHtmlChange reportConfig (MetricsChange'Bad 0.2)</span><span>
+</span><span id="line-109"></span><span class="hs-comment">-- &quot;&lt;td class=\&quot;number bad\&quot;&gt;0.2\128308&lt;/td&gt;&quot;</span><span>
+</span><span id="line-110"></span><span class="hs-comment">--</span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- &gt;&gt;&gt; renderHtml $ toHtmlChange reportConfig (MetricsChange'Good 0.5)</span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- &quot;&lt;td class=\&quot;number good\&quot;&gt;0.5\128994&lt;/td&gt;&quot;</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- &gt;&gt;&gt; renderHtml $ toHtmlChange reportConfig (MetricsChange'NA :: MetricsChangeCategory Double)</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- &quot;&lt;td class=\&quot;number not-applicable\&quot;&gt;N/A\128995&lt;/td&gt;&quot;</span><span>
+</span><span id="line-115"></span><span id="local-6989586621679403358"><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toHtmlChange"><span class="hs-identifier hs-type">toHtmlChange</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="annot"><a href="#local-6989586621679403358"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-type">ReportConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChangeCategory"><span class="hs-identifier hs-type">MetricsChangeCategory</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679403358"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Html</span></span></span><span>
+</span><span id="line-116"></span><span id="toHtmlChange"><span class="annot"><span class="annottext">toHtmlChange :: forall a.
+ToMarkup a =&gt;
+ReportConfig -&gt; MetricsChangeCategory a -&gt; Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlChange"><span class="hs-identifier hs-var hs-var">toHtmlChange</span></a></span></span><span> </span><span id="local-6989586621679403791"><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403791"><span class="hs-identifier hs-var">reportConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><span class="annottext">MetricsChangeCategory a
+</span><a href="Language.EO.Phi.Report.Data.html#MetricsChange%27NA"><span class="hs-identifier hs-var">MetricsChange'NA</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;number not-applicable&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;N/A&quot;</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&#128995;'</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679403794"><span class="hs-identifier hs-var">isMarkdown</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-118"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChange%27Bad"><span class="hs-identifier hs-type">MetricsChange'Bad</span></a></span><span class="hs-special">{</span><span id="local-6989586621679403796"><span class="annot"><span class="annottext">a
+change :: a
+$sel:change:MetricsChange'Good :: forall a. MetricsChangeCategory a -&gt; a
+</span><a href="#local-6989586621679403796"><span class="hs-glyph hs-var hs-var">..</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;number bad&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679403796"><span class="hs-identifier hs-var">change</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&#128308;'</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679403794"><span class="hs-identifier hs-var">isMarkdown</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-119"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChange%27Good"><span class="hs-identifier hs-type">MetricsChange'Good</span></a></span><span class="hs-special">{</span><span id="local-6989586621679403799"><span class="annot"><span class="annottext">a
+$sel:change:MetricsChange'Good :: forall a. MetricsChangeCategory a -&gt; a
+change :: a
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3Achange%3AMetricsChange%27Good"><span class="hs-glyph hs-var hs-var">..</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;number good&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679403799"><span class="hs-identifier hs-var">change</span></a></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'&#128994;'</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679403794"><span class="hs-identifier hs-var">isMarkdown</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-120"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-121"></span><span>  </span><span id="local-6989586621679403794"><span class="annot"><span class="annottext">isMarkdown :: Bool
+</span><a href="#local-6989586621679403794"><span class="hs-identifier hs-var hs-var">isMarkdown</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403791"><span class="hs-identifier hs-var">reportConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">format</span><span> </span><span class="annot"><span class="annottext">ReportFormat -&gt; ReportFormat -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ReportFormat
+</span><a href="Language.EO.Phi.Report.Html.html#ReportFormat%27Markdown"><span class="hs-identifier hs-var">ReportFormat'Markdown</span></a></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toHtmlMetricsChange"><span class="hs-identifier hs-type">toHtmlMetricsChange</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-type">ReportConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChangeCategorized"><span class="hs-identifier hs-type">MetricsChangeCategorized</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Html</span></span><span class="hs-special">]</span><span>
+</span><span id="line-124"></span><span id="toHtmlMetricsChange"><span class="annot"><span class="annottext">toHtmlMetricsChange :: ReportConfig -&gt; MetricsChangeCategorized -&gt; [Html]
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlMetricsChange"><span class="hs-identifier hs-var hs-var">toHtmlMetricsChange</span></a></span></span><span> </span><span id="local-6989586621679403803"><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403803"><span class="hs-identifier hs-var">reportConfig</span></a></span></span><span> </span><span id="local-6989586621679403804"><span class="annot"><span class="annottext">MetricsChangeCategorized
+</span><a href="#local-6989586621679403804"><span class="hs-identifier hs-var">change</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReportConfig -&gt; MetricsChangeCategory Percent -&gt; Html
+forall a.
+ToMarkup a =&gt;
+ReportConfig -&gt; MetricsChangeCategory a -&gt; Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlChange"><span class="hs-identifier hs-var">toHtmlChange</span></a></span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403803"><span class="hs-identifier hs-var">reportConfig</span></a></span><span> </span><span class="annot"><span class="annottext">(MetricsChangeCategory Percent -&gt; Html)
+-&gt; [MetricsChangeCategory Percent] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">MetricsChangeCategorized -&gt; [MetricsChangeCategory Percent]
+forall a. Metrics a -&gt; [a]
+</span><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-var">toListMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">MetricsChangeCategorized
+</span><a href="#local-6989586621679403804"><span class="hs-identifier hs-var">change</span></a></span><span>
+</span><span id="line-125"></span><span>
+</span><span id="line-126"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toHtmlMetrics"><span class="hs-identifier hs-type">toHtmlMetrics</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Html</span></span><span class="hs-special">]</span><span>
+</span><span id="line-127"></span><span id="toHtmlMetrics"><span class="annot"><span class="annottext">toHtmlMetrics :: MetricsCount -&gt; [Html]
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlMetrics"><span class="hs-identifier hs-var hs-var">toHtmlMetrics</span></a></span></span><span> </span><span id="local-6989586621679403806"><span class="annot"><span class="annottext">MetricsCount
+</span><a href="#local-6989586621679403806"><span class="hs-identifier hs-var">metrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">td</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;number&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-129"></span><span>    </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; (Int -&gt; Html) -&gt; Int -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-130"></span><span>    </span><span class="annot"><span class="annottext">(Int -&gt; Html) -&gt; [Int] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">MetricsCount -&gt; [Int]
+forall a. Metrics a -&gt; [a]
+</span><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-var">toListMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">MetricsCount
+</span><a href="#local-6989586621679403806"><span class="hs-identifier hs-var">metrics</span></a></span><span>
+</span><span id="line-131"></span><span>
+</span><span id="line-132"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toHtmlReportRow"><span class="hs-identifier hs-type">toHtmlReportRow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-type">ReportConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Html</span></span><span>
+</span><span id="line-133"></span><span id="toHtmlReportRow"><span class="annot"><span class="annottext">toHtmlReportRow :: ReportConfig -&gt; ReportRow -&gt; Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlReportRow"><span class="hs-identifier hs-var hs-var">toHtmlReportRow</span></a></span></span><span> </span><span id="local-6989586621679403808"><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403808"><span class="hs-identifier hs-var">reportConfig</span></a></span></span><span> </span><span id="local-6989586621679403809"><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">tr</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; ([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-135"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">td</span></span><span>
+</span><span id="line-136"></span><span>        </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; (String -&gt; Html) -&gt; String -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-137"></span><span>        </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; [String] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String -&gt; String
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[N/A]&quot;</span></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">attributeInitial</span><span>
+</span><span id="line-138"></span><span>            </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String -&gt; String
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[N/A]&quot;</span></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">attributeNormalized</span><span>
+</span><span id="line-139"></span><span>            </span><span class="hs-special">]</span><span>
+</span><span id="line-140"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-141"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">ReportConfig -&gt; MetricsChangeCategorized -&gt; [Html]
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlMetricsChange"><span class="hs-identifier hs-var">toHtmlMetricsChange</span></a></span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403808"><span class="hs-identifier hs-var">reportConfig</span></a></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">metricsChange</span><span>
+</span><span id="line-142"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">MetricsCount -&gt; [Html]
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlMetrics"><span class="hs-identifier hs-var">toHtmlMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">metricsInitial</span><span>
+</span><span id="line-143"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">MetricsCount -&gt; [Html]
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlMetrics"><span class="hs-identifier hs-var">toHtmlMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">metricsNormalized</span><span>
+</span><span id="line-144"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">td</span></span><span>
+</span><span id="line-145"></span><span>            </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; (String -&gt; Html) -&gt; String -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-146"></span><span>            </span><span class="annot"><span class="annottext">(String -&gt; Html) -&gt; [String] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String -&gt; String
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[all programs]&quot;</span></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">fileInitial</span><span>
+</span><span id="line-147"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; [String] -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; Maybe [String] -&gt; [String]
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[whole program]&quot;</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsPathInitial</span><span>
+</span><span id="line-148"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String -&gt; String
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[all programs]&quot;</span></span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">fileNormalized</span><span>
+</span><span id="line-149"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; [String] -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; Maybe [String] -&gt; [String]
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[whole program]&quot;</span></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">ReportRow
+</span><a href="#local-6989586621679403809"><span class="hs-identifier hs-var">reportRow</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsPathNormalized</span><span>
+</span><span id="line-150"></span><span>                </span><span class="hs-special">]</span><span>
+</span><span id="line-151"></span><span>         </span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span>
+</span><span id="line-153"></span><span class="annot"><span class="hs-comment">-- | Number of tests where metrics changes were better than expected</span></span><span>
+</span><span id="line-154"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#countGoodMetricsChanges"><span class="hs-identifier hs-type">countGoodMetricsChanges</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-type">Report</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span>
+</span><span id="line-155"></span><span id="countGoodMetricsChanges"><span class="annot"><span class="annottext">countGoodMetricsChanges :: Report -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Report.Html.html#countGoodMetricsChanges"><span class="hs-identifier hs-var hs-var">countGoodMetricsChanges</span></a></span></span><span> </span><span id="local-6989586621679403811"><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403811"><span class="hs-identifier hs-var">report</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MetricsCount
+</span><a href="#local-6989586621679403812"><span class="hs-identifier hs-var">metricsCount</span></a></span><span>
+</span><span id="line-156"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-157"></span><span>  </span><span id="local-6989586621679403818"><span class="annot"><span class="annottext">metricsChanges :: [MetricsChangeCategorized]
+</span><a href="#local-6989586621679403818"><span class="hs-identifier hs-var hs-var">metricsChanges</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">metricsChange</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ReportRow -&gt; MetricsChangeCategorized)
+-&gt; [ReportRow] -&gt; [MetricsChangeCategorized]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(ProgramReport -&gt; [ReportRow]) -&gt; [ProgramReport] -&gt; [ReportRow]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">bindingsRows</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403811"><span class="hs-identifier hs-var">report</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programReports</span><span>
+</span><span id="line-158"></span><span>  </span><span id="local-6989586621679403812"><span class="annot"><span class="annottext">metricsCount :: MetricsCount
+</span><a href="#local-6989586621679403812"><span class="hs-identifier hs-var hs-var">metricsCount</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(MetricsChangeCategorized -&gt; MetricsCount)
+-&gt; [MetricsChangeCategorized] -&gt; MetricsCount
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; [a] -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#MetricsChange%27Good"><span class="hs-identifier hs-type">MetricsChange'Good</span></a></span><span> </span><span class="annot"><span class="annottext">Percent
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">MetricsChangeCategory Percent
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(MetricsChangeCategory Percent -&gt; Int)
+-&gt; MetricsChangeCategorized -&gt; MetricsCount
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[MetricsChangeCategorized]
+</span><a href="#local-6989586621679403818"><span class="hs-identifier hs-var">metricsChanges</span></a></span><span>
+</span><span id="line-159"></span><span>
+</span><span id="line-160"></span><span class="annot"><span class="hs-comment">-- | Number of tests in all programs</span></span><span>
+</span><span id="line-161"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#countTests"><span class="hs-identifier hs-type">countTests</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-type">Report</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-162"></span><span id="countTests"><span class="annot"><span class="annottext">countTests :: Report -&gt; Int
+</span><a href="Language.EO.Phi.Report.Html.html#countTests"><span class="hs-identifier hs-var hs-var">countTests</span></a></span></span><span> </span><span id="local-6989586621679403830"><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403830"><span class="hs-identifier hs-var">report</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[ReportRow] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">([ReportRow] -&gt; Int) -&gt; [ReportRow] -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(ProgramReport -&gt; [ReportRow]) -&gt; [ProgramReport] -&gt; [ReportRow]
+forall (t :: * -&gt; *) a b. Foldable t =&gt; (a -&gt; [b]) -&gt; t a -&gt; [b]
+</span><span class="hs-identifier hs-var">concatMap</span></span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">bindingsRows</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403830"><span class="hs-identifier hs-var">report</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programReports</span><span>
+</span><span id="line-163"></span><span>
+</span><span id="line-164"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toHtmlReport"><span class="hs-identifier hs-type">toHtmlReport</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-type">ReportConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-type">Report</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Html</span></span><span>
+</span><span id="line-165"></span><span id="toHtmlReport"><span class="annot"><span class="annottext">toHtmlReport :: ReportConfig -&gt; Report -&gt; Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlReport"><span class="hs-identifier hs-var hs-var">toHtmlReport</span></a></span></span><span> </span><span id="local-6989586621679403833"><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403833"><span class="hs-identifier hs-var">reportConfig</span></a></span></span><span> </span><span id="local-6989586621679403834"><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403834"><span class="hs-identifier hs-var">report</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-166"></span><span>  </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-167"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">h2</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Overview&quot;</span></span><span>
+</span><span id="line-168"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span>
+</span><span id="line-169"></span><span>          </span><span class="annot"><span class="">[i|
+            We translate EO files into PHI programs.
+            Next, we normalize these programs.
+            Then, we collect metrics for initial and normalized PHI programs.
+          |]</span></span><span>
+</span><span id="line-174"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span>
+</span><span id="line-175"></span><span>          </span><span class="annot"><span class="">[i|
+            An EO file contains multiple test objects.
+            After conversion, these test objects become attributes in PHI programs.
+            We call these attributes &quot;tests&quot;.
+          |]</span></span><span>
+</span><span id="line-180"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span>
+</span><span id="line-181"></span><span>          </span><span class="annot"><span class="">[i|
+            In the report below, we present combined metrics for all programs,
+            metrics for programs,
+            and metrics for tests.
+          |]</span></span><span>
+</span><span id="line-186"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">h2</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Metrics&quot;</span></span><span>
+</span><span id="line-187"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span>
+</span><span id="line-188"></span><span>          </span><span class="annot"><span class="">[i|
+            We collect metrics on the number of dataless formations, applications, formations, and dispatches.
+            We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
+          |]</span></span><span>
+</span><span id="line-192"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span> </span><span class="annot"><span class="">[i|These numbers are expected to reduce as follows:|]</span></span><span>
+</span><span id="line-193"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">ul</span></span><span>
+</span><span id="line-194"></span><span>          </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; Html)
+-&gt; (Metrics Html -&gt; [Html]) -&gt; Metrics Html -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Metrics Html -&gt; [Html]
+forall a. Metrics a -&gt; [a]
+</span><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-var">toListMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">(Metrics Html -&gt; Html) -&gt; Metrics Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-195"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; SafeNumber Percent -&gt; Html
+forall a. ToMarkup a =&gt; String -&gt; a -&gt; Html
+</span><a href="#local-6989586621679403842"><span class="hs-identifier hs-var">makeMetricsItem</span></a></span><span>
+</span><span id="line-196"></span><span>                </span><span class="annot"><span class="annottext">(String -&gt; SafeNumber Percent -&gt; Html)
+-&gt; Metrics String -&gt; Metrics (SafeNumber Percent -&gt; Html)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics String
+</span><a href="Language.EO.Phi.Report.Html.html#metricsNames"><span class="hs-identifier hs-var">metricsNames</span></a></span><span>
+</span><span id="line-197"></span><span>                </span><span class="annot"><span class="annottext">Metrics (SafeNumber Percent -&gt; Html)
+-&gt; Metrics (SafeNumber Percent) -&gt; Metrics Html
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double -&gt; Percent
+</span><a href="Language.EO.Phi.Report.Data.html#Percent"><span class="hs-identifier hs-var">Percent</span></a></span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Percent) -&gt; SafeNumber Double -&gt; SafeNumber Percent
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(SafeNumber Double -&gt; SafeNumber Percent)
+-&gt; Metrics (SafeNumber Double) -&gt; Metrics (SafeNumber Percent)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403833"><span class="hs-identifier hs-var">reportConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">expectedMetricsChange</span><span class="hs-special">)</span><span>
+</span><span id="line-198"></span><span>          </span><span class="hs-special">)</span><span>
+</span><span id="line-199"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">h2</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Statistics&quot;</span></span><span>
+</span><span id="line-200"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span> </span><span class="annot"><span class="">[i|Total number of tests: #{countTests report}.|]</span></span><span>
+</span><span id="line-201"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span>
+</span><span id="line-202"></span><span>          </span><span class="annot"><span class="">[i|
+            For each metric, the number of tests where the metric was reduced as expected
+            (not counting tests where the metric was initially 0):
+          |]</span></span><span>
+</span><span id="line-206"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">ul</span></span><span>
+</span><span id="line-207"></span><span>          </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; Html)
+-&gt; (Metrics Html -&gt; [Html]) -&gt; Metrics Html -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Metrics Html -&gt; [Html]
+forall a. Metrics a -&gt; [a]
+</span><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-var">toListMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">(Metrics Html -&gt; Html) -&gt; Metrics Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-208"></span><span>              </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; Html
+forall a. ToMarkup a =&gt; String -&gt; a -&gt; Html
+</span><a href="#local-6989586621679403842"><span class="hs-identifier hs-var">makeMetricsItem</span></a></span><span>
+</span><span id="line-209"></span><span>                </span><span class="annot"><span class="annottext">(String -&gt; Int -&gt; Html) -&gt; Metrics String -&gt; Metrics (Int -&gt; Html)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics String
+</span><a href="Language.EO.Phi.Report.Html.html#metricsNames"><span class="hs-identifier hs-var">metricsNames</span></a></span><span>
+</span><span id="line-210"></span><span>                </span><span class="annot"><span class="annottext">Metrics (Int -&gt; Html) -&gt; MetricsCount -&gt; Metrics Html
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Report -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Report.Html.html#countGoodMetricsChanges"><span class="hs-identifier hs-var">countGoodMetricsChanges</span></a></span><span> </span><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403834"><span class="hs-identifier hs-var">report</span></a></span><span>
+</span><span id="line-211"></span><span>          </span><span class="hs-special">)</span><span>
+</span><span id="line-212"></span><span>        </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">h2</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Detailed results&quot;</span></span><span>
+</span><span id="line-213"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-214"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">[</span><span>
+</span><span id="line-215"></span><span>         </span><span class="hs-comment">-- https://stackoverflow.com/a/55743302</span><span>
+</span><span id="line-216"></span><span>         </span><span class="hs-comment">-- https://stackoverflow.com/a/3169849</span><span>
+</span><span id="line-217"></span><span>         </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">script</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">type_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;text/javascript&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-218"></span><span>            </span><span class="annot"><span class="">[i|
+                function copytable(el) {
+                  var urlField = document.getElementById(el)
+                  var range = document.createRange()
+                  range.selectNode(urlField)
+                  window.getSelection().addRange(range)
+                  document.execCommand('copy')
+
+                  if (window.getSelection().empty) {  // Chrome
+                    window.getSelection().empty();
+                  } else if (window.getSelection().removeAllRanges) {  // Firefox
+                    window.getSelection().removeAllRanges();
+                  }
+                }
+              |]</span></span><span>
+</span><span id="line-233"></span><span>         </span><span class="hs-special">)</span><span>
+</span><span id="line-234"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Html
+</span><span class="hs-identifier hs-var">input</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Attribute -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">type_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;button&quot;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Attribute -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">value</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;Copy to Clipboard&quot;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Attribute -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">onclick</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;copytable('table')&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-235"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">h3</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Columns&quot;</span></span><span>
+</span><span id="line-236"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Columns in this table are sortable.&quot;</span></span><span>
+</span><span id="line-237"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Hover over a header cell from the second row of header cells (Attribute Initial, etc.) to see a triangle demonstrating the sorting order.&quot;</span></span><span>
+</span><span id="line-238"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">ul</span></span><span>
+</span><span id="line-239"></span><span>            </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-240"></span><span>                </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">li</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;&#9662;: descending&quot;</span></span><span>
+</span><span id="line-241"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">li</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;&#9652;: ascending&quot;</span></span><span>
+</span><span id="line-242"></span><span>                </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">li</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;&#9656;: unordered&quot;</span></span><span>
+</span><span id="line-243"></span><span>                </span><span class="hs-special">]</span><span>
+</span><span id="line-244"></span><span>            </span><span class="hs-special">)</span><span>
+</span><span id="line-245"></span><span>          </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">p</span></span><span> </span><span class="annot"><span class="annottext">Html
+</span><span class="hs-string">&quot;Click on the triangle to change the sorting order in the corresponding column.&quot;</span></span><span>
+</span><span id="line-246"></span><span>         </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679403849"><span class="hs-identifier hs-var">isMarkdown</span></a></span><span>
+</span><span id="line-247"></span><span>         </span><span class="hs-special">]</span><span>
+</span><span id="line-248"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">table</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">class_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;sortable&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;table&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-249"></span><span>            </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span>
+</span><span id="line-250"></span><span>              </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlReportHeader"><span class="hs-identifier hs-var">toHtmlReportHeader</span></a></span><span>
+</span><span id="line-251"></span><span>              </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">tbody</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; ([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Html] -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">([Html] -&gt; Html) -&gt; [Html] -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-252"></span><span>                  </span><span class="annot"><span class="annottext">ReportConfig -&gt; ReportRow -&gt; Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlReportRow"><span class="hs-identifier hs-var">toHtmlReportRow</span></a></span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403833"><span class="hs-identifier hs-var">reportConfig</span></a></span><span>
+</span><span id="line-253"></span><span>                    </span><span class="annot"><span class="annottext">(ReportRow -&gt; Html) -&gt; [ReportRow] -&gt; [Html]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403834"><span class="hs-identifier hs-var">report</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">totalRow</span><span>
+</span><span id="line-254"></span><span>                            </span><span class="annot"><span class="annottext">ReportRow -&gt; [ReportRow] -&gt; [ReportRow]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[[ReportRow]] -&gt; [ReportRow]
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span>
+</span><span id="line-255"></span><span>                              </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">ProgramReport
+</span><a href="#local-6989586621679403852"><span class="hs-identifier hs-var">programReport</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programRow</span><span> </span><span class="annot"><span class="annottext">ReportRow -&gt; [ReportRow] -&gt; [ReportRow]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">ProgramReport
+</span><a href="#local-6989586621679403852"><span class="hs-identifier hs-var">programReport</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsRows</span><span>
+</span><span id="line-256"></span><span>                              </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679403852"><span class="annot"><span class="annottext">ProgramReport
+</span><a href="#local-6989586621679403852"><span class="hs-identifier hs-var">programReport</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403834"><span class="hs-identifier hs-var">report</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programReports</span><span>
+</span><span id="line-257"></span><span>                              </span><span class="hs-special">]</span><span>
+</span><span id="line-258"></span><span>                        </span><span class="hs-special">)</span><span>
+</span><span id="line-259"></span><span>              </span><span class="hs-special">]</span><span>
+</span><span id="line-260"></span><span>         </span><span class="hs-special">]</span><span>
+</span><span id="line-261"></span><span>      </span><span class="annot"><span class="annottext">[Html] -&gt; [Html] -&gt; [Html]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403833"><span class="hs-identifier hs-var">reportConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">format</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-262"></span><span>            </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportFormat%27Html"><span class="hs-identifier hs-type">ReportFormat'Html</span></a></span><span class="hs-special">{</span><span id="local-6989586621679403853"><span id="local-6989586621679403854"><span class="annot"><span class="annottext">String
+$sel:css:ReportFormat'Html :: ReportFormat -&gt; String
+$sel:js:ReportFormat'Html :: ReportFormat -&gt; String
+css :: String
+js :: String
+</span><a href="Language.EO.Phi.Report.Html.html#%24sel%3Acss%3AReportFormat%27Html"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-263"></span><span>              </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">style</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Attribute -&gt; Html -&gt; Html
+forall h. Attributable h =&gt; h -&gt; Attribute -&gt; h
+</span><span class="hs-operator hs-var">!</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue -&gt; Attribute
+</span><span class="hs-identifier hs-var">type_</span></span><span> </span><span class="annot"><span class="annottext">AttributeValue
+</span><span class="hs-string">&quot;text/css&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679403853"><span class="hs-identifier hs-var">css</span></a></span><span>
+</span><span id="line-264"></span><span>              </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">script</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679403854"><span class="hs-identifier hs-var">js</span></a></span><span>
+</span><span id="line-265"></span><span>              </span><span class="hs-special">]</span><span>
+</span><span id="line-266"></span><span>            </span><span class="annot"><span class="annottext">ReportFormat
+</span><a href="Language.EO.Phi.Report.Html.html#ReportFormat%27Markdown"><span class="hs-identifier hs-var">ReportFormat'Markdown</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-267"></span><span>         </span><span class="hs-special">)</span><span>
+</span><span id="line-268"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-269"></span><span>  </span><span id="local-6989586621679403849"><span class="annot"><span class="annottext">isMarkdown :: Bool
+</span><a href="#local-6989586621679403849"><span class="hs-identifier hs-var hs-var">isMarkdown</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403833"><span class="hs-identifier hs-var">reportConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">format</span><span> </span><span class="annot"><span class="annottext">ReportFormat -&gt; ReportFormat -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">ReportFormat
+</span><a href="Language.EO.Phi.Report.Html.html#ReportFormat%27Markdown"><span class="hs-identifier hs-var">ReportFormat'Markdown</span></a></span><span>
+</span><span id="line-270"></span><span>  </span><span id="local-6989586621679403379"><span class="annot"><a href="#local-6989586621679403842"><span class="hs-identifier hs-type">makeMetricsItem</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">ToMarkup</span></span><span> </span><span class="annot"><a href="#local-6989586621679403379"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679403379"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Html</span></span></span><span>
+</span><span id="line-271"></span><span>  </span><span id="local-6989586621679403842"><span class="annot"><span class="annottext">makeMetricsItem :: forall a. ToMarkup a =&gt; String -&gt; a -&gt; Html
+</span><a href="#local-6989586621679403842"><span class="hs-identifier hs-var hs-var">makeMetricsItem</span></a></span></span><span> </span><span id="local-6989586621679403886"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679403886"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679403887"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679403887"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">li</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; Html) -&gt; Html -&gt; Html
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html
+</span><span class="hs-identifier hs-var">b</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="">[i|#{name}: |]</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Html -&gt; Html -&gt; Html
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Html
+forall a. ToMarkup a =&gt; a -&gt; Html
+</span><span class="hs-identifier hs-var">toHtml</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679403887"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-272"></span><span>
+</span><span id="line-273"></span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#toStringReport"><span class="hs-identifier hs-type">toStringReport</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Html.html#ReportConfig"><span class="hs-identifier hs-type">ReportConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-type">Report</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-274"></span><span id="toStringReport"><span class="annot"><span class="annottext">toStringReport :: ReportConfig -&gt; Report -&gt; String
+</span><a href="Language.EO.Phi.Report.Html.html#toStringReport"><span class="hs-identifier hs-var hs-var">toStringReport</span></a></span></span><span> </span><span id="local-6989586621679403890"><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403890"><span class="hs-identifier hs-var">reportConfig</span></a></span></span><span> </span><span id="local-6989586621679403891"><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403891"><span class="hs-identifier hs-var">report</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Html -&gt; String
+</span><span class="hs-identifier hs-var">renderHtml</span></span><span> </span><span class="annot"><span class="annottext">(Html -&gt; String) -&gt; Html -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">ReportConfig -&gt; Report -&gt; Html
+</span><a href="Language.EO.Phi.Report.Html.html#toHtmlReport"><span class="hs-identifier hs-var">toHtmlReport</span></a></span><span> </span><span class="annot"><span class="annottext">ReportConfig
+</span><a href="#local-6989586621679403890"><span class="hs-identifier hs-var">reportConfig</span></a></span><span> </span><span class="annot"><span class="annottext">Report
+</span><a href="#local-6989586621679403891"><span class="hs-identifier hs-var">report</span></a></span><span>
+</span><span id="line-275"></span></pre></body></html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Haskell.Meta.THCompat</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-3"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Language.Haskell.Meta.THCompat.html"><span class="hs-identifier">Language.Haskell.Meta.THCompat</span></a></span><span>
+</span><span id="line-4"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Syntax</span></span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="annot"><a href="Language.Haskell.Meta.THCompat.html#conP"><span class="hs-identifier hs-type">conP</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Pat</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pat</span></span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,18,0)
+</span><span id="conP"><span class="annot"><span class="annottext">conP :: Name -&gt; [Pat] -&gt; Pat
+</span><a href="Language.Haskell.Meta.THCompat.html#conP"><span class="hs-identifier hs-var hs-var">conP</span></a></span></span><span> </span><span id="local-6989586621679105106"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679105106"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name -&gt; [Type] -&gt; [Pat] -&gt; Pat
+</span><span class="hs-identifier hs-var">ConP</span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679105106"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">conP</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">ConP</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+
+#if MIN_VERSION_template_haskell(2,17,0)
+</span><span class="annot"><a href="Language.Haskell.Meta.THCompat.html#plainTV"><span class="hs-identifier hs-type">plainTV</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Name</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TyVarBndr</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Specificity</span></span><span>
+</span><span id="line-19"></span><span id="plainTV"><span class="annot"><span class="annottext">plainTV :: Name -&gt; TyVarBndr Specificity
+</span><a href="Language.Haskell.Meta.THCompat.html#plainTV"><span class="hs-identifier hs-var hs-var">plainTV</span></a></span></span><span> </span><span id="local-6989586621679105109"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679105109"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Specificity -&gt; TyVarBndr Specificity
+forall flag. Name -&gt; flag -&gt; TyVarBndr flag
+</span><span class="hs-identifier hs-var">PlainTV</span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679105109"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="annot"><span class="annottext">Specificity
+</span><span class="hs-identifier hs-var">SpecifiedSpec</span></span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">plainTV</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">Name</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">TyVarBndr</span><span>
+</span><span id="line-22"></span><span class="hs-identifier">plainTV</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">PlainTV</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+
+#if MIN_VERSION_template_haskell(2,17,0)
+</span><span class="hs-keyword">type</span><span> </span><span id="TyVarBndr_"><span class="annot"><a href="Language.Haskell.Meta.THCompat.html#TyVarBndr_"><span class="hs-identifier hs-var">TyVarBndr_</span></a></span></span><span> </span><span id="local-6989586621679105113"><span class="annot"><a href="#local-6989586621679105113"><span class="hs-identifier hs-type">flag</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TyVarBndr</span></span><span> </span><span class="annot"><a href="#local-6989586621679105113"><span class="hs-identifier hs-type">flag</span></a></span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">type</span><span> </span><span class="hs-identifier">TyVarBndr_</span><span> </span><span class="hs-identifier">flag</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TyVarBndr</span><span class="hs-cpp">
+#endif
+</span></pre></body></html>

@@ -1,0 +1,1261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="annot"><span class="hs-comment">{- |
+  Module      :  Language.Haskell.Meta.Parse
+  Copyright   :  (c) Serokell 2022, Adam Bergmark 2022
+  License     :  BSD3
+  Maintainer  :  Adam Bergmark &lt;adam@bergmark.nl&gt;
+  Stability   :  experimental
+  Portability :  portable (template-haskell)
+-}</span></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.Haskell.Meta.Extensions</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-12"></span><span>  </span><span class="annot"><a href="Language.Haskell.Meta.Extensions.html#toExtension"><span class="hs-identifier">toExtension</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>  </span><span class="annot"><a href="Language.Haskell.Meta.Extensions.html#fromExtension"><span class="hs-identifier">fromExtension</span></a></span><span>
+</span><span id="line-14"></span><span> </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.Exts.Extension</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Exts</span></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Syntax</span></span><span>      </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TH</span></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="annot"><span class="hs-comment">-- * To template-haskell</span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><span class="hs-comment">-- | Returns @Nothing@ when the extension is not supported by template-haskell.</span></span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Language.Haskell.Meta.Extensions.html#toExtension"><span class="hs-identifier hs-type">toExtension</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Exts.KnownExtension</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Extension</span></span><span>
+</span><span id="line-26"></span><span id="toExtension"><span class="annot"><span class="annottext">toExtension :: KnownExtension -&gt; Maybe Extension
+</span><a href="Language.Haskell.Meta.Extensions.html#toExtension"><span class="hs-identifier hs-var hs-var">toExtension</span></a></span></span><span> </span><span id="local-6989586621679104866"><span class="annot"><span class="annottext">KnownExtension
+</span><a href="#local-6989586621679104866"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><a href="#local-6989586621679104866"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-27"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.OverlappingInstances</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverlappingInstances</span></span><span>
+</span><span id="line-28"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UndecidableInstances</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UndecidableInstances</span></span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.IncoherentInstances</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.IncoherentInstances</span></span><span>
+</span><span id="line-30"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.InstanceSigs</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.InstanceSigs</span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DoRec</span></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RecursiveDo</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RecursiveDo</span></span><span>
+</span><span id="line-33"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ParallelListComp</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ParallelListComp</span></span><span>
+</span><span id="line-34"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MultiParamTypeClasses</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MultiParamTypeClasses</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MonomorphismRestriction</span></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MonomorphismRestriction</span></span><span>
+</span><span id="line-36"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.FunctionalDependencies</span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FunctionalDependencies</span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Rank2Types</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-38"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RankNTypes</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RankNTypes</span></span><span>
+</span><span id="line-39"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PolymorphicComponents</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExistentialQuantification</span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExistentialQuantification</span></span><span>
+</span><span id="line-41"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ScopedTypeVariables</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ScopedTypeVariables</span></span><span>
+</span><span id="line-42"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PatternSignatures</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-43"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ImplicitParams</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImplicitParams</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.FlexibleContexts</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FlexibleContexts</span></span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.FlexibleInstances</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FlexibleInstances</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.EmptyDataDecls</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.EmptyDataDecls</span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.CPP</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.Cpp</span></span><span>
+</span><span id="line-48"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.KindSignatures</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.KindSignatures</span></span><span>
+</span><span id="line-49"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.BangPatterns</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.BangPatterns</span></span><span>
+</span><span id="line-50"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeSynonymInstances</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeSynonymInstances</span></span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TemplateHaskell</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TemplateHaskell</span></span><span>
+</span><span id="line-52"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ForeignFunctionInterface</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ForeignFunctionInterface</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Arrows</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.Arrows</span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Generics</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ImplicitPrelude</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImplicitPrelude</span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NamedFieldPuns</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PatternGuards</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PatternGuards</span></span><span>
+</span><span id="line-58"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.GeneralizedNewtypeDeriving</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GeneralizedNewtypeDeriving</span></span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveAnyClass</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveAnyClass</span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExtensibleRecords</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RestrictedTypeSynonyms</span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.HereDocuments</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-63"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MagicHash</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MagicHash</span></span><span>
+</span><span id="line-64"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.BinaryLiterals</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.BinaryLiterals</span></span><span>
+</span><span id="line-65"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeFamilies</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeFamilies</span></span><span>
+</span><span id="line-66"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.StandaloneDeriving</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StandaloneDeriving</span></span><span>
+</span><span id="line-67"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnicodeSyntax</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnicodeSyntax</span></span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnliftedFFITypes</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnliftedFFITypes</span></span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.LiberalTypeSynonyms</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.LiberalTypeSynonyms</span></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeOperators</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeOperators</span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ParallelArrays</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ParallelArrays</span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RecordWildCards</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RecordWildCards</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 904
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RecordPuns</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NamedFieldPuns</span></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">Exts.RecordPuns</span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Just</span><span> </span><span class="hs-identifier">TH.RecordPuns</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DisambiguateRecordFields</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DisambiguateRecordFields</span></span><span>
+</span><span id="line-79"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.OverloadedStrings</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedStrings</span></span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.GADTs</span></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GADTs</span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MonoPatBinds</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if !MIN_VERSION_template_haskell(2,18,0)
+</span><span>    </span><span class="hs-identifier">Just</span><span> </span><span class="hs-identifier">TH.MonoPatBinds</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RelaxedPolyRec</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RelaxedPolyRec</span></span><span>
+</span><span id="line-88"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExtendedDefaultRules</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExtendedDefaultRules</span></span><span>
+</span><span id="line-89"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnboxedTuples</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnboxedTuples</span></span><span>
+</span><span id="line-90"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveDataTypeable</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveDataTypeable</span></span><span>
+</span><span id="line-91"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ConstrainedClassMethods</span></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ConstrainedClassMethods</span></span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PackageImports</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PackageImports</span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.LambdaCase</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.LambdaCase</span></span><span>
+</span><span id="line-94"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.EmptyCase</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.EmptyCase</span></span><span>
+</span><span id="line-95"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ImpredicativeTypes</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImpredicativeTypes</span></span><span>
+</span><span id="line-96"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NewQualifiedOperators</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-97"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PostfixOperators</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PostfixOperators</span></span><span>
+</span><span id="line-98"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.QuasiQuotes</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.QuasiQuotes</span></span><span>
+</span><span id="line-99"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TransformListComp</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TransformListComp</span></span><span>
+</span><span id="line-100"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ViewPatterns</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ViewPatterns</span></span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.XmlSyntax</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-102"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RegularPatterns</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-103"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TupleSections</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TupleSections</span></span><span>
+</span><span id="line-104"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.GHCForeignImportPrim</span></span><span>       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GHCForeignImportPrim</span></span><span>
+</span><span id="line-105"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NPlusKPatterns</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NPlusKPatterns</span></span><span>
+</span><span id="line-106"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DoAndIfThenElse</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DoAndIfThenElse</span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RebindableSyntax</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RebindableSyntax</span></span><span>
+</span><span id="line-108"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExplicitForAll</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExplicitForAll</span></span><span>
+</span><span id="line-109"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DatatypeContexts</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DatatypeContexts</span></span><span>
+</span><span id="line-110"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MonoLocalBinds</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MonoLocalBinds</span></span><span>
+</span><span id="line-111"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveFunctor</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveFunctor</span></span><span>
+</span><span id="line-112"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveGeneric</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveGeneric</span></span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveTraversable</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveTraversable</span></span><span>
+</span><span id="line-114"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveFoldable</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveFoldable</span></span><span>
+</span><span id="line-115"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NondecreasingIndentation</span></span><span>   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NondecreasingIndentation</span></span><span>
+</span><span id="line-116"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.InterruptibleFFI</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.InterruptibleFFI</span></span><span>
+</span><span id="line-117"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.CApiFFI</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.CApiFFI</span></span><span>
+</span><span id="line-118"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.JavaScriptFFI</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.JavaScriptFFI</span></span><span>
+</span><span id="line-119"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExplicitNamespaces</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExplicitNamespaces</span></span><span>
+</span><span id="line-120"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DataKinds</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DataKinds</span></span><span>
+</span><span id="line-121"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PolyKinds</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PolyKinds</span></span><span>
+</span><span id="line-122"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MultiWayIf</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MultiWayIf</span></span><span>
+</span><span id="line-123"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.SafeImports</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-124"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Safe</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-125"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Trustworthy</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe Extension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-126"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DefaultSignatures</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DefaultSignatures</span></span><span>
+</span><span id="line-127"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ConstraintKinds</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ConstraintKinds</span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RoleAnnotations</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RoleAnnotations</span></span><span>
+</span><span id="line-129"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PatternSynonyms</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PatternSynonyms</span></span><span>
+</span><span id="line-130"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PartialTypeSignatures</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PartialTypeSignatures</span></span><span>
+</span><span id="line-131"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NamedWildCards</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NamedWildCards</span></span><span>
+</span><span id="line-132"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeApplications</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeApplications</span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeFamilyDependencies</span></span><span>     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeFamilyDependencies</span></span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.OverloadedLabels</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedLabels</span></span><span>
+</span><span id="line-135"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DerivingStrategies</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DerivingStrategies</span></span><span>
+</span><span id="line-136"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnboxedSums</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnboxedSums</span></span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,21,0)
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeInType</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeInType</span></span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Strict</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.Strict</span></span><span>
+</span><span id="line-141"></span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.StrictData</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StrictData</span></span><span class="hs-cpp">
+
+#if MIN_VERSION_haskell_src_exts(1,21,0)
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DerivingVia</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,14,0)
+</span><span>    </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DerivingVia</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,22,0)
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.QuantifiedConstraints</span></span><span>      </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,14,0)
+</span><span>    </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.QuantifiedConstraints</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,23,0)
+</span><span>  </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.BlockArguments</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,14,0)
+</span><span>    </span><span class="annot"><span class="annottext">Extension -&gt; Maybe Extension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.BlockArguments</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">#endif
+</span><span>
+</span><span id="line-170"></span><span>  </span><span class="hs-comment">-- NB: when adding a case here, you may also need to update `fromExtension`</span><span>
+</span><span id="line-171"></span><span>
+</span><span id="line-172"></span><span>
+</span><span id="line-173"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-174"></span><span>
+</span><span id="line-175"></span><span class="annot"><span class="hs-comment">-- * From template-haskell</span></span><span>
+</span><span id="line-176"></span><span>
+</span><span id="line-177"></span><span class="annot"><span class="hs-comment">-- | Returns @Nothing@ when the extension is not supported by haskell-src-exts.</span></span><span>
+</span><span id="line-178"></span><span class="annot"><a href="Language.Haskell.Meta.Extensions.html#fromExtension"><span class="hs-identifier hs-type">fromExtension</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Extension</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Exts.KnownExtension</span></span><span>
+</span><span id="line-179"></span><span id="fromExtension"><span class="annot"><span class="annottext">fromExtension :: Extension -&gt; Maybe KnownExtension
+</span><a href="Language.Haskell.Meta.Extensions.html#fromExtension"><span class="hs-identifier hs-var hs-var">fromExtension</span></a></span></span><span> </span><span id="local-6989586621679105065"><span class="annot"><span class="annottext">Extension
+</span><a href="#local-6989586621679105065"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Extension
+</span><a href="#local-6989586621679105065"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-180"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.Cpp</span></span><span>                               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.CPP</span></span><span>
+</span><span id="line-181"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverlappingInstances</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.OverlappingInstances</span></span><span>
+</span><span id="line-182"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UndecidableInstances</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UndecidableInstances</span></span><span>
+</span><span id="line-183"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.IncoherentInstances</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.IncoherentInstances</span></span><span>
+</span><span id="line-184"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UndecidableSuperClasses</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-185"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MonomorphismRestriction</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MonomorphismRestriction</span></span><span class="hs-cpp">
+#if !MIN_VERSION_template_haskell(2,18,0)
+</span><span>  </span><span class="hs-identifier">TH.MonoPatBinds</span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Just</span><span> </span><span class="hs-identifier">Exts.MonoPatBinds</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MonoLocalBinds</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MonoLocalBinds</span></span><span>
+</span><span id="line-190"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RelaxedPolyRec</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RelaxedPolyRec</span></span><span>
+</span><span id="line-191"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExtendedDefaultRules</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExtendedDefaultRules</span></span><span>
+</span><span id="line-192"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ForeignFunctionInterface</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ForeignFunctionInterface</span></span><span>
+</span><span id="line-193"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnliftedFFITypes</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnliftedFFITypes</span></span><span>
+</span><span id="line-194"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.InterruptibleFFI</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.InterruptibleFFI</span></span><span>
+</span><span id="line-195"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.CApiFFI</span></span><span>                           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.CApiFFI</span></span><span>
+</span><span id="line-196"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GHCForeignImportPrim</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.GHCForeignImportPrim</span></span><span>
+</span><span id="line-197"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.JavaScriptFFI</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.JavaScriptFFI</span></span><span>
+</span><span id="line-198"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ParallelArrays</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ParallelArrays</span></span><span>
+</span><span id="line-199"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.Arrows</span></span><span>                            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Arrows</span></span><span>
+</span><span id="line-200"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TemplateHaskell</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TemplateHaskell</span></span><span>
+</span><span id="line-201"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TemplateHaskellQuotes</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-202"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.QuasiQuotes</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.QuasiQuotes</span></span><span>
+</span><span id="line-203"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImplicitParams</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ImplicitParams</span></span><span>
+</span><span id="line-204"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImplicitPrelude</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ImplicitPrelude</span></span><span>
+</span><span id="line-205"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ScopedTypeVariables</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ScopedTypeVariables</span></span><span>
+</span><span id="line-206"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.AllowAmbiguousTypes</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-207"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnboxedTuples</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnboxedTuples</span></span><span>
+</span><span id="line-208"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnboxedSums</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnboxedSums</span></span><span>
+</span><span id="line-209"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.BangPatterns</span></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.BangPatterns</span></span><span>
+</span><span id="line-210"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeFamilies</span></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeFamilies</span></span><span>
+</span><span id="line-211"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeFamilyDependencies</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeFamilyDependencies</span></span><span>
+</span><span id="line-212"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeInType</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,21,0)
+</span><span>    </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeInType</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedStrings</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.OverloadedStrings</span></span><span>
+</span><span id="line-219"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedLists</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-220"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NumDecimals</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-221"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DisambiguateRecordFields</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DisambiguateRecordFields</span></span><span>
+</span><span id="line-222"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RecordWildCards</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RecordWildCards</span></span><span class="hs-cpp">
+#if __GLASGOW_HASKELL__ &gt;= 904
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NamedFieldPuns</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RecordPuns</span></span><span>
+</span><span id="line-225"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.QualifiedDo</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-226"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnliftedDatatypes</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-227"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.LinearTypes</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-228"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.LexicalNegation</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-229"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FieldSelectors</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-230"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedRecordDot</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-231"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedRecordUpdate</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">TH.RecordPuns</span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Just</span><span> </span><span class="hs-identifier">Exts.RecordPuns</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ViewPatterns</span></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ViewPatterns</span></span><span>
+</span><span id="line-236"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GADTs</span></span><span>                             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.GADTs</span></span><span>
+</span><span id="line-237"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GADTSyntax</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-238"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NPlusKPatterns</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NPlusKPatterns</span></span><span>
+</span><span id="line-239"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DoAndIfThenElse</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DoAndIfThenElse</span></span><span>
+</span><span id="line-240"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RebindableSyntax</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RebindableSyntax</span></span><span>
+</span><span id="line-241"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ConstraintKinds</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ConstraintKinds</span></span><span>
+</span><span id="line-242"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PolyKinds</span></span><span>                         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PolyKinds</span></span><span>
+</span><span id="line-243"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DataKinds</span></span><span>                         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DataKinds</span></span><span>
+</span><span id="line-244"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.InstanceSigs</span></span><span>                      </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.InstanceSigs</span></span><span>
+</span><span id="line-245"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ApplicativeDo</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-246"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StandaloneDeriving</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.StandaloneDeriving</span></span><span>
+</span><span id="line-247"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveDataTypeable</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveDataTypeable</span></span><span>
+</span><span id="line-248"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.AutoDeriveTypeable</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-249"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveFunctor</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveFunctor</span></span><span>
+</span><span id="line-250"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveTraversable</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveTraversable</span></span><span>
+</span><span id="line-251"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveFoldable</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveFoldable</span></span><span>
+</span><span id="line-252"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveGeneric</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveGeneric</span></span><span>
+</span><span id="line-253"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DefaultSignatures</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DefaultSignatures</span></span><span>
+</span><span id="line-254"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveAnyClass</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DeriveAnyClass</span></span><span>
+</span><span id="line-255"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeriveLift</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-256"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DerivingStrategies</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DerivingStrategies</span></span><span>
+</span><span id="line-257"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeSynonymInstances</span></span><span>              </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeSynonymInstances</span></span><span>
+</span><span id="line-258"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FlexibleContexts</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.FlexibleContexts</span></span><span>
+</span><span id="line-259"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FlexibleInstances</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.FlexibleInstances</span></span><span>
+</span><span id="line-260"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ConstrainedClassMethods</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ConstrainedClassMethods</span></span><span>
+</span><span id="line-261"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MultiParamTypeClasses</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MultiParamTypeClasses</span></span><span>
+</span><span id="line-262"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NullaryTypeClasses</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-263"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.FunctionalDependencies</span></span><span>            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.FunctionalDependencies</span></span><span>
+</span><span id="line-264"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnicodeSyntax</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.UnicodeSyntax</span></span><span>
+</span><span id="line-265"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExistentialQuantification</span></span><span>         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExistentialQuantification</span></span><span>
+</span><span id="line-266"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MagicHash</span></span><span>                         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MagicHash</span></span><span>
+</span><span id="line-267"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.EmptyDataDecls</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.EmptyDataDecls</span></span><span>
+</span><span id="line-268"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.KindSignatures</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.KindSignatures</span></span><span>
+</span><span id="line-269"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RoleAnnotations</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RoleAnnotations</span></span><span>
+</span><span id="line-270"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ParallelListComp</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ParallelListComp</span></span><span>
+</span><span id="line-271"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TransformListComp</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TransformListComp</span></span><span>
+</span><span id="line-272"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MonadComprehensions</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-273"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.GeneralizedNewtypeDeriving</span></span><span>        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.GeneralizedNewtypeDeriving</span></span><span>
+</span><span id="line-274"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RecursiveDo</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RecursiveDo</span></span><span>
+</span><span id="line-275"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PostfixOperators</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PostfixOperators</span></span><span>
+</span><span id="line-276"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TupleSections</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TupleSections</span></span><span>
+</span><span id="line-277"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PatternGuards</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PatternGuards</span></span><span>
+</span><span id="line-278"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.LiberalTypeSynonyms</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.LiberalTypeSynonyms</span></span><span>
+</span><span id="line-279"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RankNTypes</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.RankNTypes</span></span><span>
+</span><span id="line-280"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImpredicativeTypes</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ImpredicativeTypes</span></span><span>
+</span><span id="line-281"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeOperators</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeOperators</span></span><span>
+</span><span id="line-282"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExplicitNamespaces</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExplicitNamespaces</span></span><span>
+</span><span id="line-283"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PackageImports</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PackageImports</span></span><span>
+</span><span id="line-284"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ExplicitForAll</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.ExplicitForAll</span></span><span>
+</span><span id="line-285"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.AlternativeLayoutRule</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-286"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.AlternativeLayoutRuleTransitional</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-287"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DatatypeContexts</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DatatypeContexts</span></span><span>
+</span><span id="line-288"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NondecreasingIndentation</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NondecreasingIndentation</span></span><span>
+</span><span id="line-289"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.RelaxedLayout</span></span><span>                     </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-290"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TraditionalRecordSyntax</span></span><span>           </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-291"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.LambdaCase</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.LambdaCase</span></span><span>
+</span><span id="line-292"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.MultiWayIf</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.MultiWayIf</span></span><span>
+</span><span id="line-293"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.BinaryLiterals</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.BinaryLiterals</span></span><span>
+</span><span id="line-294"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NegativeLiterals</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-295"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DuplicateRecordFields</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-296"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.OverloadedLabels</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.OverloadedLabels</span></span><span>
+</span><span id="line-297"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.EmptyCase</span></span><span>                         </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.EmptyCase</span></span><span>
+</span><span id="line-298"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PatternSynonyms</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PatternSynonyms</span></span><span>
+</span><span id="line-299"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.PartialTypeSignatures</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.PartialTypeSignatures</span></span><span>
+</span><span id="line-300"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NamedWildCards</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.NamedWildCards</span></span><span>
+</span><span id="line-301"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StaticPointers</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-302"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeApplications</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.TypeApplications</span></span><span>
+</span><span id="line-303"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.Strict</span></span><span>                            </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.Strict</span></span><span>
+</span><span id="line-304"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StrictData</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.StrictData</span></span><span class="hs-cpp">
+#if !MIN_VERSION_template_haskell(2,18,0)
+</span><span>  </span><span class="hs-identifier">TH.MonadFailDesugaring</span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-309"></span><span class="hs-comment">-- 2.13.0 ----------------------------------------</span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,13,0)
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.HexFloatLiterals</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-312"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.EmptyDataDeriving</span></span><span>                 </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-315"></span><span class="hs-comment">-- 2.14.0 ----------------------------------------</span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,14,0)
+</span><span>
+</span><span id="line-318"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DerivingVia</span></span><span>                       </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,21,0)
+</span><span>    </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.DerivingVia</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-325"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.QuantifiedConstraints</span></span><span>             </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,22,0)
+</span><span>    </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.QuantifiedConstraints</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-332"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.BlockArguments</span></span><span>                    </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#if MIN_VERSION_haskell_src_exts(1,23,0)
+</span><span>    </span><span class="annot"><span class="annottext">KnownExtension -&gt; Maybe KnownExtension
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">KnownExtension
+</span><span class="hs-identifier hs-var">Exts.BlockArguments</span></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-339"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.NumericUnderscores</span></span><span>                </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-340"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StarIsType</span></span><span>                        </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-343"></span><span class="hs-comment">-- 2.16.0 ----------------------------------------</span><span class="hs-cpp">
+#if MIN_VERSION_template_haskell(2,16,0)
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.UnliftedNewtypes</span></span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-346"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.ImportQualifiedPost</span></span><span>               </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-347"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.CUSKs</span></span><span>                             </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-348"></span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.StandaloneKindSignatures</span></span><span>          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-351"></span><span class="hs-comment">-- 2.19.0 ---------------------------------------</span><span class="hs-cpp">
+
+#if MIN_VERSION_template_haskell(2,19,0)
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.DeepSubsumption</span></span><span>                   </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-357"></span><span class="hs-comment">-- 2.20.0 ---------------------------------------</span><span class="hs-cpp">
+
+#if MIN_VERSION_template_haskell(2,20,0)
+</span><span>  </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">TH.TypeData</span></span><span>                          </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe KnownExtension
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-363"></span><span class="hs-comment">-- 2.21.0 ---------------------------------------</span><span class="hs-cpp">
+
+#if MIN_VERSION_template_haskell(2,21,0)
+</span><span>  </span><span class="hs-identifier">TH.TypeAbstractions</span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Nothing</span><span>
+</span><span id="line-367"></span><span>  </span><span class="hs-identifier">TH.ExtendedLiterals</span><span>                  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Nothing</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-370"></span><span>  </span><span class="hs-comment">-- NB: when adding a case here, you may also need to update `toExtension`</span><span>
+</span><span id="line-371"></span><span>
+</span><span id="line-372"></span><span>
+</span><span id="line-373"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-374"></span></pre></body></html>
