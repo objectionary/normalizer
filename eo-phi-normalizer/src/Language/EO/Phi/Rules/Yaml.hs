@@ -31,6 +31,10 @@ import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations),
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedLists
+
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON

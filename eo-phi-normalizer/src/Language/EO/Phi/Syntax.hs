@@ -4,6 +4,7 @@
 module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
   printTree,
+  shrinkDots,
 ) where
 
 import Data.Char (isSpace)
@@ -19,8 +20,8 @@ printTree = shrinkDots . render . Phi.prt 0
 
 -- | Remove spaces around dots.
 --
--- >>> putStrLn (shrinkDots "a ↦ ξ . a")
--- a ↦ ξ.a
+-- >>> shrinkDots "a ↦ ξ . a" == "a ↦ ξ.a"
+-- True
 shrinkDots :: String -> String
 shrinkDots [] = []
 shrinkDots (' ' : '.' : ' ' : cs) = '.' : shrinkDots cs

@@ -27,9 +27,10 @@ description: Please see the README on GitHub at <https://github.com/objectionary
 
 custom-setup:
   dependencies:
-    base: ">= 4.11.0.0 && < 5.0"
-    Cabal: ">= 2.4.0.1 && < 4.0"
-    process: ">= 1.6.3.0"
+    - base >= 4.11.0.0 && < 5.0
+    - Cabal >= 2.4.0.1 && < 4.0
+    - process >= 1.6.3.0
+    - string-interpolate
 
 build-tools:
   alex: ">= 3.2.4"
@@ -52,7 +53,7 @@ dependencies:
   - blaze-html
   - blaze-markup
   - scientific
-  - file-embed
+  - file-embed >= 0.0.16.0
 
 default-extensions:
   - ImportQualifiedPost
@@ -107,3 +108,16 @@ tests:
       - hspec
       - hspec-discover
       - QuickCheck
+  doctests:
+    main: Main.hs
+    source-dirs:
+      - test/doctests
+      - src
+    dependencies:
+      - eo-phi-normalizer
+      - doctest-parallel
+    when:
+    - condition: false
+      other-modules:
+        - Language.EO.Phi.Syntax.Test
+        - Language.EO.Phi.Syntax.ErrM

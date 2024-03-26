@@ -21,6 +21,10 @@ import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics 
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedLists
+
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
 

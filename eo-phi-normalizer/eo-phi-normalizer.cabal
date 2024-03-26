@@ -32,6 +32,7 @@ custom-setup
       Cabal >=2.4.0.1 && <4.0
     , base >=4.11.0.0 && <5.0
     , process >=1.6.3.0
+    , string-interpolate
 
 library
   exposed-modules:
@@ -70,7 +71,7 @@ library
     , blaze-html
     , blaze-markup
     , directory
-    , file-embed
+    , file-embed >=0.0.16.0
     , filepath
     , generic-lens
     , lens
@@ -105,12 +106,66 @@ executable normalizer
     , blaze-markup
     , directory
     , eo-phi-normalizer
-    , file-embed
+    , file-embed >=0.0.16.0
     , filepath
     , generic-lens
     , lens
     , mtl
     , optparse-applicative
+    , scientific
+    , string-interpolate
+    , template-haskell
+    , text
+    , yaml
+  default-language: Haskell2010
+
+test-suite doctests
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Language.EO.Phi
+      Language.EO.Phi.Dataize
+      Language.EO.Phi.Metrics.Collect
+      Language.EO.Phi.Metrics.Data
+      Language.EO.Phi.Normalize
+      Language.EO.Phi.Report.Data
+      Language.EO.Phi.Report.Html
+      Language.EO.Phi.Rules.Common
+      Language.EO.Phi.Rules.PhiPaper
+      Language.EO.Phi.Rules.Yaml
+      Language.EO.Phi.Syntax
+      Language.EO.Phi.Syntax.Abs
+      Language.EO.Phi.Syntax.Lex
+      Language.EO.Phi.Syntax.Par
+      Language.EO.Phi.Syntax.Print
+      Language.EO.Phi.Syntax.Skel
+      Language.EO.Phi.TH
+      Paths_eo_phi_normalizer
+  hs-source-dirs:
+      test/doctests
+      src
+  default-extensions:
+      ImportQualifiedPost
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists
+  build-tools:
+      alex >=3.2.4
+    , happy >=1.19.9
+  build-tool-depends:
+      BNFC:bnfc >=2.9.4.1
+  build-depends:
+      aeson
+    , array >=0.5.5.0
+    , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
+    , directory
+    , doctest-parallel
+    , eo-phi-normalizer
+    , file-embed >=0.0.16.0
+    , filepath
+    , generic-lens
+    , lens
+    , mtl
     , scientific
     , string-interpolate
     , template-haskell
@@ -149,7 +204,7 @@ test-suite spec
     , blaze-markup
     , directory
     , eo-phi-normalizer
-    , file-embed
+    , file-embed >=0.0.16.0
     , filepath
     , generic-lens
     , hspec

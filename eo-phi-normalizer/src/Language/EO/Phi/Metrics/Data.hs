@@ -31,9 +31,9 @@ import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.TH (deriveJSON)
 
 data Metrics a = Metrics
-  { formations :: a
-  , dataless :: a
+  { dataless :: a
   , applications :: a
+  , formations :: a
   , dispatches :: a
   }
   deriving stock (Show, Generic, Eq, Functor, Foldable, Traversable)
@@ -47,18 +47,18 @@ instance Applicative Metrics where
   pure :: a -> Metrics a
   pure a =
     Metrics
-      { formations = a
-      , dataless = a
+      { dataless = a
       , applications = a
+      , formations = a
       , dispatches = a
       }
 
   (<*>) :: Metrics (a -> b) -> Metrics a -> Metrics b
   x <*> y =
     Metrics
-      { formations = x.formations y.formations
-      , dataless = x.dataless y.dataless
+      { dataless = x.dataless y.dataless
       , applications = x.applications y.applications
+      , formations = x.formations y.formations
       , dispatches = x.dispatches y.dispatches
       }
 

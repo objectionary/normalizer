@@ -133,8 +133,6 @@ isNF :: Context -> Object -> Bool
 isNF ctx = null . applyOneRule ctx
 
 -- | Apply rules until we get a normal form.
---
--- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6] ["⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧"]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
 applyRules :: Context -> Object -> [Object]
 applyRules ctx obj = applyRulesWith (defaultApplicationLimits (objectSize obj)) ctx obj
 
