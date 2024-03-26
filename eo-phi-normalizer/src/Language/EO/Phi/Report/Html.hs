@@ -27,7 +27,6 @@ import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, Met
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, id, onclick, type_, value)
-import Text.Printf (printf)
 import Prelude hiding (div, id, span)
 
 -- | JavaScript file to embed into HTML reports
@@ -54,7 +53,7 @@ toHtmlReportHeader =
       [ tr $
           toHtml
             [ th ! colspan "2" ! class_ "no-sort" $ "Attribute"
-            , th ! colspan "4" ! class_ "no-sort" $ "Improvement = (Initial - Normalized) / Initial"
+            , th ! colspan "4" ! class_ "no-sort" $ "Change"
             , th ! colspan "4" ! class_ "no-sort" $ "Initial"
             , th ! colspan "4" ! class_ "no-sort" $ "Normalized"
             , th ! colspan "4" ! class_ "no-sort" $ "Location"
@@ -87,6 +86,7 @@ data ReportFormat
 
 data ReportConfig = ReportConfig
   { expectedMetricsChange :: MetricsChange
+  , expectedImprovedProgramsPercentage :: Percent
   , format :: ReportFormat
   }
 
@@ -95,12 +95,9 @@ instance (ToMarkup a) => ToMarkup (SafeNumber a) where
   toMarkup (SafeNumber'Number n) = toMarkup n
   toMarkup SafeNumber'NaN = toMarkup ("NaN" :: String)
 
-roundToStr :: Int -> Double -> String
-roundToStr = printf "%0.*f%%"
-
 instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
-  toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
+  toMarkup = toMarkup . show
 
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 -- >>> reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }
@@ -150,66 +147,64 @@ toHtmlReportRow reportConfig reportRow =
                 ]
          )
 
--- | Number of tests where metrics changes were better than expected
-countGoodMetricsChanges :: Report -> MetricsCount
-countGoodMetricsChanges report = metricsCount
- where
-  metricsChanges = (.metricsChange) <$> concatMap (.bindingsRows) report.programReports
-  metricsCount = foldMap ((\case MetricsChange'Good _ -> 1; _ -> 0) <$>) metricsChanges
-
--- | Number of tests in all programs
-countTests :: Report -> Int
-countTests report = length $ concatMap (.bindingsRows) report.programReports
-
 toHtmlReport :: ReportConfig -> Report -> Html
 toHtmlReport reportConfig report =
   toHtml $
     [ h2 "Overview"
         <> p
           [i|
-            We translate EO files into PHI programs.
-            Next, we normalize these programs.
+            We translate EO files into initial PHI programs.
+            Next, we normalize these programs and get normalized PHI programs.
             Then, we collect metrics for initial and normalized PHI programs.
-          |]
-        <> p
-          [i|
-            An EO file contains multiple test objects.
-            After conversion, these test objects become attributes in PHI programs.
-            We call these attributes "tests".
-          |]
-        <> p
-          [i|
-            In the report below, we present combined metrics for all programs,
-            metrics for programs,
-            and metrics for tests.
           |]
         <> h2 "Metrics"
         <> p
           [i|
-            We collect metrics on the number of dataless formations, applications, formations, and dispatches.
-            We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
+            An EO file contains multiple test objects.
+            After translation, these test objects become attributes in PHI programs.
+            We call these attributes "tests".
           |]
-        <> p [i|These numbers are expected to reduce as follows:|]
-        <> ul
-          ( toHtml . toListMetrics $
-              makeMetricsItem
-                <$> metricsNames
-                <*> ((Percent <$>) <$> reportConfig.expectedMetricsChange)
-          )
-        <> h2 "Statistics"
-        <> p [i|Total number of tests: #{countTests report}.|]
         <> p
           [i|
-            For each metric, the number of tests where the metric was reduced as expected
-            (not counting tests where the metric was initially 0):
+            We collect metrics on the number of #{intercalate ", " (toListMetrics metricsNames)} in tests.
+            We want normalized tests to have less such elements than initial tests do.
+          |]
+        <> p "A metric change for a test is calculated by the formula"
+        <> p (code "(metric_initial - metric_normalized) / metric_initial")
+        <> p "where:"
+        <> ul
+          ( toHtml
+              [ li $ code "metric_initial" <> " is the metric for the initial test"
+              , li $ code "metric_normalized" <> " is the metric for the normalized test"
+              ]
+          )
+        <> h3 "Expected"
+        <> p
+          [i|
+            Metric changes are expected to be as follows or greater:
           |]
         <> ul
           ( toHtml . toListMetrics $
-              makeMetricsItem
+              makePercentItem
                 <$> metricsNames
-                <*> countGoodMetricsChanges report
+                <*> reportConfig.expectedMetricsChange
           )
-        <> h2 "Detailed results"
+        <> p
+          ( let expectedImprovedProgramsPercentage = reportConfig.expectedImprovedProgramsPercentage
+             in [i|We expect such changes for at least #{expectedImprovedProgramsPercentage} of tests.|]
+          )
+        <> h3 "Actual"
+        <> p [i|We normalized #{testsCount} tests.|]
+        <> p [i|All metrics were improved for #{makeNumber allChangesGoodCount} tests.|]
+        <> p [i|Tests where a particular metric was improved:|]
+        <> ul
+          ( toHtml . toListMetrics $
+              makeItem
+                <$> metricsNames
+                <*> particularMetricsChangeGoodCount
+          )
+        <> h2 "Table"
+        <> p [i|The table below provides detailed information about tests.|]
     ]
       <> [
          -- https://stackoverflow.com/a/55743302
@@ -250,12 +245,7 @@ toHtmlReport reportConfig report =
               [ toHtmlReportHeader
               , tbody . toHtml $
                   toHtmlReportRow reportConfig
-                    <$> ( report.totalRow
-                            : concat
-                              [ programReport.programRow : programReport.bindingsRows
-                              | programReport <- report.programReports
-                              ]
-                        )
+                    <$> concat [programReport.bindingsRows | programReport <- report.programReports]
               ]
          ]
       <> ( case reportConfig.format of
@@ -267,8 +257,33 @@ toHtmlReport reportConfig report =
          )
  where
   isMarkdown = reportConfig.format == ReportFormat'Markdown
-  makeMetricsItem :: (ToMarkup a) => String -> a -> Html
-  makeMetricsItem name x = li $ b (toHtml ([i|#{name}: |] :: String)) <> toHtml x
+
+  makePercentItem :: String -> Percent -> Html
+  makePercentItem name percent = li $ b [i|#{name}: |] <> toHtml percent
+
+  makeNumber :: Int -> String
+  makeNumber number = [i|#{number} (#{mkPercentage allChangesGoodCount})|]
+
+  makeItem :: String -> Int -> Html
+  makeItem name number = li $ b [i|#{name}: |] <> toHtml (makeNumber number)
+
+  tests = concatMap (.bindingsRows) report.programReports
+
+  testsCount = length tests
+
+  metricsChanges = (.metricsChange) <$> concatMap (.bindingsRows) report.programReports
+
+  isGood = \case
+    MetricsChange'Good _ -> True
+    _ -> False
+
+  countAllChanges cond = length $ filter (all cond) metricsChanges
+  allChangesGoodCount = countAllChanges isGood
+
+  mkPercentage x = Percent $ fromIntegral x / fromIntegral testsCount
+
+  particularMetricsChangeGoodCount :: Metrics Int
+  particularMetricsChangeGoodCount = sum $ ((\x -> if x then 1 else 0) . isGood <$>) <$> metricsChanges
 
 toStringReport :: ReportConfig -> Report -> String
 toStringReport reportConfig report = renderHtml $ toHtmlReport reportConfig report
