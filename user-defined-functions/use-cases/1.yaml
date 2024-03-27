@@ -420,42 +420,55 @@ eo:
   before: |
     +package com.example
 
+    # object
     [] > application
+      # object
       [] > main
-        bar. > @
-          Q.com.example.second.b'.init
-            "Hello"
-            Q.com.example.first.a'.init 42 21
-            11
+      bar. > @
+        Q.com.example.second.b'.init
+        "Hello"
+        Q.com.example.first.a'.init 42 21
+        11
+
+    # object
     [] > first
+      # object
       [] > a
-        cage' > d1
-        cage' > d2
-        [d1 d2] > init
-          seq > @
-            *
-              ^.d1.write d1
-              ^.d2.write d2
-        [] > foo
-          seq > @
-            *
-              ^.d1.plus ^.d_2
+      cage' > d1
+      cage' > d2
+      # object
+      [d1 d2] > init
+        seq > @
+        *
+          ^.d1.write d1
+          ^.d2.write d2
+      # object
+      [] > foo
+        seq > @
+        *
+          ^.d1.plus ^.d_2
+
+    # object
     [] > second
+      # object
       [] > b
-        cage' > str
-        cage' > a
-        cage' > num
-        [str a num] > init
-          seq > @
-            *
-              ^.str.write str
-              ^.a.write a
-              ^.num.write num
-        [] > bar
-          seq > @
-            *
-              QQ.io.stdout ^.str
-              ^.a.foo.plus num
+      cage' > str
+      cage' > a
+      cage' > num
+      # object
+      [str a num] > init
+        seq > @
+        *
+          ^.str.write str
+          ^.a.write a
+          ^.num.write num
+      # object
+      [] > bar
+        seq > @
+        *
+          QQ.io.stdout ^.str
+          ^.a.foo.plus num
+
   after: |
     +package com.example
 
