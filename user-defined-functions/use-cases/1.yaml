@@ -1,0 +1,521 @@
+# \?B1 ?x.?y... -> ?a.b ===> Binding B1 that matches with ?x.?y... -> ?a.b, can be used futher as ?B1
+#
+# ?bar => \?b_bar ξ.ρ.?b_a.?foo ===> find binding with name ?bar, save its whole body to variable.
+# ?b_bar, where body contains ξ.ρ.?b_a.?foo
+#
+# ?p1..?main -> ...     ===> some path to ?main
+# - if used in formation - means enclosure, for ex: [ org -> [ eolang -> [ main -> ...] ] ]
+# - if used in application - means dot notation, for ex (x -> org.eolang.main)
+#
+# $mt(a, b) ===> returns string where "a" and "b" joined with "." (dot)
+# $name(?a)  ===> returns name of ?a
+# $for-all(?B, method) ===> checks that for all bindings ?B predicate "method" is TRUE
+# $bound-to(x) ===> checks that binding is bound to "x"
+# $unique(?B) ===> resolve unique names for all bindings ?B
+# $replace(?B1, ?B2, ?B3) ===> replace all occurencies of B2 to B3 in B1
+# $combine(?B1, ?B2) ===> create new bindings combined B1 names and B2 names
+pattern: |
+  {
+    ?p1..?main -> [
+      ?x1 -> ?p2..?b().?b_init(
+        ?B1,
+        ?t -> ?p3..?a().?a_init(?B2),
+      ).?bar
+    ],
+    \?B97 ?p2..?a -> [
+      ?B3,
+      ?a_init -> [
+        ?B4,
+        φ -> [ ?B5 ]
+        ?B6,
+      ],
+      ?foo -> [ ?B7 ]
+    ],
+    \?B98 ?p3..?b -> [
+      ?B8,
+      ?b_a -> Φ.org.eolang.cage(),
+      ?b_init -> [
+        ?B9,
+        ?t -> ∅
+        φ => \?b_init_phi ξ.ρ.?b_a.write(α0 -> ?t),
+        ?B10,
+      ],
+      ?bar => \?b_bar ξ.ρ.?b_a.?foo,
+    ],
+    ?B99
+  }
+where: |
+  $for-all(?B4, $bound-to(∅)),
+  $for-all(?B9, $bound-to(∅)),
+  $starts-with($name(?a_init), "init"),
+  $starts-with($name(?b_init), "init"),
+  $not($starts-with($name(?bar), "init")),
+  $not($starts-with($name(?foo), "init"))
+result: |
+  # How to resolve right order?
+  ?p1..?main -> [
+    ?x1 -> $concat($name(?b), $name(?a))().init(
+      ?B1,
+      ?B2,
+    )?.bar
+  ],
+
+  # BA object
+  $concat($name(?b), $name(?a)) -> [
+    $unique(?B3),
+    $unique(?B8),
+
+    # A CTOR
+    # Need to replace all usages of objects in ?B3 (copied from "a")
+    $prefixed($name(?a_init), $name(?a)) -> [
+      ?B4,
+      φ -> [ $replace(?B5, $names(?B3), $names($unique(?B3)) ]
+      ?B6,
+    ],
+
+    # JOINED CTOR
+    # Need to replace:
+    # - "ξ.ρ.?b_a.write(α0 -> ?t)" with usage of "a_init" ctor (copied from "a")
+    # - all usages of free attributes copied from "a"
+    # - all usages of free attributes copied from "b"
+    # - all usages of objects in ?B8 (copied from "b")
+    init -> [
+      \?B12 $unique(?B9),
+      \?B11 $unique(?B4),
+      φ -> $relace(
+        $replace(
+          ?b_init_phi,
+          $mt(ξ, $mt(ρ, $mt($name(?b_a), write(α0 -> ?t)))),    # ξ.ρ.?b_a.write(α0 -> ?t)
+          $mt(ξ, $mt(ρ, $prefixed($name(?a_init), $name(?a))))  # ξ.ρ.$prefixed($name(?a_init), $name(?a)) => ξ.ρ.a_init(...)
+        ),
+        $names(?B9),
+        $names(?B12)
+      )($combine(?B4, ?B11))                    # ( ?B4[0]/name -> ?B11[0]/name, ?B4[1]/name -> ?B11[1]/name, ... )
+      ?B10,
+    ],
+
+    # foo() METHOD
+    # Replace in ?B7 all names of ?B3 with unique names of ?B3
+    $concat($name(?a), $name(?foo)) -> $replace(
+      ?B7, $names(?B3), $names($unque(?B3))
+    ),
+
+    # bar() METHOD
+    # Replace ^.a.foo with ^.a_foo
+    # Also need to replace all usages of objects in ?B8
+    ?bar -> $replace(
+      ?b_a_foo,
+      $mt(ξ, $mt(ρ, $mt($name(?b_a), $name(?foo)))),
+      $mt(ξ, $mt(ρ, $concat($name(?a), $name(?foo))))
+    ),
+    ?B97,
+    ?B98,
+    ?B99
+  ]
+phi:
+  before: |
+    {
+      com ↦ ⟦
+        example ↦ ⟦
+          application ↦ ⟦
+            main ↦ ⟦
+              φ ↦ Φ.com.example.second.b().init(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 48-65-6C-6C-6F
+                  )
+                ),
+                α1 ↦ Φ.com.example.first.a().init(
+                  α0 ↦ Φ.org.eolang.int(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-2A
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.int(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-15
+                    )
+                  )
+                ),
+                α2 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-0B
+                  )
+                )
+              ).bar
+            ⟧
+          ⟧,
+          first ↦ ⟦
+            a ↦ ⟦
+              d1 ↦ Φ.org.eolang.cage,
+              d2 ↦ Φ.org.eolang.cage,
+              init ↦ ⟦
+                d1 ↦ ∅,
+                d2 ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.ρ.d1.write(
+                        α0 ↦ ξ.d1
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.d2.write(
+                      α0 ↦ ξ.d2
+                    )
+                  )
+                )
+              ⟧,
+              foo ↦ ⟦
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.ρ.d1.plus(
+                      α0 ↦ ξ.ρ.d_2
+                    )
+                  )
+                )
+              ⟧
+            ⟧
+          ⟧,
+          second ↦ ⟦
+            b ↦ ⟦
+              str ↦ Φ.org.eolang.cage,
+              a ↦ Φ.org.eolang.cage,
+              num ↦ Φ.org.eolang.cage,
+              init ↦ ⟦
+                str ↦ ∅,
+                a ↦ ∅,
+                num ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.str.write(
+                          α0 ↦ ξ.str
+                        )
+                      ),
+                      α1 ↦ ξ.ρ.a.write(
+                        α0 ↦ ξ.a
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.num.write(
+                      α0 ↦ ξ.num
+                    )
+                  )
+                )
+              ⟧,
+              bar ↦ ⟦
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ Φ.org.eolang.io.stdout(
+                        α0 ↦ ξ.ρ.str
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.a.foo.plus(
+                      α0 ↦ ξ.ρ.num
+                    )
+                  )
+                )
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧
+    }
+  after: |
+    {
+      com ↦ ⟦
+        example ↦ ⟦
+          application ↦ ⟦
+            main ↦ ⟦
+              φ ↦ Φ.com.example.second.ba().init(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 48-65-6C-6C-6F
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-2A
+                  )
+                ),
+                α2 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-15
+                  )
+                ),
+                α3 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-0B
+                  )
+                )
+              ).bar
+            ⟧
+          ⟧,
+          first ↦ ⟦
+            a ↦ ⟦
+              d1 ↦ Φ.org.eolang.cage,
+              d2 ↦ Φ.org.eolang.cage,
+              init ↦ ⟦
+                d1 ↦ ∅,
+                d2 ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.ρ.d1.write(
+                        α0 ↦ ξ.d1
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.d2.write(
+                      α0 ↦ ξ.d2
+                    )
+                  )
+                )
+              ⟧,
+              foo ↦ ⟦
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.ρ.d1.plus(
+                      α0 ↦ ξ.ρ.d2
+                    )
+                  )
+                )
+              ⟧
+            ⟧
+          ⟧,
+          second ↦ ⟦
+            b ↦ ⟦
+              str ↦ Φ.org.eolang.cage,
+              a ↦ Φ.org.eolang.cage,
+              num ↦ Φ.org.eolang.cage,
+              init ↦ ⟦
+                str ↦ ∅,
+                a ↦ ∅,
+                num ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.str.write(
+                          α0 ↦ ξ.str
+                        )
+                      ),
+                      α1 ↦ ξ.ρ.a.write(
+                        α0 ↦ ξ.a
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.num.write(
+                      α0 ↦ ξ.num
+                    )
+                  )
+                )
+              ⟧,
+              bar ↦ ⟦
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ Φ.org.eolang.io.stdout(
+                        α0 ↦ ξ.ρ.str
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.a.foo.plus(
+                      α0 ↦ ξ.ρ.num
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            ba ↦ ⟦
+              b_str ↦ Φ.org.eolang.cage,
+              a_d1 ↦ Φ.org.eolang.cage,
+              a_d2 ↦ Φ.org.eolang.cage,
+              b_num ↦ Φ.org.eolang.cage,
+              a_init ↦ ⟦
+                a_d1 ↦ ∅,
+                a_d2 ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.ρ.a_d1.write(
+                        α0 ↦ ξ.a_d1
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.a_d2.write(
+                      α0 ↦ ξ.a_d2
+                    )
+                  )
+                )
+              ⟧,
+              init ↦ ⟦
+                b_str ↦ ∅,
+                a_d1 ↦ ∅,
+                a_d2 ↦ ∅,
+                b_num ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.b_str.write(
+                          α0 ↦ ξ.b_str
+                        )
+                      ),
+                      α1 ↦ ξ.ρ.a_init(
+                        α0 ↦ ξ.a_d1,
+                        α1 ↦ ξ.a_d2
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.b_num.write(
+                      α0 ↦ ξ.b_num
+                    )
+                  )
+                )
+              ⟧,
+              a_foo ↦ ⟦
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.ρ.a_d1.plus(
+                      α0 ↦ ξ.ρ.a_d2
+                    )
+                  )
+                )
+              ⟧,
+              bar ↦ ⟦
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ Φ.org.eolang.io.stdout(
+                        α0 ↦ ξ.ρ.b_str
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.a_foo.plus(
+                      α0 ↦ ξ.ρ.b_num
+                    )
+                  )
+                )
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧
+    }
+eo:
+  before: |
+    +package com.example
+
+    [] > application
+      [] > main
+        bar. > @
+          Q.com.example.second.b'.init
+            "Hello"
+            Q.com.example.first.a'.init 42 21
+            11
+    [] > first
+      [] > a
+        cage' > d1
+        cage' > d2
+        [d1 d2] > init
+          seq > @
+            *
+              ^.d1.write d1
+              ^.d2.write d2
+        [] > foo
+          seq > @
+            *
+              ^.d1.plus ^.d_2
+    [] > second
+      [] > b
+        cage' > str
+        cage' > a
+        cage' > num
+        [str a num] > init
+          seq > @
+            *
+              ^.str.write str
+              ^.a.write a
+              ^.num.write num
+        [] > bar
+          seq > @
+            *
+              QQ.io.stdout ^.str
+              ^.a.foo.plus num
+  after: |
+    +package com.example
+
+    [] > application
+      [] > main
+        bar. > @
+          Q.com.example.second.ba'.init
+            "Hello"
+            42
+            21
+            11
+    [] > first
+      [] > a
+        cage' > d1
+        cage' > d2
+        [d1 d2] > init
+          seq > @
+            *
+              ^.d1.write d1
+              ^.d2.write d2
+        [] > foo
+          seq > @
+            *
+              ^.d1.plus ^.d2
+    [] > second
+      [] > b
+        cage' > str
+        cage' > a
+        cage' > num
+        [str a num] > init
+          seq > @
+            *
+              ^.str.write str
+              ^.a.write a
+              ^.num.write num
+        [] > bar
+          seq > @
+            *
+              QQ.io.stdout ^.str
+              ^.a.foo.plus ^.num
+      [] > ba
+        cage' > b_str
+        cage' > a_d1
+        cage' > a_d2
+        cage' > b_num
+        [a_d1 a_d2] > a_init
+          seq > @
+            *
+              ^.a_d1.write a_d1
+              ^.a_d2.write a_d2
+        [b_str a_d1 a_d2 b_num] > init
+          seq > @
+            *
+              ^.b_str.write b_str
+              ^.a_init a_d1 a_d2
+              ^.b_num.write b_num
+        [] > a_foo
+          seq > @
+            *
+              ^.a_d1.plus ^.a_d2
+        [] > bar
+          seq > @
+            *
+              QQ.io.stdout ^.b_str
+              ^.a_foo.plus ^.b_num
