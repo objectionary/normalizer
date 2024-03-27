@@ -1,3 +1,10 @@
+# Approach:
+# - Try to develop something like BNF for user-defined functions
+#   - Because we need to parse them later with BNFC (https://bnfc.digitalgrammars.com/)
+# - Use types as non-terminals
+# - Use <label :: (Type)> expressions to label types
+# - Use (Type1 | Type2) to denote alternative types
+
 types:
   - type: String
     alias: Name
