@@ -1,0 +1,58 @@
+types:
+  - type: String
+    alias: Name
+  - type: (Name, Expression)
+    alias: Binding
+  - type: [Binding]
+    alias: Bindings
+    examples:
+      - [("foo", )]
+  - type: [String]
+    alias: Path
+    examples:
+      - [ "org", "eolang", "main" ]
+  - type: Metavar
+    examples:
+      - '?A'
+      - '?Foo'
+      - '?baz'
+functions:
+  - pattern: '<binding :: (Metavar)>@(<path :: (Metavar)> ↦ <prefix :: (Metavar)>.b)'
+    description: |
+      A <binding> that matches with <path> ↦ <prefix>.b
+  - pattern: '<oldName :: (Metavar | Name)> => \<newName :: (Metavar | Name)> <expression :: Expression>'
+    description: |
+      Find binding with name <oldName> and body that contains <expression>.
+      Save the body to variable <newName>,
+  - pattern: '<path :: (Metavar)>..<key :: (String)>'
+    description: |
+      Some <path> to <key>
+      - In a formation, the pattern means enclosure, e.g., ⟦ org ↦ ⟦ eolang ↦ ⟦ <key> ↦ ... ⟧ ⟧ ⟧
+      - In an application, the pattern means dot notation, e.g., (x ↦ org.eolang.<key>)
+  - pattern: '$mt(<prefix :: (String)>, <suffix :: (String)>)'
+    description: |
+      Return the string "<prefix>.<suffix>"
+  - pattern: '$name(<metavar :: (Metavar)>)'
+    description: |
+      Return the name of <metavar>
+  - pattern: '$for-all(<bindings :: (Metavar | Bindings)>, <predicate :: (Binding -> Bool)>)'
+    description: |
+      Check that for all <bindings>, the <predicate> is TRUE
+  - pattern: '$bound-to(<key :: (Key)>, <value :: (Metavar | Value)>)'
+    description: |
+      Check that <key> is bound to <value>
+  - pattern: '$unique(<bindings :: (Metavar | Bindings)>)'
+    description: |
+      Replace all keys in <bindings> with unique keys
+  - pattern: '$replace(<e1 :: (Metavar | Expression)>, <e2 :: (Metavar | Expression)>, <e3 :: (Metavar | Expression)>)'
+    description: |
+      In <e1>, replace all occurencies of <e2> to <e3>
+  - pattern: '$combine(<b1 :: (Metavar | Bindings)>, <b2 :: (Metavar | Bindings)>)'
+    description: |
+      Create new bindings by combining <b1> and <b2>.
+  - pattern: '$starts-with(<name :: (Metavar | Expression)>, <prefix :: (String | Expression)>)'
+    description: |
+      Check that <name> starts with <prefix>
+  - pattern: '$not(<condition :: (Metavar | Expression)>)'
+    description: |
+      Negate the <condition>
