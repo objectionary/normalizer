@@ -146,7 +146,7 @@ attrHasMetavars :: Attribute -> Bool
 attrHasMetavars Phi = False
 attrHasMetavars Rho = False
 attrHasMetavars Sigma = False
-attrHasMetavars VTX = False
+attrHasMetavars Vertex = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
@@ -291,7 +291,7 @@ matchObject _ _ = [] -- ? emptySubst ?
 -- and an object
 --
 -- >>> evaluateMetaFuncs "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧" "⟦ a ↦ ⟦ ν ↦ @T(⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧)  ⟧, b ↦ ⟦ ⟧ ⟧"
--- Formation [AlphaBinding (Label (LabelId "a")) (Formation [AlphaBinding VTX (Formation [DeltaBinding (Bytes "04-")])]),AlphaBinding (Label (LabelId "b")) (Formation [])]
+-- Formation [AlphaBinding (Label (LabelId "a")) (Formation [AlphaBinding Vertex (Formation [DeltaBinding (Bytes "04-")])]),AlphaBinding (Label (LabelId "b")) (Formation [])]
 evaluateMetaFuncs :: Object -> Object -> Object
 evaluateMetaFuncs obj' obj =
   evalState

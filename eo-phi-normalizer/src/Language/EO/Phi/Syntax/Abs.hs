@@ -43,7 +43,7 @@ data Attribute
     = Phi
     | Rho
     | Sigma
-    | VTX
+    | Vertex
     | Label LabelId
     | Alpha AlphaIndex
     | MetaAttr MetaId

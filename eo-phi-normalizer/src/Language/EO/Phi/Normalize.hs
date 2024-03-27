@@ -27,8 +27,8 @@ data Context = Context
   deriving (Generic)
 
 isNu :: Binding -> Bool
-isNu (AlphaBinding VTX _) = True
-isNu (EmptyBinding VTX) = True
+isNu (AlphaBinding Vertex _) = True
+isNu (EmptyBinding Vertex) = True
 isNu _ = False
 
 -- | Normalize an input 𝜑-program.
@@ -46,7 +46,7 @@ rule1 :: Object -> State Context Object
 rule1 (Formation bindings) = do
   normalizedBindings <- forM bindings $ \case
     AlphaBinding a object
-      | a /= VTX ->
+      | a /= Vertex ->
           do
             object' <- rule1 object
             pure (AlphaBinding a object')
@@ -57,7 +57,7 @@ rule1 (Formation bindings) = do
         #maxNu += 1
         nus <- gets maxNu
         let dataObject = intToBytesObject nus
-        pure (AlphaBinding VTX dataObject : normalizedBindings)
+        pure (AlphaBinding Vertex dataObject : normalizedBindings)
       else do
         pure normalizedBindings
   pure (Formation finalBindings)

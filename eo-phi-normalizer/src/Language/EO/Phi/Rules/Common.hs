@@ -212,7 +212,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (MetaBindings metaId) = MetaAttr metaId
 
 equalBinding :: Binding -> Binding -> Bool
-equalBinding (AlphaBinding VTX _) (AlphaBinding VTX _) = True -- TODO #166:15min Renumerate vertices uniformly instead of ignoring them
+equalBinding (AlphaBinding Vertex _) (AlphaBinding Vertex _) = True -- TODO #166:15min Renumerate vertices uniformly instead of ignoring them
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
 -- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
 -- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
@@ -296,7 +296,7 @@ instance HasMaxNu Object where
 instance HasMaxNu Binding where
   getMaxNu :: Binding -> Int
   getMaxNu = \case
-    AlphaBinding VTX (Formation [DeltaBinding (Bytes bs)]) ->
+    AlphaBinding Vertex (Formation [DeltaBinding (Bytes bs)]) ->
       case readHex [x | x <- bs, x /= '-'] of
         [(val, "")] -> val
         _ -> error "Vertex number is incorrect"

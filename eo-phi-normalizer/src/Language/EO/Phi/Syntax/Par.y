@@ -124,7 +124,7 @@ Attribute
   : 'φ' { Language.EO.Phi.Syntax.Abs.Phi }
   | 'ρ' { Language.EO.Phi.Syntax.Abs.Rho }
   | 'σ' { Language.EO.Phi.Syntax.Abs.Sigma }
-  | 'ν' { Language.EO.Phi.Syntax.Abs.VTX }
+  | 'ν' { Language.EO.Phi.Syntax.Abs.Vertex }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }

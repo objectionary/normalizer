@@ -36,7 +36,7 @@ instance Arbitrary Attribute where
       [ pure Phi
       , pure Rho
       , pure Sigma
-      , pure VTX
+      , pure Vertex
       , Label <$> arbitrary
       ]
 
@@ -61,7 +61,7 @@ instance Arbitrary Binding where
       , do
           attr <- arbitrary
           obj <- case attr of
-            VTX ->
+            Vertex ->
               Formation <$> do
                 bytes <- arbitrary
                 return [DeltaBinding bytes]
@@ -71,7 +71,7 @@ instance Arbitrary Binding where
       , LambdaBinding <$> arbitrary
       , pure DeltaEmptyBinding
       ]
-  shrink (AlphaBinding VTX _) = [] -- do not shrink vertex bindings
+  shrink (AlphaBinding Vertex _) = [] -- do not shrink vertex bindings
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
 
