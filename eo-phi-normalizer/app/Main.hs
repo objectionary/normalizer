@@ -425,24 +425,13 @@ main = do
       js <- maybe (pure reportJS) readFile (reportConfig.input >>= (.js))
 
       let report = makeReport reportConfig programReports
-
-          reportConfigHtml =
-            ReportHtml.ReportConfig
-              { expectedMetricsChange = reportConfig.expectedMetricsChange
-              , format =
-                  ReportFormat'Html
-                    { ..
-                    }
-              }
+          ReportConfig{..} = reportConfig
+          reportConfigHtml = ReportHtml.ReportConfig{format = ReportFormat'Html{..}, ..}
           reportHtml = toStringReport reportConfigHtml report
 
           reportJson = encodeToJSONString report
 
-          reportConfigMarkdown =
-            ReportHtml.ReportConfig
-              { expectedMetricsChange = reportConfig.expectedMetricsChange
-              , format = ReportFormat'Markdown
-              }
+          reportConfigMarkdown = ReportHtml.ReportConfig{format = ReportFormat'Markdown, ..}
           reportMarkdown = toStringReport reportConfigMarkdown report
 
       forM_ @[]

@@ -7,6 +7,7 @@ expected-metrics-change:
   applications: 0.2
   formations: 0.1
   dispatches: 0.2
+expected-improved-programs-percentage: 0.9
 items:
 - phi: pipeline/phi/as-phi-tests.phi
   phi-normalized: pipeline/phi-normalized/as-phi-tests.phi

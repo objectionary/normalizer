@@ -17,41 +17,44 @@ import Control.Monad.State (State, execState, runState)
 import Data.Foldable (forM_)
 import Data.Generics.Labels ()
 import Data.Traversable (forM)
-import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics (..), MetricsCount, ObjectMetrics (..), Path, ProgramMetrics (..))
+import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics (..), MetricsCount, ObjectMetrics (..), Path, ProgramMetrics (..), SafeNumber (..))
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
+
+type HeightSafe = SafeNumber Int
 
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
 
-getHeight :: [Binding] -> [Int] -> Int
+getHeight :: [Binding] -> [HeightSafe] -> HeightSafe
 getHeight bindings heights
   | hasDeltaBinding = 1
   | otherwise = heightAttributes
  where
   heightAttributes =
     case heights of
-      [] -> 0
+      [] -> SafeNumber'NaN
       _ -> minimum heights + 1
   hasDeltaBinding = not $ null [undefined | DeltaBinding _ <- bindings]
 
-countDataless :: Int -> Int
+countDataless :: HeightSafe -> Int
 countDataless x
-  | x == 0 || x > 2 = 1
+  | x > 2 = 1
   | otherwise = 0
 
+type InspectM = State MetricsCount HeightSafe
+
 class Inspectable a where
-  inspect :: a -> State MetricsCount Int
+  inspect :: a -> InspectM
 
 instance Inspectable Binding where
-  inspect :: Binding -> State MetricsCount Int
+  inspect :: Binding -> InspectM
   inspect = \case
-    AlphaBinding _ obj -> do
-      inspect obj
-    _ -> pure 0
+    AlphaBinding _ obj -> inspect obj
+    _ -> pure SafeNumber'NaN
 
 instance Inspectable Object where
-  inspect :: Object -> State MetricsCount Int
+  inspect :: Object -> InspectM
   inspect = \case
     Formation bindings -> do
       #formations += 1
@@ -63,17 +66,17 @@ instance Inspectable Object where
       #applications += 1
       _ <- inspect obj
       forM_ bindings inspect
-      pure 0
+      pure SafeNumber'NaN
     ObjectDispatch obj _ -> do
       #dispatches += 1
       _ <- inspect obj
-      pure 0
-    _ -> pure 0
+      pure SafeNumber'NaN
+    _ -> pure SafeNumber'NaN
 
 -- | Get metrics for an object
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧"
--- Metrics {dataless = 0, applications = 1, formations = 1, dispatches = 3}
+-- Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 3}
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ ξ, Δ ⤍ 00- ⟧"
 -- Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}
@@ -82,25 +85,28 @@ instance Inspectable Object where
 -- Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧"
--- Metrics {dataless = 0, applications = 0, formations = 3, dispatches = 0}
+-- Metrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ Δ ⤍ 00- ⟧"
 -- Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧"
--- Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}
+-- Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧"
--- Metrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}
+-- Metrics {dataless = 3, applications = 0, formations = 3, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧ ⟧"
--- Metrics {dataless = 2, applications = 0, formations = 4, dispatches = 0}
+-- Metrics {dataless = 4, applications = 0, formations = 4, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ org ↦ ⟦ ⟧ ⟧"
--- Metrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}
+-- Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 0}
 --
 -- >>> getThisObjectMetrics "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
--- Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 5}
+-- Metrics {dataless = 5, applications = 1, formations = 5, dispatches = 5}
+--
+-- >>> getThisObjectMetrics "⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧) ⟧"
+-- Metrics {dataless = 2, applications = 1, formations = 4, dispatches = 1}
 getThisObjectMetrics :: Object -> MetricsCount
 getThisObjectMetrics obj = execState (inspect obj) mempty
 

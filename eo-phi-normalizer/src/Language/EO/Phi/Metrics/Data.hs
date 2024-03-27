@@ -78,7 +78,11 @@ instance (Num a) => Num (Metrics a) where
   fromInteger :: Integer -> Metrics a
   fromInteger x = pure $ fromInteger x
 
-data SafeNumber a = SafeNumber'NaN | SafeNumber'Number a
+data SafeNumber a
+  = -- | Infinity
+    SafeNumber'NaN
+  | -- | Normal number
+    SafeNumber'Number a
   deriving stock (Functor)
 
 -- >>> import Data.Aeson (decode')
@@ -124,8 +128,8 @@ instance (Eq a) => Eq (SafeNumber a) where
 instance (Ord a) => Ord (SafeNumber a) where
   (<=) :: SafeNumber a -> SafeNumber a -> Bool
   (SafeNumber'Number x) <= (SafeNumber'Number y) = x <= y
-  _ <= SafeNumber'Number _ = True
-  _ <= _ = False
+  _ <= SafeNumber'Number _ = False
+  _ <= _ = True
 
 instance Applicative SafeNumber where
   pure :: a -> SafeNumber a

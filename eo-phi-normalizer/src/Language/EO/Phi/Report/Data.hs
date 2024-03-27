@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -15,10 +16,12 @@
 
 module Language.EO.Phi.Report.Data where
 
+import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics, SafeNumber (..))
 import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
+import Text.Printf (printf)
 import Prelude hiding (div, id, span)
 
 data ReportItem = ReportItem
@@ -39,11 +42,17 @@ data MetricsChangeCategory a
 
 $(deriveJSON ''MetricsChangeCategory)
 
-type MetricsChange = Metrics (SafeNumber Double)
+type MetricsChange = Metrics Percent
+type MetricsChangeSafe = Metrics (SafeNumber Double)
 
-newtype Percent = Percent {percent :: Double}
+newtype Percent = Percent {percent :: Double} deriving newtype (FromJSON, ToJSON, Num, Fractional)
 
-$(deriveJSON ''Percent)
+roundToStr :: Int -> Double -> String
+roundToStr = printf "%0.*f%%"
+
+instance Show Percent where
+  show :: Percent -> String
+  show Percent{..} = roundToStr 2 (percent * 100)
 
 type MetricsChangeCategorized = Metrics (MetricsChangeCategory Percent)
 
@@ -68,6 +77,7 @@ data ReportConfig = ReportConfig
   { input :: Maybe Report'InputConfig
   , output :: Report'OutputConfig
   , expectedMetricsChange :: MetricsChange
+  , expectedImprovedProgramsPercentage :: Percent
   , items :: [ReportItem]
   }
   deriving stock (Show, Generic)
@@ -102,15 +112,17 @@ data Report = Report
 
 $(deriveJSON ''Report)
 
+-- >>> calculateMetricsChange Metrics { dataless = 0.1, applications = 0.2, formations = 0.2, dispatches = 0.2 } Metrics { dataless = 100, applications = 0, formations = 100, dispatches = 100 } Metrics { dataless = 90, applications = 0, formations = 93, dispatches = 60 }
+-- Metrics {formations = MetricsChange'Bad {change = 7.00%}, dataless = MetricsChange'Good {change = 10.00%}, applications = MetricsChange'NA, dispatches = MetricsChange'Good {change = 40.00%}}
 calculateMetricsChange :: MetricsChange -> MetricsCount -> MetricsCount -> MetricsChangeCategorized
 calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   getMetricsChangeClassified <$> expectedMetricsChange <*> actualMetricsChange
  where
-  getMetricsChangeClassified (SafeNumber'Number expected) (SafeNumber'Number actual)
+  getMetricsChangeClassified (Percent expected) (SafeNumber'Number actual)
     | actual >= expected = MetricsChange'Good (Percent actual)
     | otherwise = MetricsChange'Bad (Percent actual)
   getMetricsChangeClassified _ _ = MetricsChange'NA
-  actualMetricsChange :: MetricsChange
+  actualMetricsChange :: MetricsChangeSafe
   actualMetricsChange = (initial - normalized) / initial
   initial = fromIntegral <$> countInitial
   normalized = fromIntegral <$> countNormalized
