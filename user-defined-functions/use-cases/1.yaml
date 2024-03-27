@@ -1,11 +1,11 @@
-# \?B1 ?x.?y... -> ?a.b ===> Binding B1 that matches with ?x.?y... -> ?a.b, can be used futher as ?B1
+# \?B1 ?x.?y... ↦ ?a.b ===> Binding B1 that matches with ?x.?y... ↦ ?a.b, can be used futher as ?B1
 #
 # ?bar => \?b_bar ξ.ρ.?b_a.?foo ===> find binding with name ?bar, save its whole body to variable.
 # ?b_bar, where body contains ξ.ρ.?b_a.?foo
 #
-# ?p1..?main -> ...     ===> some path to ?main
-# - if used in formation - means enclosure, for ex: [ org -> [ eolang -> [ main -> ...] ] ]
-# - if used in application - means dot notation, for ex (x -> org.eolang.main)
+# ?p1..?main ↦ ...     ===> some path to ?main
+# - if used in formation - means enclosure, for ex: ⟦ org ↦ ⟦ eolang ↦ ⟦ main ↦ ... ⟧ ⟧ ⟧
+# - if used in application - means dot notation, for ex (x ↦ org.eolang.main)
 #
 # $mt(a, b) ===> returns string where "a" and "b" joined with "." (dot)
 # $name(?a)  ===> returns name of ?a
@@ -15,35 +15,35 @@
 # $replace(?B1, ?B2, ?B3) ===> replace all occurencies of B2 to B3 in B1
 # $combine(?B1, ?B2) ===> create new bindings combined B1 names and B2 names
 pattern: |
-  {
-    ?p1..?main -> [
-      ?x1 -> ?p2..?b().?b_init(
+  {⟦
+    ?p1..?main ↦ ⟦
+      ?x1 ↦ ?p2..?b().?b_init(
         ?B1,
-        ?t -> ?p3..?a().?a_init(?B2),
+        ?t ↦ ?p3..?a().?a_init(?B2),
       ).?bar
-    ],
-    \?B97 ?p2..?a -> [
+    ⟧,
+    \?B97 ?p2..?a ↦ ⟦
       ?B3,
-      ?a_init -> [
+      ?a_init ↦ ⟦
         ?B4,
-        φ -> [ ?B5 ]
+        φ ↦ ⟦ ?B5 ⟧
         ?B6,
-      ],
-      ?foo -> [ ?B7 ]
-    ],
-    \?B98 ?p3..?b -> [
+      ⟧,
+      ?foo ↦ ⟦ ?B7 ⟧
+    ⟧,
+    \?B98 ?p3..?b ↦ ⟦
       ?B8,
-      ?b_a -> Φ.org.eolang.cage(),
-      ?b_init -> [
+      ?b_a ↦ Φ.org.eolang.cage(),
+      ?b_init ↦ ⟦
         ?B9,
-        ?t -> ∅
-        φ => \?b_init_phi ξ.ρ.?b_a.write(α0 -> ?t),
+        ?t ↦ ∅
+        φ => \?b_init_phi ξ.ρ.?b_a.write(α0 ↦ ?t),
         ?B10,
-      ],
+      ⟧,
       ?bar => \?b_bar ξ.ρ.?b_a.?foo,
-    ],
+    ⟧,
     ?B99
-  }
+  ⟧}
 where: |
   $for-all(?B4, $bound-to(∅)),
   $for-all(?B9, $bound-to(∅)),
@@ -53,57 +53,57 @@ where: |
   $not($starts-with($name(?foo), "init"))
 result: |
   # How to resolve right order?
-  ?p1..?main -> [
-    ?x1 -> $concat($name(?b), $name(?a))().init(
+  ?p1..?main ↦ ⟦
+    ?x1 ↦ $concat($name(?b), $name(?a))().init(
       ?B1,
       ?B2,
     )?.bar
-  ],
+  ⟧,
 
   # BA object
-  $concat($name(?b), $name(?a)) -> [
+  $concat($name(?b), $name(?a)) ↦ ⟦
     $unique(?B3),
     $unique(?B8),
 
     # A CTOR
     # Need to replace all usages of objects in ?B3 (copied from "a")
-    $prefixed($name(?a_init), $name(?a)) -> [
+    $prefixed($name(?a_init), $name(?a)) ↦ ⟦
       ?B4,
-      φ -> [ $replace(?B5, $names(?B3), $names($unique(?B3)) ]
+      φ ↦ ⟦ $replace(?B5, $names(?B3), $names($unique(?B3)) ⟧,
       ?B6,
-    ],
+    ⟧,
 
     # JOINED CTOR
     # Need to replace:
-    # - "ξ.ρ.?b_a.write(α0 -> ?t)" with usage of "a_init" ctor (copied from "a")
+    # - "ξ.ρ.?b_a.write(α0 ↦ ?t)" with usage of "a_init" ctor (copied from "a")
     # - all usages of free attributes copied from "a"
     # - all usages of free attributes copied from "b"
     # - all usages of objects in ?B8 (copied from "b")
-    init -> [
+    init ↦ ⟦
       \?B12 $unique(?B9),
       \?B11 $unique(?B4),
-      φ -> $relace(
+      φ ↦ $relace(
         $replace(
           ?b_init_phi,
-          $mt(ξ, $mt(ρ, $mt($name(?b_a), write(α0 -> ?t)))),    # ξ.ρ.?b_a.write(α0 -> ?t)
+          $mt(ξ, $mt(ρ, $mt($name(?b_a), write(α0 ↦ ?t)))),    # ξ.ρ.?b_a.write(α0 ↦ ?t)
           $mt(ξ, $mt(ρ, $prefixed($name(?a_init), $name(?a))))  # ξ.ρ.$prefixed($name(?a_init), $name(?a)) => ξ.ρ.a_init(...)
         ),
         $names(?B9),
         $names(?B12)
-      )($combine(?B4, ?B11))                    # ( ?B4[0]/name -> ?B11[0]/name, ?B4[1]/name -> ?B11[1]/name, ... )
+      )($combine(?B4, ?B11))                    # ( ?B4[0]/name ↦ ?B11[0]/name, ?B4[1]/name ↦ ?B11[1]/name, ... )
       ?B10,
-    ],
+    ⟧,
 
     # foo() METHOD
     # Replace in ?B7 all names of ?B3 with unique names of ?B3
-    $concat($name(?a), $name(?foo)) -> $replace(
+    $concat($name(?a), $name(?foo)) ↦ $replace(
       ?B7, $names(?B3), $names($unque(?B3))
     ),
 
     # bar() METHOD
     # Replace ^.a.foo with ^.a_foo
     # Also need to replace all usages of objects in ?B8
-    ?bar -> $replace(
+    ?bar ↦ $replace(
       ?b_a_foo,
       $mt(ξ, $mt(ρ, $mt($name(?b_a), $name(?foo)))),
       $mt(ξ, $mt(ρ, $concat($name(?a), $name(?foo))))
@@ -111,10 +111,10 @@ result: |
     ?B97,
     ?B98,
     ?B99
-  ]
+  ⟧
 phi:
   before: |
-    {
+    {⟦
       com ↦ ⟦
         example ↦ ⟦
           application ↦ ⟦
@@ -227,9 +227,9 @@ phi:
         ⟧,
         λ ⤍ Package
       ⟧
-    }
+    ⟧}
   after: |
-    {
+    {⟦
       com ↦ ⟦
         example ↦ ⟦
           application ↦ ⟦
@@ -413,7 +413,7 @@ phi:
         ⟧,
         λ ⤍ Package
       ⟧
-    }
+    ⟧}
 eo:
   before: |
     +package com.example
