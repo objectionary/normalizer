@@ -5,7 +5,7 @@ github: "objectionary/eo-phi-normalizer"
 license: BSD3
 author: "EO/Polystat Development Team"
 maintainer: "nickolay.kudasov@gmail.com"
-copyright: "2023 EO/Polystat Development Team"
+copyright: "2023-2024 EO/Polystat Development Team"
 
 extra-source-files:
   - README.md

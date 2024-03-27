@@ -64,6 +64,26 @@ stack test
 
 Use the syntax supported by `mdBook` - see [docs](https://rust-lang.github.io/mdBook/format/mathjax.html).
 
+## Docs
+
+### mdsh
+
+We use [mdsh](https://github.com/zimbatm/mdsh) to document command outputs (see [Multiline Shell Code](https://github.com/zimbatm/mdsh#multiline-shell-code)).
+
+You can install `mdsh` via `cargo` or `nix` ([link](https://github.com/zimbatm/mdsh#installation)).
+
+### prettier
+
+We format docs with [prettier](https://prettier.io/).
+
+Run `npm i` to locally install the `prettier` version that we use.
+
+### Automatic updates
+
+In CI, on the `master` branch, we run [scripts/run-mdsh](https://github.com/objectionary/normalizer/blob/master/scripts/run-mdsh.sh) and commit changes.
+
+So, no worries if you haven't run `mdsh` in your PR!
+
 ## pre-commit
 
 We use [pre-commit](https://pre-commit.com/) to ensure code quality.

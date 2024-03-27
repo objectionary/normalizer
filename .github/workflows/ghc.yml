@@ -68,6 +68,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - uses: actions/setup-java@v4
         with:
@@ -136,7 +137,8 @@ jobs:
         uses: deemp/stack-action@main
         with:
           test: false
-          stack-build-arguments: --fast --haddock
+          stack-build-arguments: --fast --haddock --copy-bins
+          cache-prefix: docs-
 
       - name: Download pipeline artifact
         uses: actions/download-artifact@v4
@@ -149,24 +151,54 @@ jobs:
         with:
           mdbook-version: "latest"
 
-      - name: Build site
-        run: |
-          ROOT=$PWD
+      - name: cargo-install
+        uses: baptiste0928/cargo-install@v3.0.1
+        with:
+          crate: mdsh
+          git: https://github.com/zimbatm/mdsh
+          tag: v0.8.0
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Add haddock
+        run: |
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
 
+      - name: Run mdsh
+        run: ./scripts/run-mdsh.sh
+
+      - name: Configure git for github-actions
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit changes produced by mdsh
+        run: |
+          git pull --rebase --autostash
+
+          git add site
+
+          git commit -m "Run mdsh" \
+            && git push \
+            || true
+
+      - name: Add docs
+        run: |
           cd site/docs
           mdbook build
           mv docs ../../dist
-          cd ../..
 
-          cd site
-          mv index.html ../dist
-          cd ..
-
+      - name: Add report
+        run: |
           mkdir -p dist/report
           cp report/report.html dist/report/index.html
+
+      - name: Add index.html
+        run: mv site/index.html dist
 
       - name: 🚀 Publish Site
         uses: JamesIves/github-pages-deploy-action@v4

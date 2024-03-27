@@ -17,7 +17,7 @@ stack install normalizer
 ```sh
 stack update
 export LC_ALL=C.UTF-8
-stack install --resolver lts-22.11 eo-phi-normalizer
+stack install --resolver lts-22.6 eo-phi-normalizer
 ```
 
 ## Uninstall

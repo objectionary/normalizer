@@ -173,27 +173,45 @@
           mdsh = {
             runtimeInputs = [
               mdsh
-              pkgs.nodePackages.prettier
               stack
             ];
-            text = ''
-              export LC_ALL=C.UTF-8
-              mdsh
-              # create sample program
-              mdsh -i site/docs/src/common/sample-program.md --work_dir .
-              # run commands on it
+            text =
+              let text =
+                ''
+                  mdsh
 
-              ${lib.concatMapStringsSep "\n"
-                (x: "mdsh -i site/docs/src/${x} --work_dir .")
-                [
-                  "commands/normalizer.md"
-                  "commands/normalizer-transform.md"
-                  "commands/normalizer-metrics.md"
-                  "contributing.md"
-                ]
-              }
-              prettier -w "**/*.md"
-            '';
+                  ${lib.concatMapStringsSep "\n"
+                    (x: "mdsh -i site/docs/src/${x} --work_dir .")
+                    [
+                      "common/sample-program.md"
+                      "common/celsius.md"
+                      "commands/normalizer.md"
+                      "commands/normalizer-transform.md"
+                      "commands/normalizer-metrics.md"
+                      "commands/normalizer-dataize.md"
+                      "commands/normalizer-report.md"
+                      "contributing.md"
+                    ]
+                  }
+
+                  rm program.phi celsius.phi
+
+                  npm i
+                  npx prettier -w "**/*.md"
+                '';
+              in
+                ''
+                export LC_ALL=C.UTF-8
+                stack install
+
+                cat << EOF > scripts/run-mdsh.sh
+                ${text}
+                EOF
+
+                chmod +x scripts/run-mdsh.sh
+
+                ${text}
+                '';
           };
         };
 

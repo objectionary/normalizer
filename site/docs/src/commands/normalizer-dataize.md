@@ -17,30 +17,11 @@ Then, a single step of dataization is performed according to the following rules
 
 The full dataization process is achieved by recursively normalizing and dataizing according to the rules above until bytes are reached or the object does not change (in which case the dataization is considered to have failed).
 
+## Environment
+
+{{#include ../common/celsius.md}}
+
 ## CLI
-
-The examples in the following sections assume the existence a file `celsius.phi` with the following content:
-
-```
-{⟦
-  σ ↦ Φ,
-  c ↦ Φ.org.eolang.float(Δ ⤍ 19-), // 0x19 = 25
-  // The 02- should technically be 1.8 (or its float representation in bytes), but only integers are supported for now
-  φ ↦ ξ.c.times(α0 ↦ ⟦ Δ ⤍ 02- ⟧)
-          .plus(α0 ↦ ⟦ Δ ⤍ 20- ⟧), // 0x20 = 32
-  org ↦ ⟦
-    eolang ↦ ⟦
-      float ↦ ⟦
-        Δ ⤍ ∅,
-        times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧,
-        plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧
-      ⟧
-    ⟧
-  ⟧
-⟧}
-```
-
-Dataization is done using the `dataize` subcommand, and it supports the following arguments:
 
 ### `--help`
 
