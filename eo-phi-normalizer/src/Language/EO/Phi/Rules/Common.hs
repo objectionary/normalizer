@@ -238,9 +238,6 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
 
 equalBinding :: Binding -> Binding -> Bool
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
--- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
--- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
-equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
 -- * Chain variants
