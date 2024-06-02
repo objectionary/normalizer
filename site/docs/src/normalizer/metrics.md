@@ -118,7 +118,7 @@ cat celsius.phi | normalizer metrics
 ### `--bindings-path`
 
 ```$ as console
-normalizer metrics --bindings-path org.eolang celsius.phi
+normalizer metrics celsius.phi
 ```
 
 ```console

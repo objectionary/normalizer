@@ -198,13 +198,16 @@
                 let
                   name = "update-markdown";
                   text = ''
+                    # This file was generated automatically.
+                    # You can edit the script in 'flake.nix'
+
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
                       "normalizer.md"
                       "quick-start.md"
-                      "normalizer/transform.md"
+                      "normalizer/rewrite.md"
                       "normalizer/metrics.md"
                       "normalizer/dataize.md"
                       "normalizer/report.md"

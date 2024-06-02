@@ -15,7 +15,7 @@ Available options:
   -h,--help                Show this help text
 
 Available commands:
-  transform                Transform a PHI program.
+  rewrite                  Rewrite a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
   report                   Generate reports about initial and normalized PHI
