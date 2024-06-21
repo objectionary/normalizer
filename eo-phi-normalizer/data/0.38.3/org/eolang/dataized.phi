@@ -1,0 +1,14 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        dataized ↦ ⟦
+          λ ⤍ Lorg_eolang_dataized,
+          target ↦ ∅
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

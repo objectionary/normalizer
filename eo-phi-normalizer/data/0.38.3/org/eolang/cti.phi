@@ -1,0 +1,16 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        cti ↦ ⟦
+          φ ↦ ξ.delegate,
+          delegate ↦ ∅,
+          level ↦ ∅,
+          message ↦ ∅
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,0 +1,64 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        while ↦ ⟦
+          condition ↦ ∅,
+          body ↦ ∅,
+          φ ↦ ξ.condition(
+            α0 ↦ Φ.org.eolang.int(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            )
+          ).as-bool.if(
+            α0 ↦ ξ.loop(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            α1 ↦ Φ.org.eolang.false
+          ),
+          loop ↦ ⟦
+            index ↦ ∅,
+            current ↦ ξ.ρ.body(
+              α0 ↦ ξ.index
+            ),
+            φ ↦ ξ.ρ.condition(
+              α0 ↦ ξ.index.plus(
+                α0 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-01
+                  )
+                )
+              )
+            ).as-bool.if(
+              α0 ↦ Φ.org.eolang.seq(
+                α0 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.current
+                  ),
+                  α1 ↦ ξ.ρ.loop(
+                    α0 ↦ ξ.index.plus(
+                      α0 ↦ Φ.org.eolang.int(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-01
+                        )
+                      )
+                    )
+                  )
+                )
+              ),
+              α1 ↦ ξ.current
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

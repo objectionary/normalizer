@@ -1,0 +1,33 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        false ↦ ⟦
+          φ ↦ Φ.org.eolang.bytes(
+            Δ ⤍ 00-
+          ),
+          not ↦ Φ.org.eolang.true,
+          if ↦ ⟦
+            φ ↦ ξ.right,
+            left ↦ ∅,
+            right ↦ ∅
+          ⟧,
+          and ↦ ⟦
+            φ ↦ ξ.ρ,
+            x ↦ ∅
+          ⟧,
+          or ↦ ⟦
+            φ ↦ Φ.org.eolang.bytes(
+              Δ ⤍ 01-
+            ).eq(
+              α0 ↦ ξ.x
+            ),
+            x ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

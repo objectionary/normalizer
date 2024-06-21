@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "eolang": "^0.21.0",
+        "eolang": "^0.21.1",
         "prettier": "^3.2.5"
     }
 }

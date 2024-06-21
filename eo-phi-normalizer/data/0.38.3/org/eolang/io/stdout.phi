@@ -1,0 +1,17 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          stdout ↦ ⟦
+            λ ⤍ Lorg_eolang_io_stdout,
+            text ↦ ∅
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

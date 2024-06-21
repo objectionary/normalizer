@@ -1,0 +1,28 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        cage ↦ ⟦
+          object ↦ ∅,
+          new ↦ ξ.φ.self,
+          φ ↦ ⟦
+            λ ⤍ Lorg_eolang_cage_φ
+          ⟧,
+          encaged ↦ ⟦
+            locator ↦ ∅,
+            self ↦ ξ,
+            φ ↦ ⟦
+              λ ⤍ Lorg_eolang_cage_encaged_φ
+            ⟧,
+            encage ↦ ⟦
+              λ ⤍ Lorg_eolang_cage_encaged_encage,
+              object ↦ ∅
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

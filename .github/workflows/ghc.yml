@@ -281,7 +281,7 @@ jobs:
           # I added a dummy path to not trigger the wildcard case
           path: |
             pipeline
-            !pipeline/**/.eoc
+            pipeline/**/.eoc
             !pipeline/eo-yaml
             pipeline/eo-initial/.eoc/4-pull/org/
             pipeline/phi-initial/.eoc/phi/org

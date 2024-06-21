@@ -1,0 +1,16 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        try ↦ ⟦
+          λ ⤍ Lorg_eolang_try,
+          main ↦ ∅,
+          catch ↦ ∅,
+          finally ↦ ∅
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

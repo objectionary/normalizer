@@ -1,0 +1,95 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        malloc ↦ ⟦
+          for ↦ ⟦
+            object ↦ ∅,
+            scope ↦ ∅,
+            bts ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.object
+            ).as-bytes,
+            φ ↦ ξ.ρ.ρ.malloc.of(
+              α0 ↦ ξ.bts.size,
+              α1 ↦ ξ.auto-named-attr-at-89-9
+            ),
+            auto-named-attr-at-89-9 ↦ ⟦
+              m ↦ ∅,
+              φ ↦ Φ.org.eolang.seq(
+                α0 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.m.write(
+                      α0 ↦ Φ.org.eolang.int(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      ),
+                      α1 ↦ ξ.ρ.bts
+                    )
+                  ),
+                  α1 ↦ ξ.ρ.scope(
+                    α0 ↦ ξ.m
+                  )
+                )
+              )
+            ⟧
+          ⟧,
+          of ↦ ⟦
+            size ↦ ∅,
+            scope ↦ ∅,
+            φ ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_of_φ
+            ⟧,
+            allocated ↦ ⟦
+              id ↦ ∅,
+              size ↦ ξ.ρ.size,
+              φ ↦ ξ.get,
+              read ↦ ⟦
+                λ ⤍ Lorg_eolang_malloc_of_allocated_read,
+                offset ↦ ∅,
+                length ↦ ∅
+              ⟧,
+              write ↦ ⟦
+                λ ⤍ Lorg_eolang_malloc_of_allocated_write,
+                offset ↦ ∅,
+                data ↦ ∅
+              ⟧,
+              get ↦ ⟦
+                φ ↦ ξ.ρ.read(
+                  α0 ↦ Φ.org.eolang.int(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ),
+                  α1 ↦ ξ.ρ.size
+                )
+              ⟧,
+              put ↦ ⟦
+                object ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.ρ.write(
+                        α0 ↦ Φ.org.eolang.int(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 00-00-00-00-00-00-00-00
+                          )
+                        ),
+                        α1 ↦ ξ.object
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.get
+                  )
+                )
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

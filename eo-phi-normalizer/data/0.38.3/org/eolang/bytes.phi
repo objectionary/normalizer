@@ -1,0 +1,107 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        bytes ↦ ⟦
+          Δ ⤍ ∅,
+          as-bytes ↦ ξ,
+          eq ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_eq,
+            b ↦ ∅
+          ⟧,
+          size ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_size
+          ⟧,
+          slice ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_slice,
+            start ↦ ∅,
+            len ↦ ∅
+          ⟧,
+          as-string ↦ ⟦
+            φ ↦ Φ.org.eolang.string(
+              α0 ↦ ξ.ρ
+            )
+          ⟧,
+          as-int ↦ ⟦
+            φ ↦ ξ.ρ.size.eq(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-08
+                )
+              )
+            ).if(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ ξ.ρ
+              ),
+              α1 ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 43-61-6E-27-74-20-63-6F-6E-76-65-72-74-20-6E-6F-6E-20-38-20-6C-65-6E-67-74-68-20-62-79-74-65-73-20-74-6F-20-69-6E-74
+                  )
+                )
+              )
+            )
+          ⟧,
+          as-float ↦ ⟦
+            φ ↦ ξ.ρ.size.eq(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-08
+                )
+              )
+            ).if(
+              α0 ↦ Φ.org.eolang.float(
+                α0 ↦ ξ.ρ
+              ),
+              α1 ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 43-61-6E-27-74-20-63-6F-6E-76-65-72-74-20-6E-6F-6E-20-38-20-6C-65-6E-67-74-68-20-62-79-74-65-73-20-74-6F-20-66-6C-6F-61-74
+                  )
+                )
+              )
+            )
+          ⟧,
+          and ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_and,
+            b ↦ ∅
+          ⟧,
+          or ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_or,
+            b ↦ ∅
+          ⟧,
+          xor ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_xor,
+            b ↦ ∅
+          ⟧,
+          not ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_not
+          ⟧,
+          left ↦ ⟦
+            φ ↦ ξ.ρ.right(
+              α0 ↦ ξ.x.neg
+            ),
+            x ↦ ∅
+          ⟧,
+          right ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_right,
+            x ↦ ∅
+          ⟧,
+          as-bool ↦ ⟦
+            φ ↦ ξ.ρ.eq(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 01-
+              )
+            )
+          ⟧,
+          concat ↦ ⟦
+            λ ⤍ Lorg_eolang_bytes_concat,
+            b ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

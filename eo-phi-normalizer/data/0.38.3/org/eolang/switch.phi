@@ -1,0 +1,73 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        switch ↦ ⟦
+          cases ↦ ∅,
+          len ↦ Φ.org.eolang.dataized(
+            α0 ↦ ξ.cases.length
+          ).as-bytes,
+          case-at ↦ ⟦
+            index ↦ ∅,
+            φ ↦ ξ.index.eq(
+              α0 ↦ ξ.ρ.len
+            ).if(
+              α0 ↦ Φ.org.eolang.true,
+              α1 ↦ ξ.case.at(
+                α0 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ ξ.case.at(
+                  α0 ↦ Φ.org.eolang.int(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-01
+                    )
+                  )
+                ),
+                α1 ↦ ξ.ρ.case-at(
+                  α0 ↦ ξ.index.plus(
+                    α0 ↦ Φ.org.eolang.int(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-01
+                      )
+                    )
+                  )
+                )
+              )
+            ),
+            case ↦ ξ.ρ.cases.at(
+              α0 ↦ ξ.index
+            )
+          ⟧,
+          φ ↦ ξ.len.eq(
+            α0 ↦ Φ.org.eolang.int(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            )
+          ).if(
+            α0 ↦ Φ.org.eolang.error(
+              α0 ↦ Φ.org.eolang.string(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 73-77-69-74-63-68-20-63-61-73-65-73-20-61-72-65-20-65-6D-70-74-79
+                )
+              )
+            ),
+            α1 ↦ ξ.case-at(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            )
+          )
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

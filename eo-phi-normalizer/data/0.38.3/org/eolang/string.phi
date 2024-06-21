@@ -1,0 +1,28 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        string ↦ ⟦
+          as-bytes ↦ ∅,
+          φ ↦ ξ.as-bytes,
+          eq ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.as-bytes.eq(
+              α0 ↦ ξ.x.as-bytes
+            )
+          ⟧,
+          length ↦ ⟦
+            λ ⤍ Lorg_eolang_string_length
+          ⟧,
+          slice ↦ ⟦
+            λ ⤍ Lorg_eolang_string_slice,
+            start ↦ ∅,
+            len ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

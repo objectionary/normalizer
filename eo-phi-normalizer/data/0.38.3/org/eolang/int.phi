@@ -1,0 +1,86 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        int ↦ ⟦
+          as-bytes ↦ ∅,
+          φ ↦ ξ.as-bytes,
+          eq ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.as-bytes.eq(
+              α0 ↦ ξ.x.as-bytes
+            )
+          ⟧,
+          lt ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.ρ.int(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            ).gt(
+              α0 ↦ ξ.ρ.minus(
+                α0 ↦ ξ.ρ.ρ.int(
+                  α0 ↦ ξ.value
+                )
+              )
+            ),
+            value ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes
+          ⟧,
+          lte ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.gt(
+              α0 ↦ ξ.value
+            ).not,
+            value ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes
+          ⟧,
+          gt ↦ ⟦
+            λ ⤍ Lorg_eolang_int_gt,
+            x ↦ ∅
+          ⟧,
+          gte ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.lt(
+              α0 ↦ ξ.value
+            ).not,
+            value ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes
+          ⟧,
+          neg ↦ ⟦
+            φ ↦ ξ.ρ.times(
+              α0 ↦ ξ.ρ.ρ.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ FF-FF-FF-FF-FF-FF-FF-FF
+                )
+              )
+            )
+          ⟧,
+          plus ↦ ⟦
+            λ ⤍ Lorg_eolang_int_plus,
+            x ↦ ∅
+          ⟧,
+          minus ↦ ⟦
+            φ ↦ ξ.ρ.plus(
+              α0 ↦ ξ.x.neg
+            ),
+            x ↦ ∅
+          ⟧,
+          times ↦ ⟦
+            λ ⤍ Lorg_eolang_int_times,
+            x ↦ ∅
+          ⟧,
+          div ↦ ⟦
+            λ ⤍ Lorg_eolang_int_div,
+            x ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

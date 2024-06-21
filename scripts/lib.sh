@@ -158,7 +158,7 @@ function commit_and_push_if_changed {
 export -f commit_and_push_if_changed
 
 function eo {
-    npx eoc --parser="$EO" "$@"
+    npx eoc --parser="$EO" --home-tag=0.38.2 "$@"
 }
 
 export -f eo
