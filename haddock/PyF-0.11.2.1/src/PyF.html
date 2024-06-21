@@ -1,0 +1,257 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE BangPatterns #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="annot"><span class="hs-comment">-- | A lot of quasiquoters to format and interpolate string expression</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">PyF</span><span>
+</span><span id="line-8"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="PyF.html#fmt"><span class="hs-identifier">fmt</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-9"></span><span>    </span><span class="annot"><a href="PyF.html#fmtTrim"><span class="hs-identifier">fmtTrim</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-10"></span><span>    </span><span class="annot"><a href="PyF.html#str"><span class="hs-identifier">str</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-11"></span><span>    </span><span class="annot"><a href="PyF.html#strTrim"><span class="hs-identifier">strTrim</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-12"></span><span>    </span><span class="annot"><a href="PyF.html#raw"><span class="hs-identifier">raw</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-13"></span><span>    </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="PyF.Class.html"><span class="hs-identifier">PyF.Class</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Whitespace utilities</span></span><span>
+</span><span id="line-16"></span><span>    </span><span class="annot"><a href="PyF.html#trimIndent"><span class="hs-identifier">trimIndent</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Configuration</span></span><span>
+</span><span id="line-19"></span><span>    </span><span class="annot"><a href="PyF.html#mkFormatter"><span class="hs-identifier">mkFormatter</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="annot"><a href="PyF.html#defaultConfig"><span class="hs-identifier">defaultConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><a href="PyF.html#fmtConfig"><span class="hs-identifier">fmtConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="PyF.html#strConfig"><span class="hs-identifier">strConfig</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>    </span><span class="annot"><a href="PyF.html#addTrim"><span class="hs-identifier">addTrim</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><a href="PyF.html#addFormatting"><span class="hs-identifier">addFormatting</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isSpace</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">intercalate</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Quote</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">QuasiQuoter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PyF.Class.html"><span class="hs-identifier">PyF.Class</span></a></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html"><span class="hs-identifier">PyF.Internal.QQ</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier">Config</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#expQQ"><span class="hs-identifier">expQQ</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#toExp"><span class="hs-identifier">toExp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#wrapFromString"><span class="hs-identifier">wrapFromString</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- | Generic formatter, can format an expression to any @t@ as long as</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--   @t@ is an instance of 'IsString'.</span><span>
+</span><span id="line-36"></span><span class="annot"><a href="PyF.html#fmt"><span class="hs-identifier hs-type">fmt</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-37"></span><span id="fmt"><span class="annot"><span class="annottext">fmt :: QuasiQuoter
+</span><a href="PyF.html#fmt"><span class="hs-identifier hs-var hs-var">fmt</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Config -&gt; QuasiQuoter
+</span><a href="PyF.html#mkFormatter"><span class="hs-identifier hs-var">mkFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;fmt&quot;</span></span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="PyF.html#fmtConfig"><span class="hs-identifier hs-var">fmtConfig</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><span class="hs-comment">-- | Format with whitespace trimming.</span></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="PyF.html#fmtTrim"><span class="hs-identifier hs-type">fmtTrim</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-41"></span><span id="fmtTrim"><span class="annot"><span class="annottext">fmtTrim :: QuasiQuoter
+</span><a href="PyF.html#fmtTrim"><span class="hs-identifier hs-var hs-var">fmtTrim</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Config -&gt; QuasiQuoter
+</span><a href="PyF.html#mkFormatter"><span class="hs-identifier hs-var">mkFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;fmtTrim&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Config -&gt; Config
+</span><a href="PyF.html#addTrim"><span class="hs-identifier hs-var">addTrim</span></a></span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="PyF.html#fmtConfig"><span class="hs-identifier hs-var">fmtConfig</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="annot"><span class="hs-comment">-- | multiline string, no interpolation.</span></span><span>
+</span><span id="line-44"></span><span class="annot"><a href="PyF.html#str"><span class="hs-identifier hs-type">str</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-45"></span><span id="str"><span class="annot"><span class="annottext">str :: QuasiQuoter
+</span><a href="PyF.html#str"><span class="hs-identifier hs-var hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Config -&gt; QuasiQuoter
+</span><a href="PyF.html#mkFormatter"><span class="hs-identifier hs-var">mkFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;str&quot;</span></span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="PyF.html#strConfig"><span class="hs-identifier hs-var">strConfig</span></a></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="annot"><span class="hs-comment">-- | multiline string, no interpolation, but does indentation trimming.</span></span><span>
+</span><span id="line-48"></span><span class="annot"><a href="PyF.html#strTrim"><span class="hs-identifier hs-type">strTrim</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-49"></span><span id="strTrim"><span class="annot"><span class="annottext">strTrim :: QuasiQuoter
+</span><a href="PyF.html#strTrim"><span class="hs-identifier hs-var hs-var">strTrim</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Config -&gt; QuasiQuoter
+</span><a href="PyF.html#mkFormatter"><span class="hs-identifier hs-var">mkFormatter</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;strTrim&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Config -&gt; Config
+</span><a href="PyF.html#addTrim"><span class="hs-identifier hs-var">addTrim</span></a></span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="PyF.html#strConfig"><span class="hs-identifier hs-var">strConfig</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="annot"><span class="hs-comment">-- | Raw string, no interpolation neither escaping is performed.</span></span><span>
+</span><span id="line-52"></span><span class="annot"><a href="PyF.html#raw"><span class="hs-identifier hs-type">raw</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-53"></span><span id="raw"><span class="annot"><span class="annottext">raw :: QuasiQuoter
+</span><a href="PyF.html#raw"><span class="hs-identifier hs-var hs-var">raw</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; Q Exp) -&gt; QuasiQuoter
+</span><a href="PyF.Internal.QQ.html#expQQ"><span class="hs-identifier hs-var">expQQ</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;raw&quot;</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679253497"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253497"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[|</span><span class="annot"><a href="#local-6989586621679253497"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- | Removes the trailing whitespace of a string.</span><span>
+</span><span id="line-56"></span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- - First line is ignored if it only contains whitespaces</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- - All other line common indentation is removed, ignoring line with only whitespaces.</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- &gt;&gt;&gt; trimIndent &quot;\n   hello\n   - a\n   - b\n   &quot;</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- &quot;hello\n- a\n- b\n&quot;</span><span>
+</span><span id="line-62"></span><span class="hs-comment">--</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- See 'fmtTrim' for a quasiquoter with this behavior</span><span>
+</span><span id="line-64"></span><span class="annot"><a href="PyF.html#trimIndent"><span class="hs-identifier hs-type">trimIndent</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-65"></span><span id="trimIndent"><span class="annot"><span class="annottext">trimIndent :: String -&gt; String
+</span><a href="PyF.html#trimIndent"><span class="hs-identifier hs-var hs-var">trimIndent</span></a></span></span><span> </span><span id="local-6989586621679253498"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253498"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><span class="hs-identifier hs-var">lines</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253498"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253498"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-69"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679253500"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253500"><span class="hs-identifier hs-var">firstLine</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679253501"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253501"><span class="hs-identifier hs-var">others</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-70"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-comment">-- Discard the first line if needed</span><span>
+</span><span id="line-71"></span><span>          </span><span id="local-6989586621679253504"><span class="annot"><span class="annottext">usedLines :: [String]
+</span><a href="#local-6989586621679253504"><span class="hs-identifier hs-var hs-var">usedLines</span></a></span></span><span>
+</span><span id="line-72"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253500"><span class="hs-identifier hs-var">firstLine</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253501"><span class="hs-identifier hs-var">others</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253506"><span class="hs-identifier hs-var">trail</span></a></span><span>
+</span><span id="line-73"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253500"><span class="hs-identifier hs-var">firstLine</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; [String]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253501"><span class="hs-identifier hs-var">others</span></a></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; [String]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253506"><span class="hs-identifier hs-var">trail</span></a></span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span>          </span><span class="hs-comment">-- If the string ends with a newline, `lines` will discard it. We restore it.</span><span>
+</span><span id="line-76"></span><span>          </span><span id="local-6989586621679253506"><span class="annot"><span class="annottext">trail :: [String]
+</span><a href="#local-6989586621679253506"><span class="hs-identifier hs-var hs-var">trail</span></a></span></span><span>
+</span><span id="line-77"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String -&gt; Char
+forall a. HasCallStack =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">last</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253498"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-78"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-79"></span><span>          </span><span class="hs-comment">-- Find the minimum indent common to all lines</span><span>
+</span><span id="line-80"></span><span>          </span><span id="local-6989586621679253514"><span class="annot"><span class="annottext">biggestLines :: [Int]
+</span><a href="#local-6989586621679253514"><span class="hs-identifier hs-var hs-var">biggestLines</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Int) -&gt; [String] -&gt; [Int]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Int) -&gt; (String -&gt; String) -&gt; String -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; String
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">takeWhile</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; Bool) -&gt; [String] -&gt; [String]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; (String -&gt; Bool) -&gt; String -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">all</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">isSpace</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253504"><span class="hs-identifier hs-var">usedLines</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>
+</span><span id="line-82"></span><span>          </span><span id="local-6989586621679253524"><span class="annot"><span class="annottext">stripLen :: Int
+</span><a href="#local-6989586621679253524"><span class="hs-identifier hs-var hs-var">stripLen</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679253514"><span class="hs-identifier hs-var">biggestLines</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-83"></span><span>            </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-84"></span><span>            </span><span class="annot"><span class="annottext">[Int]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Int] -&gt; Int
+forall a. Ord a =&gt; [a] -&gt; a
+forall (t :: * -&gt; *) a. (Foldable t, Ord a) =&gt; t a -&gt; a
+</span><span class="hs-identifier hs-var">minimum</span></span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679253514"><span class="hs-identifier hs-var">biggestLines</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span>          </span><span class="hs-comment">-- drop them</span><span>
+</span><span id="line-87"></span><span>          </span><span id="local-6989586621679253526"><span class="annot"><span class="annottext">trimmedLines :: [String]
+</span><a href="#local-6989586621679253526"><span class="hs-identifier hs-var hs-var">trimmedLines</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; String -&gt; String
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679253524"><span class="hs-identifier hs-var">stripLen</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253504"><span class="hs-identifier hs-var">usedLines</span></a></span><span>
+</span><span id="line-88"></span><span>       </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">String -&gt; [String] -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679253526"><span class="hs-identifier hs-var">trimmedLines</span></a></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="annot"><span class="hs-comment">-- | This is an empty configuration. No formatting, no post processing</span></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="PyF.html#defaultConfig"><span class="hs-identifier hs-type">defaultConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-92"></span><span id="defaultConfig"><span class="annot"><span class="annottext">defaultConfig :: Config
+</span><a href="PyF.html#defaultConfig"><span class="hs-identifier hs-var hs-var">defaultConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-94"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">delimiters :: Maybe (Char, Char)
+</span><a href="PyF.Internal.QQ.html#delimiters"><span class="hs-identifier hs-var">delimiters</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Char, Char)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-95"></span><span>      </span><span class="annot"><span class="annottext">postProcess :: Q Exp -&gt; Q Exp
+</span><a href="PyF.Internal.QQ.html#postProcess"><span class="hs-identifier hs-var">postProcess</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Q Exp -&gt; Q Exp
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-97"></span><span>
+</span><span id="line-98"></span><span class="annot"><span class="hs-comment">-- | Configuration for 'str' it just wrap the multiline string with 'fromString'.</span></span><span>
+</span><span id="line-99"></span><span class="annot"><a href="PyF.html#strConfig"><span class="hs-identifier hs-type">strConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-100"></span><span id="strConfig"><span class="annot"><span class="annottext">strConfig :: Config
+</span><a href="PyF.html#strConfig"><span class="hs-identifier hs-var hs-var">strConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-102"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">delimiters :: Maybe (Char, Char)
+</span><a href="PyF.Internal.QQ.html#delimiters"><span class="hs-identifier hs-var">delimiters</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (Char, Char)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">,</span><span>
+</span><span id="line-103"></span><span>      </span><span class="annot"><span class="annottext">postProcess :: Q Exp -&gt; Q Exp
+</span><a href="PyF.Internal.QQ.html#postProcess"><span class="hs-identifier hs-var">postProcess</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Q Exp -&gt; Q Exp
+</span><a href="PyF.Internal.QQ.html#wrapFromString"><span class="hs-identifier hs-var">wrapFromString</span></a></span><span>
+</span><span id="line-104"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="annot"><span class="hs-comment">-- | The config for 'fmt'.</span></span><span>
+</span><span id="line-107"></span><span class="annot"><a href="PyF.html#fmtConfig"><span class="hs-identifier hs-type">fmtConfig</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-108"></span><span id="fmtConfig"><span class="annot"><span class="annottext">fmtConfig :: Config
+</span><a href="PyF.html#fmtConfig"><span class="hs-identifier hs-var hs-var">fmtConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char, Char) -&gt; Config -&gt; Config
+</span><a href="PyF.html#addFormatting"><span class="hs-identifier hs-var">addFormatting</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'{'</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'}'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="PyF.html#strConfig"><span class="hs-identifier hs-var">strConfig</span></a></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="annot"><span class="hs-comment">-- | Add indentation trimming to a configuration.</span></span><span>
+</span><span id="line-111"></span><span class="annot"><a href="PyF.html#addTrim"><span class="hs-identifier hs-type">addTrim</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-112"></span><span id="addTrim"><span class="annot"><span class="annottext">addTrim :: Config -&gt; Config
+</span><a href="PyF.html#addTrim"><span class="hs-identifier hs-var hs-var">addTrim</span></a></span></span><span> </span><span id="local-6989586621679253532"><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253532"><span class="hs-identifier hs-var">config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-113"></span><span>  </span><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253532"><span class="hs-identifier hs-var">config</span></a></span><span>
+</span><span id="line-114"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#postProcess"><span class="hs-identifier hs-var">postProcess</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679253533"><span class="annot"><span class="annottext">Q Exp
+</span><a href="#local-6989586621679253533"><span class="hs-identifier hs-var">q</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Config -&gt; Q Exp -&gt; Q Exp
+</span><a href="PyF.Internal.QQ.html#postProcess"><span class="hs-identifier hs-var">postProcess</span></a></span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253532"><span class="hs-identifier hs-var">config</span></a></span><span> </span><span class="hs-special">[|</span><span class="annot"><a href="PyF.html#trimIndent"><span class="hs-identifier hs-type">PyF.trimIndent</span></a></span><span> </span><span class="hs-special">$</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Q Exp
+</span><a href="#local-6989586621679253533"><span class="hs-identifier hs-var">q</span></a></span><span class="hs-special">)</span><span class="hs-special">|]</span><span>
+</span><span id="line-115"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span class="annot"><span class="hs-comment">-- | Enable formatting</span></span><span>
+</span><span id="line-118"></span><span class="annot"><a href="PyF.html#addFormatting"><span class="hs-identifier hs-type">addFormatting</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span>
+</span><span id="line-119"></span><span id="addFormatting"><span class="annot"><span class="annottext">addFormatting :: (Char, Char) -&gt; Config -&gt; Config
+</span><a href="PyF.html#addFormatting"><span class="hs-identifier hs-var hs-var">addFormatting</span></a></span></span><span> </span><span id="local-6989586621679253534"><span class="annot"><span class="annottext">(Char, Char)
+</span><a href="#local-6989586621679253534"><span class="hs-identifier hs-var">delims</span></a></span></span><span> </span><span id="local-6989586621679253535"><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253535"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253535"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">{</span><span class="annot"><a href="PyF.Internal.QQ.html#delimiters"><span class="hs-identifier hs-var">delimiters</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="annot"><a href="#local-6989586621679253534"><span class="hs-identifier hs-type">delims</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-120"></span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- | Build a formatter. See the 'Config' type for details, as well as</span><span>
+</span><span id="line-122"></span><span class="hs-comment">-- 'fmtConfig' and 'strConfig' for examples.</span><span>
+</span><span id="line-123"></span><span class="annot"><a href="PyF.html#mkFormatter"><span class="hs-identifier hs-type">mkFormatter</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="PyF.Internal.QQ.html#Config"><span class="hs-identifier hs-type">Config</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">QuasiQuoter</span></span><span>
+</span><span id="line-124"></span><span id="mkFormatter"><span class="annot"><span class="annottext">mkFormatter :: String -&gt; Config -&gt; QuasiQuoter
+</span><a href="PyF.html#mkFormatter"><span class="hs-identifier hs-var hs-var">mkFormatter</span></a></span></span><span> </span><span id="local-6989586621679253536"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253536"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679253537"><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253537"><span class="hs-identifier hs-var">config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; (String -&gt; Q Exp) -&gt; QuasiQuoter
+</span><a href="PyF.Internal.QQ.html#expQQ"><span class="hs-identifier hs-var">expQQ</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679253536"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Config -&gt; String -&gt; Q Exp
+</span><a href="PyF.Internal.QQ.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">Config
+</span><a href="#local-6989586621679253537"><span class="hs-identifier hs-var">config</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span></pre></body></html>

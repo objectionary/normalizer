@@ -1,0 +1,685 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE BlockArguments #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE DeriveTraversable #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-10"></span><span class="hs-pragma">{-# LANGUAGE InstanceSigs #-}</span><span>
+</span><span id="line-11"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-12"></span><span class="hs-pragma">{-# LANGUAGE OverloadedLabels #-}</span><span>
+</span><span id="line-13"></span><span class="hs-pragma">{-# LANGUAGE OverloadedRecordDot #-}</span><span>
+</span><span id="line-14"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-15"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-16"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-17"></span><span class="hs-pragma">{-# LANGUAGE TypeApplications #-}</span><span>
+</span><span id="line-18"></span><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><span id="line-19"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Metrics.Data</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ToJSON</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Value</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">withObject</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(.:)</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(.=)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Aeson</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.Types</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">FromJSON</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Parser</span></span><span class="hs-special">)</span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Generics.Labels</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">groupBy</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">intercalate</span></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html"><span class="hs-identifier">Language.EO.Phi.Rules.Common</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.TH.html"><span class="hs-identifier">Language.EO.Phi.TH</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.TH.html#deriveJSON"><span class="hs-identifier">deriveJSON</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">data</span><span> </span><span id="Metrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-var">Metrics</span></a></span></span><span> </span><span id="local-6989586621679556494"><span class="annot"><a href="#local-6989586621679556494"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Metrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-var">Metrics</span></a></span></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Adataless%3AMetrics"><span class="annot"><span class="annottext">forall a. Metrics a -&gt; a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adataless%3AMetrics"><span class="hs-identifier hs-var hs-var">dataless</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679556494"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aapplications%3AMetrics"><span class="annot"><span class="annottext">forall a. Metrics a -&gt; a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aapplications%3AMetrics"><span class="hs-identifier hs-var hs-var">applications</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679556494"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aformations%3AMetrics"><span class="annot"><span class="annottext">forall a. Metrics a -&gt; a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aformations%3AMetrics"><span class="hs-identifier hs-var hs-var">formations</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679556494"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Adispatches%3AMetrics"><span class="annot"><span class="annottext">forall a. Metrics a -&gt; a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adispatches%3AMetrics"><span class="hs-identifier hs-var hs-var">dispatches</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679556494"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679556674"><span id="local-6989586621679556682"><span id="local-6989586621679556686"><span class="annot"><span class="annottext">Int -&gt; Metrics a -&gt; ShowS
+[Metrics a] -&gt; ShowS
+Metrics a -&gt; String
+(Int -&gt; Metrics a -&gt; ShowS)
+-&gt; (Metrics a -&gt; String)
+-&gt; ([Metrics a] -&gt; ShowS)
+-&gt; Show (Metrics a)
+forall a. Show a =&gt; Int -&gt; Metrics a -&gt; ShowS
+forall a. Show a =&gt; [Metrics a] -&gt; ShowS
+forall a. Show a =&gt; Metrics a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; Metrics a -&gt; ShowS
+showsPrec :: Int -&gt; Metrics a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; Metrics a -&gt; String
+show :: Metrics a -&gt; String
+$cshowList :: forall a. Show a =&gt; [Metrics a] -&gt; ShowS
+showList :: [Metrics a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679556690"><span id="local-6989586621679556692"><span class="annot"><span class="annottext">(forall x. Metrics a -&gt; Rep (Metrics a) x)
+-&gt; (forall x. Rep (Metrics a) x -&gt; Metrics a)
+-&gt; Generic (Metrics a)
+forall x. Rep (Metrics a) x -&gt; Metrics a
+forall x. Metrics a -&gt; Rep (Metrics a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x. Rep (Metrics a) x -&gt; Metrics a
+forall a x. Metrics a -&gt; Rep (Metrics a) x
+$cfrom :: forall a x. Metrics a -&gt; Rep (Metrics a) x
+from :: forall x. Metrics a -&gt; Rep (Metrics a) x
+$cto :: forall a x. Rep (Metrics a) x -&gt; Metrics a
+to :: forall x. Rep (Metrics a) x -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679556697"><span id="local-6989586621679556703"><span class="annot"><span class="annottext">Metrics a -&gt; Metrics a -&gt; Bool
+(Metrics a -&gt; Metrics a -&gt; Bool)
+-&gt; (Metrics a -&gt; Metrics a -&gt; Bool) -&gt; Eq (Metrics a)
+forall a. Eq a =&gt; Metrics a -&gt; Metrics a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; Metrics a -&gt; Metrics a -&gt; Bool
+== :: Metrics a -&gt; Metrics a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; Metrics a -&gt; Metrics a -&gt; Bool
+/= :: Metrics a -&gt; Metrics a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679556708"><span id="local-6989586621679556710"><span class="annot"><span class="annottext">(forall a b. (a -&gt; b) -&gt; Metrics a -&gt; Metrics b)
+-&gt; (forall a b. a -&gt; Metrics b -&gt; Metrics a) -&gt; Functor Metrics
+forall a b. a -&gt; Metrics b -&gt; Metrics a
+forall a b. (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall a b. (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+fmap :: forall a b. (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+$c&lt;$ :: forall a b. a -&gt; Metrics b -&gt; Metrics a
+&lt;$ :: forall a b. a -&gt; Metrics b -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Functor</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679556714"><span id="local-6989586621679556720"><span id="local-6989586621679556726"><span id="local-6989586621679556731"><span id="local-6989586621679556733"><span id="local-6989586621679556736"><span id="local-6989586621679556739"><span id="local-6989586621679556742"><span id="local-6989586621679556745"><span id="local-6989586621679556748"><span id="local-6989586621679556751"><span id="local-6989586621679556753"><span id="local-6989586621679556756"><span id="local-6989586621679556761"><span id="local-6989586621679556766"><span id="local-6989586621679556771"><span id="local-6989586621679556776"><span class="annot"><span class="annottext">(forall m. Monoid m =&gt; Metrics m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a)
+-&gt; (forall a. Metrics a -&gt; [a])
+-&gt; (forall a. Metrics a -&gt; Bool)
+-&gt; (forall a. Metrics a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; Metrics a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; Metrics a -&gt; a)
+-&gt; (forall a. Ord a =&gt; Metrics a -&gt; a)
+-&gt; (forall a. Num a =&gt; Metrics a -&gt; a)
+-&gt; (forall a. Num a =&gt; Metrics a -&gt; a)
+-&gt; Foldable Metrics
+forall a. Eq a =&gt; a -&gt; Metrics a -&gt; Bool
+forall a. Num a =&gt; Metrics a -&gt; a
+forall a. Ord a =&gt; Metrics a -&gt; a
+forall m. Monoid m =&gt; Metrics m -&gt; m
+forall a. Metrics a -&gt; Bool
+forall a. Metrics a -&gt; Int
+forall a. Metrics a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; Metrics m -&gt; m
+fold :: forall m. Monoid m =&gt; Metrics m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; Metrics a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; Metrics a -&gt; a
+$ctoList :: forall a. Metrics a -&gt; [a]
+toList :: forall a. Metrics a -&gt; [a]
+$cnull :: forall a. Metrics a -&gt; Bool
+null :: forall a. Metrics a -&gt; Bool
+$clength :: forall a. Metrics a -&gt; Int
+length :: forall a. Metrics a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; Metrics a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; Metrics a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; Metrics a -&gt; a
+maximum :: forall a. Ord a =&gt; Metrics a -&gt; a
+$cminimum :: forall a. Ord a =&gt; Metrics a -&gt; a
+minimum :: forall a. Ord a =&gt; Metrics a -&gt; a
+$csum :: forall a. Num a =&gt; Metrics a -&gt; a
+sum :: forall a. Num a =&gt; Metrics a -&gt; a
+$cproduct :: forall a. Num a =&gt; Metrics a -&gt; a
+product :: forall a. Num a =&gt; Metrics a -&gt; a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679556786"><span id="local-6989586621679556792"><span id="local-6989586621679556798"><span id="local-6989586621679556803"><span class="annot"><span class="annottext">Functor Metrics
+Foldable Metrics
+(Functor Metrics, Foldable Metrics) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; Metrics a -&gt; f (Metrics b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    Metrics (f a) -&gt; f (Metrics a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; Metrics a -&gt; m (Metrics b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    Metrics (m a) -&gt; m (Metrics a))
+-&gt; Traversable Metrics
+forall (t :: * -&gt; *).
+(Functor t, Foldable t) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a. Monad m =&gt; Metrics (m a) -&gt; m (Metrics a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+Metrics (f a) -&gt; f (Metrics a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Metrics a -&gt; m (Metrics b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Metrics a -&gt; f (Metrics b)
+$ctraverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Metrics a -&gt; f (Metrics b)
+traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Metrics a -&gt; f (Metrics b)
+$csequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+Metrics (f a) -&gt; f (Metrics a)
+sequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+Metrics (f a) -&gt; f (Metrics a)
+$cmapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Metrics a -&gt; m (Metrics b)
+mapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; Metrics a -&gt; m (Metrics b)
+$csequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Metrics (m a) -&gt; m (Metrics a)
+sequence :: forall (m :: * -&gt; *) a. Monad m =&gt; Metrics (m a) -&gt; m (Metrics a)
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Traversable</span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="hs-special">$</span><span id="local-6989586621679556494"><span id="local-6989586621679556810"><span id="local-6989586621679556827"><span id="local-6989586621679556832"><span id="local-6989586621679556850"><span id="local-6989586621679556863"><span id="local-6989586621679556867"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Metrics</span><span class="hs-special">)</span></span></span></span></span></span></span></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span id="local-6989586621679556901"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-type">toListMetrics</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556901"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679556901"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span></span><span>
+</span><span id="line-43"></span><span id="toListMetrics"><span class="annot"><span class="annottext">toListMetrics :: forall a. Metrics a -&gt; [a]
+</span><a href="Language.EO.Phi.Metrics.Data.html#toListMetrics"><span class="hs-identifier hs-var hs-var">toListMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(a -&gt; [a]) -&gt; Metrics a -&gt; [a]
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Metrics a -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; [a] -&gt; [a]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>
+</span><span id="line-45"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679556912"><span id="local-6989586621679556916"><span id="local-6989586621679556919"><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-46"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">pure</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679556922"><span class="annot"><a href="#local-6989586621679556922"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556922"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-47"></span><span>  </span><span id="local-6989586621679556923"><span class="annot"><span class="annottext">pure :: forall a. a -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></span></span><span> </span><span id="local-6989586621679556924"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679556924"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-48"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span>
+</span><span id="line-49"></span><span>      </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:dataless:Metrics :: a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adataless%3AMetrics"><span class="hs-identifier hs-var">dataless</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679556924"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-50"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:applications:Metrics :: a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aapplications%3AMetrics"><span class="hs-identifier hs-var">applications</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679556924"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-51"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:formations:Metrics :: a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aformations%3AMetrics"><span class="hs-identifier hs-var">formations</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679556924"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-52"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:dispatches:Metrics :: a
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adispatches%3AMetrics"><span class="hs-identifier hs-var">dispatches</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679556924"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-53"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><span class="hs-operator hs-type">(&lt;*&gt;)</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span id="local-6989586621679556925"><span id="local-6989586621679556926"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679556925"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679556926"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556925"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556926"><span class="hs-identifier hs-type">b</span></a></span></span></span><span>
+</span><span id="line-56"></span><span>  </span><span id="local-6989586621679556935"><span class="annot"><span class="annottext">Metrics (a -&gt; b)
+</span><a href="#local-6989586621679556935"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679556936"><span class="annot"><span class="annottext">&lt;*&gt; :: forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;*&gt;</span></span></span><span> </span><span id="local-6989586621679556937"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556937"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span>
+</span><span id="line-58"></span><span>      </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:dataless:Metrics :: b
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adataless%3AMetrics"><span class="hs-identifier hs-var">dataless</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; b)
+</span><a href="#local-6989586621679556935"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">dataless</span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556937"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">dataless</span><span>
+</span><span id="line-59"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:applications:Metrics :: b
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aapplications%3AMetrics"><span class="hs-identifier hs-var">applications</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; b)
+</span><a href="#local-6989586621679556935"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">applications</span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556937"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">applications</span><span>
+</span><span id="line-60"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:formations:Metrics :: b
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aformations%3AMetrics"><span class="hs-identifier hs-var">formations</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; b)
+</span><a href="#local-6989586621679556935"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">formations</span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556937"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">formations</span><span>
+</span><span id="line-61"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:dispatches:Metrics :: b
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Adispatches%3AMetrics"><span class="hs-identifier hs-var">dispatches</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; b)
+</span><a href="#local-6989586621679556935"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">dispatches</span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556937"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">dispatches</span><span>
+</span><span id="line-62"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679556613"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-65"></span><span>  </span><span class="annot"><span class="hs-operator hs-type">(+)</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621679556952"><span class="annot"><span class="annottext">+ :: Metrics a -&gt; Metrics a -&gt; Metrics a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(+)</span></span></span><span> </span><span id="local-6989586621679556953"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556953"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679556954"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556954"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(+)</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; Metrics a -&gt; Metrics (a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556953"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556954"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-67"></span><span>  </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-68"></span><span>  </span><span id="local-6989586621679556958"><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-special">)</span></span><span> </span><span id="local-6989586621679556959"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556959"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679556960"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556960"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; Metrics a -&gt; Metrics (a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556959"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556960"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-69"></span><span>  </span><span class="annot"><span class="hs-operator hs-type">(*)</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span id="local-6989586621679556965"><span class="annot"><span class="annottext">* :: Metrics a -&gt; Metrics a -&gt; Metrics a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(*)</span></span></span><span> </span><span id="local-6989586621679556966"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556966"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679556967"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556967"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(*)</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; Metrics a -&gt; Metrics (a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556966"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679556967"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-71"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">negate</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-72"></span><span>  </span><span id="local-6989586621679556970"><span class="annot"><span class="annottext">negate :: Metrics a -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">negate</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">negate</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">abs</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span id="local-6989586621679556974"><span class="annot"><span class="annottext">abs :: Metrics a -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">abs</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">abs</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">signum</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-76"></span><span>  </span><span id="local-6989586621679556978"><span class="annot"><span class="annottext">signum :: Metrics a -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">signum</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; a
+forall a. Num a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">signum</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">fromInteger</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Integer</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556613"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span id="local-6989586621679556981"><span class="annot"><span class="annottext">fromInteger :: Integer -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fromInteger</span></span></span><span> </span><span id="local-6989586621679556982"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679556982"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; Metrics a
+forall a. a -&gt; Metrics a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Metrics a) -&gt; a -&gt; Metrics a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Integer -&gt; a
+forall a. Num a =&gt; Integer -&gt; a
+</span><span class="hs-identifier hs-var">fromInteger</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679556982"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679556619"><span id="local-6989586621679556989"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Fractional</span></span><span> </span><span class="annot"><a href="#local-6989586621679556619"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Fractional</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556619"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">fromRational</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556619"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-82"></span><span>  </span><span id="local-6989586621679556996"><span class="annot"><span class="annottext">fromRational :: Rational -&gt; Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fromRational</span></span></span><span> </span><span class="annot"><span class="annottext">Rational
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-83"></span><span>  </span><span class="annot"><span class="hs-operator hs-type">(/)</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556619"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556619"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556619"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-84"></span><span>  </span><span id="local-6989586621679557001"><span class="annot"><span class="annottext">/ :: Metrics a -&gt; Metrics a -&gt; Metrics a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(/)</span></span></span><span> </span><span id="local-6989586621679557002"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679557002"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679557003"><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679557003"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; a -&gt; a
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(/)</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; a -&gt; a) -&gt; Metrics a -&gt; Metrics (a -&gt; a)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679557002"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics (a -&gt; a) -&gt; Metrics a -&gt; Metrics a
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><a href="#local-6989586621679557003"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679556623"><span id="local-6989586621679557007"><span id="local-6989586621679557011"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679556623"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556623"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-87"></span><span>  </span><span class="annot"><span class="hs-operator hs-type">(&lt;&gt;)</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556623"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556623"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556623"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-88"></span><span>  </span><span id="local-6989586621679557017"><span class="annot"><span class="annottext">&lt;&gt; :: Metrics a -&gt; Metrics a -&gt; Metrics a
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">(&lt;&gt;)</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics a -&gt; Metrics a -&gt; Metrics a
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(+)</span></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679556626"><span id="local-6989586621679557023"><span id="local-6989586621679557027"><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Num</span></span><span> </span><span class="annot"><a href="#local-6989586621679556626"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556626"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-91"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">mempty</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679556626"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span id="local-6989586621679557031"><span class="annot"><span class="annottext">mempty :: Metrics a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">mempty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics a
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-93"></span><span>
+</span><span id="line-94"></span><span class="hs-keyword">type</span><span> </span><span id="MetricsCount"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-var">MetricsCount</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-95"></span><span>
+</span><span id="line-96"></span><span class="hs-keyword">data</span><span> </span><span id="BindingMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-var">BindingMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="BindingMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-var">BindingMetrics</span></a></span></span><span>
+</span><span id="line-97"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Aname%3ABindingMetrics"><span class="annot"><span class="annottext">BindingMetrics -&gt; String
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aname%3ABindingMetrics"><span class="hs-identifier hs-var hs-var">name</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-98"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Ametrics%3ABindingMetrics"><span class="annot"><span class="annottext">BindingMetrics -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Ametrics%3ABindingMetrics"><span class="hs-identifier hs-var hs-var">metrics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679557036"><span id="local-6989586621679557044"><span id="local-6989586621679557048"><span class="annot"><span class="annottext">Int -&gt; BindingMetrics -&gt; ShowS
+[BindingMetrics] -&gt; ShowS
+BindingMetrics -&gt; String
+(Int -&gt; BindingMetrics -&gt; ShowS)
+-&gt; (BindingMetrics -&gt; String)
+-&gt; ([BindingMetrics] -&gt; ShowS)
+-&gt; Show BindingMetrics
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; BindingMetrics -&gt; ShowS
+showsPrec :: Int -&gt; BindingMetrics -&gt; ShowS
+$cshow :: BindingMetrics -&gt; String
+show :: BindingMetrics -&gt; String
+$cshowList :: [BindingMetrics] -&gt; ShowS
+showList :: [BindingMetrics] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557053"><span id="local-6989586621679557055"><span class="annot"><span class="annottext">(forall x. BindingMetrics -&gt; Rep BindingMetrics x)
+-&gt; (forall x. Rep BindingMetrics x -&gt; BindingMetrics)
+-&gt; Generic BindingMetrics
+forall x. Rep BindingMetrics x -&gt; BindingMetrics
+forall x. BindingMetrics -&gt; Rep BindingMetrics x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. BindingMetrics -&gt; Rep BindingMetrics x
+from :: forall x. BindingMetrics -&gt; Rep BindingMetrics x
+$cto :: forall x. Rep BindingMetrics x -&gt; BindingMetrics
+to :: forall x. Rep BindingMetrics x -&gt; BindingMetrics
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557058"><span id="local-6989586621679557064"><span class="annot"><span class="annottext">BindingMetrics -&gt; BindingMetrics -&gt; Bool
+(BindingMetrics -&gt; BindingMetrics -&gt; Bool)
+-&gt; (BindingMetrics -&gt; BindingMetrics -&gt; Bool) -&gt; Eq BindingMetrics
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: BindingMetrics -&gt; BindingMetrics -&gt; Bool
+== :: BindingMetrics -&gt; BindingMetrics -&gt; Bool
+$c/= :: BindingMetrics -&gt; BindingMetrics -&gt; Bool
+/= :: BindingMetrics -&gt; BindingMetrics -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>
+</span><span id="line-102"></span><span class="hs-special">$</span><span id="local-6989586621679557069"><span id="local-6989586621679557080"><span id="local-6989586621679557084"><span id="local-6989586621679557096"><span id="local-6989586621679557105"><span id="local-6989586621679557109"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">BindingMetrics</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-103"></span><span>
+</span><span id="line-104"></span><span class="hs-keyword">type</span><span> </span><span id="Path"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-var">Path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-105"></span><span>
+</span><span id="line-106"></span><span class="hs-keyword">data</span><span> </span><span id="BindingsByPathMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-var">BindingsByPathMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="BindingsByPathMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-var">BindingsByPathMetrics</span></a></span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Apath%3ABindingsByPathMetrics"><span class="annot"><span class="annottext">BindingsByPathMetrics -&gt; Path
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Apath%3ABindingsByPathMetrics"><span class="hs-identifier hs-var hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AbindingsMetrics%3ABindingsByPathMetrics"><span class="annot"><span class="annottext">BindingsByPathMetrics -&gt; [BindingMetrics]
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AbindingsMetrics%3ABindingsByPathMetrics"><span class="hs-identifier hs-var hs-var">bindingsMetrics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-type">BindingMetrics</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679557130"><span id="local-6989586621679557137"><span id="local-6989586621679557141"><span class="annot"><span class="annottext">Int -&gt; BindingsByPathMetrics -&gt; ShowS
+[BindingsByPathMetrics] -&gt; ShowS
+BindingsByPathMetrics -&gt; String
+(Int -&gt; BindingsByPathMetrics -&gt; ShowS)
+-&gt; (BindingsByPathMetrics -&gt; String)
+-&gt; ([BindingsByPathMetrics] -&gt; ShowS)
+-&gt; Show BindingsByPathMetrics
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; BindingsByPathMetrics -&gt; ShowS
+showsPrec :: Int -&gt; BindingsByPathMetrics -&gt; ShowS
+$cshow :: BindingsByPathMetrics -&gt; String
+show :: BindingsByPathMetrics -&gt; String
+$cshowList :: [BindingsByPathMetrics] -&gt; ShowS
+showList :: [BindingsByPathMetrics] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557145"><span id="local-6989586621679557147"><span class="annot"><span class="annottext">(forall x. BindingsByPathMetrics -&gt; Rep BindingsByPathMetrics x)
+-&gt; (forall x. Rep BindingsByPathMetrics x -&gt; BindingsByPathMetrics)
+-&gt; Generic BindingsByPathMetrics
+forall x. Rep BindingsByPathMetrics x -&gt; BindingsByPathMetrics
+forall x. BindingsByPathMetrics -&gt; Rep BindingsByPathMetrics x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. BindingsByPathMetrics -&gt; Rep BindingsByPathMetrics x
+from :: forall x. BindingsByPathMetrics -&gt; Rep BindingsByPathMetrics x
+$cto :: forall x. Rep BindingsByPathMetrics x -&gt; BindingsByPathMetrics
+to :: forall x. Rep BindingsByPathMetrics x -&gt; BindingsByPathMetrics
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557150"><span id="local-6989586621679557155"><span class="annot"><span class="annottext">BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool
+(BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool)
+-&gt; (BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool)
+-&gt; Eq BindingsByPathMetrics
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool
+== :: BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool
+$c/= :: BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool
+/= :: BindingsByPathMetrics -&gt; BindingsByPathMetrics -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>
+</span><span id="line-112"></span><span class="hs-comment">-- &gt;&gt;&gt; splitStringOn '.' &quot;abra.cada.bra&quot;</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- [&quot;abra&quot;,&quot;cada&quot;,&quot;bra&quot;]</span><span>
+</span><span id="line-114"></span><span class="hs-comment">--</span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- &gt;&gt;&gt; splitStringOn '.' &quot;&quot;</span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- []</span><span>
+</span><span id="line-117"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#splitStringOn"><span class="hs-identifier hs-type">splitStringOn</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span>
+</span><span id="line-118"></span><span id="splitStringOn"><span class="annot"><span class="annottext">splitStringOn :: Char -&gt; String -&gt; Path
+</span><a href="Language.EO.Phi.Metrics.Data.html#splitStringOn"><span class="hs-identifier hs-var hs-var">splitStringOn</span></a></span></span><span> </span><span id="local-6989586621679557159"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557159"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Bool) -&gt; Path -&gt; Path
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557159"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Path -&gt; Path) -&gt; (String -&gt; Path) -&gt; String -&gt; Path
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Char -&gt; Bool) -&gt; String -&gt; Path
+forall a. (a -&gt; a -&gt; Bool) -&gt; [a] -&gt; [[a]]
+</span><span class="hs-identifier hs-var">groupBy</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679557162"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557162"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679557163"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557163"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557162"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557159"><span class="hs-identifier hs-var">sep</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557163"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679557159"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#splitPath"><span class="hs-identifier hs-type">splitPath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span>
+</span><span id="line-121"></span><span id="splitPath"><span class="annot"><span class="annottext">splitPath :: String -&gt; Path
+</span><a href="Language.EO.Phi.Metrics.Data.html#splitPath"><span class="hs-identifier hs-var hs-var">splitPath</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; String -&gt; Path
+</span><a href="Language.EO.Phi.Metrics.Data.html#splitStringOn"><span class="hs-identifier hs-var">splitStringOn</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'.'</span></span><span>
+</span><span id="line-122"></span><span>
+</span><span id="line-123"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679557168"><span class="annot"><span class="hs-identifier hs-type">FromJSON</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-124"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">parseJSON</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Value</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parser</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span>
+</span><span id="line-125"></span><span>  </span><span id="local-6989586621679557183"><span class="annot"><span class="annottext">parseJSON :: Value -&gt; Parser BindingsByPathMetrics
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">parseJSON</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; (Object -&gt; Parser BindingsByPathMetrics)
+-&gt; Value
+-&gt; Parser BindingsByPathMetrics
+forall a. String -&gt; (Object -&gt; Parser a) -&gt; Value -&gt; Parser a
+</span><span class="hs-identifier hs-var">withObject</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;BindingsByPathMetrics&quot;</span></span><span> </span><span class="annot"><span class="annottext">((Object -&gt; Parser BindingsByPathMetrics)
+ -&gt; Value -&gt; Parser BindingsByPathMetrics)
+-&gt; (Object -&gt; Parser BindingsByPathMetrics)
+-&gt; Value
+-&gt; Parser BindingsByPathMetrics
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679557184"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679557184"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-126"></span><span>    </span><span id="local-6989586621679557185"><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679557185"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; Path
+</span><a href="Language.EO.Phi.Metrics.Data.html#splitPath"><span class="hs-identifier hs-var">splitPath</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Path) -&gt; Parser String -&gt; Parser Path
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679557184"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser String
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;path&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>    </span><span id="local-6989586621679557186"><span class="annot"><span class="annottext">[BindingMetrics]
+</span><a href="#local-6989586621679557186"><span class="hs-identifier hs-var">bindingsMetrics</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679557184"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Key -&gt; Parser [BindingMetrics]
+forall a. FromJSON a =&gt; Object -&gt; Key -&gt; Parser a
+</span><span class="hs-operator hs-var">.:</span></span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;bindings-metrics&quot;</span></span><span>
+</span><span id="line-128"></span><span>    </span><span class="annot"><span class="annottext">BindingsByPathMetrics -&gt; Parser BindingsByPathMetrics
+forall a. a -&gt; Parser a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">Path
+[BindingMetrics]
+$sel:path:BindingsByPathMetrics :: Path
+$sel:bindingsMetrics:BindingsByPathMetrics :: [BindingMetrics]
+path :: Path
+bindingsMetrics :: [BindingMetrics]
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Apath%3ABindingsByPathMetrics"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679557189"><span id="local-6989586621679557193"><span id="local-6989586621679557196"><span class="annot"><span class="hs-identifier hs-type">ToJSON</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-131"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">toJSON</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Value</span></span><span>
+</span><span id="line-132"></span><span>  </span><span id="local-6989586621679557212"><span class="annot"><span class="annottext">toJSON :: BindingsByPathMetrics -&gt; Value
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">toJSON</span></span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span class="hs-special">{</span><span id="local-6989586621679557213"><span id="local-6989586621679557214"><span class="annot"><span class="annottext">Path
+[BindingMetrics]
+$sel:path:BindingsByPathMetrics :: BindingsByPathMetrics -&gt; Path
+$sel:bindingsMetrics:BindingsByPathMetrics :: BindingsByPathMetrics -&gt; [BindingMetrics]
+path :: Path
+bindingsMetrics :: [BindingMetrics]
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Apath%3ABindingsByPathMetrics"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-133"></span><span>    </span><span class="annot"><span class="annottext">[Pair] -&gt; Value
+</span><span class="hs-identifier hs-var">Aeson.object</span></span><span>
+</span><span id="line-134"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;path&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; String -&gt; Pair
+forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Path -&gt; String
+forall a. [a] -&gt; [[a]] -&gt; [a]
+</span><span class="hs-identifier hs-var">intercalate</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679557213"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-135"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Key
+</span><span class="hs-string">&quot;bindings-metrics&quot;</span></span><span> </span><span class="annot"><span class="annottext">Key -&gt; [BindingMetrics] -&gt; Pair
+forall kv v. (KeyValue kv, ToJSON v) =&gt; Key -&gt; v -&gt; kv
+forall v. ToJSON v =&gt; Key -&gt; v -&gt; Pair
+</span><span class="hs-operator hs-var">.=</span></span><span> </span><span class="annot"><span class="annottext">[BindingMetrics]
+</span><a href="#local-6989586621679557214"><span class="hs-identifier hs-var">bindingsMetrics</span></a></span><span>
+</span><span id="line-136"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-137"></span><span>
+</span><span id="line-138"></span><span class="hs-keyword">data</span><span> </span><span id="ObjectMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ObjectMetrics"><span class="hs-identifier hs-var">ObjectMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ObjectMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ObjectMetrics"><span class="hs-identifier hs-var">ObjectMetrics</span></a></span></span><span>
+</span><span id="line-139"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AbindingsByPathMetrics%3AObjectMetrics"><span class="annot"><span class="annottext">ObjectMetrics -&gt; Maybe BindingsByPathMetrics
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AbindingsByPathMetrics%3AObjectMetrics"><span class="hs-identifier hs-var hs-var">bindingsByPathMetrics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span>
+</span><span id="line-140"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AthisObjectMetrics%3AObjectMetrics"><span class="annot"><span class="annottext">ObjectMetrics -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AthisObjectMetrics%3AObjectMetrics"><span class="hs-identifier hs-var hs-var">thisObjectMetrics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span>
+</span><span id="line-141"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-142"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679557220"><span id="local-6989586621679557228"><span id="local-6989586621679557232"><span class="annot"><span class="annottext">Int -&gt; ObjectMetrics -&gt; ShowS
+[ObjectMetrics] -&gt; ShowS
+ObjectMetrics -&gt; String
+(Int -&gt; ObjectMetrics -&gt; ShowS)
+-&gt; (ObjectMetrics -&gt; String)
+-&gt; ([ObjectMetrics] -&gt; ShowS)
+-&gt; Show ObjectMetrics
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ObjectMetrics -&gt; ShowS
+showsPrec :: Int -&gt; ObjectMetrics -&gt; ShowS
+$cshow :: ObjectMetrics -&gt; String
+show :: ObjectMetrics -&gt; String
+$cshowList :: [ObjectMetrics] -&gt; ShowS
+showList :: [ObjectMetrics] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557235"><span id="local-6989586621679557237"><span class="annot"><span class="annottext">(forall x. ObjectMetrics -&gt; Rep ObjectMetrics x)
+-&gt; (forall x. Rep ObjectMetrics x -&gt; ObjectMetrics)
+-&gt; Generic ObjectMetrics
+forall x. Rep ObjectMetrics x -&gt; ObjectMetrics
+forall x. ObjectMetrics -&gt; Rep ObjectMetrics x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ObjectMetrics -&gt; Rep ObjectMetrics x
+from :: forall x. ObjectMetrics -&gt; Rep ObjectMetrics x
+$cto :: forall x. Rep ObjectMetrics x -&gt; ObjectMetrics
+to :: forall x. Rep ObjectMetrics x -&gt; ObjectMetrics
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557240"><span id="local-6989586621679557247"><span class="annot"><span class="annottext">ObjectMetrics -&gt; ObjectMetrics -&gt; Bool
+(ObjectMetrics -&gt; ObjectMetrics -&gt; Bool)
+-&gt; (ObjectMetrics -&gt; ObjectMetrics -&gt; Bool) -&gt; Eq ObjectMetrics
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ObjectMetrics -&gt; ObjectMetrics -&gt; Bool
+== :: ObjectMetrics -&gt; ObjectMetrics -&gt; Bool
+$c/= :: ObjectMetrics -&gt; ObjectMetrics -&gt; Bool
+/= :: ObjectMetrics -&gt; ObjectMetrics -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-143"></span><span>
+</span><span id="line-144"></span><span class="hs-special">$</span><span id="local-6989586621679557251"><span id="local-6989586621679557263"><span id="local-6989586621679557267"><span id="local-6989586621679557279"><span id="local-6989586621679557288"><span id="local-6989586621679557292"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ObjectMetrics</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="hs-keyword">data</span><span> </span><span id="ProgramMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier hs-var">ProgramMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProgramMetrics"><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier hs-var">ProgramMetrics</span></a></span></span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AbindingsByPathMetrics%3AProgramMetrics"><span class="annot"><span class="annottext">ProgramMetrics -&gt; Maybe BindingsByPathMetrics
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AbindingsByPathMetrics%3AProgramMetrics"><span class="hs-identifier hs-var hs-var">bindingsByPathMetrics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span>
+</span><span id="line-148"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AprogramMetrics%3AProgramMetrics"><span class="annot"><span class="annottext">ProgramMetrics -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AprogramMetrics%3AProgramMetrics"><span class="hs-identifier hs-var hs-var">programMetrics</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-150"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679557309"><span id="local-6989586621679557316"><span id="local-6989586621679557320"><span class="annot"><span class="annottext">Int -&gt; ProgramMetrics -&gt; ShowS
+[ProgramMetrics] -&gt; ShowS
+ProgramMetrics -&gt; String
+(Int -&gt; ProgramMetrics -&gt; ShowS)
+-&gt; (ProgramMetrics -&gt; String)
+-&gt; ([ProgramMetrics] -&gt; ShowS)
+-&gt; Show ProgramMetrics
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ProgramMetrics -&gt; ShowS
+showsPrec :: Int -&gt; ProgramMetrics -&gt; ShowS
+$cshow :: ProgramMetrics -&gt; String
+show :: ProgramMetrics -&gt; String
+$cshowList :: [ProgramMetrics] -&gt; ShowS
+showList :: [ProgramMetrics] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557323"><span id="local-6989586621679557325"><span class="annot"><span class="annottext">(forall x. ProgramMetrics -&gt; Rep ProgramMetrics x)
+-&gt; (forall x. Rep ProgramMetrics x -&gt; ProgramMetrics)
+-&gt; Generic ProgramMetrics
+forall x. Rep ProgramMetrics x -&gt; ProgramMetrics
+forall x. ProgramMetrics -&gt; Rep ProgramMetrics x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ProgramMetrics -&gt; Rep ProgramMetrics x
+from :: forall x. ProgramMetrics -&gt; Rep ProgramMetrics x
+$cto :: forall x. Rep ProgramMetrics x -&gt; ProgramMetrics
+to :: forall x. Rep ProgramMetrics x -&gt; ProgramMetrics
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679557328"><span id="local-6989586621679557334"><span class="annot"><span class="annottext">ProgramMetrics -&gt; ProgramMetrics -&gt; Bool
+(ProgramMetrics -&gt; ProgramMetrics -&gt; Bool)
+-&gt; (ProgramMetrics -&gt; ProgramMetrics -&gt; Bool) -&gt; Eq ProgramMetrics
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ProgramMetrics -&gt; ProgramMetrics -&gt; Bool
+== :: ProgramMetrics -&gt; ProgramMetrics -&gt; Bool
+$c/= :: ProgramMetrics -&gt; ProgramMetrics -&gt; Bool
+/= :: ProgramMetrics -&gt; ProgramMetrics -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-151"></span><span>
+</span><span id="line-152"></span><span class="hs-special">$</span><span id="local-6989586621679557338"><span id="local-6989586621679557348"><span id="local-6989586621679557352"><span id="local-6989586621679557363"><span id="local-6989586621679557372"><span id="local-6989586621679557376"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ProgramMetrics</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-153"></span></pre></body></html>
