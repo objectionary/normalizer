@@ -17,7 +17,7 @@ import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Rules.Fast (fastYegorInsideOut)
+import Language.EO.Phi.Rules.Delayed (delayedYegorInsideOut)
 import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
@@ -110,7 +110,7 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
     let limits = defaultApplicationLimits (objectSize globalObject)
     let normalizedObj
           | builtinRules ctx = do
-              let obj' = fastYegorInsideOut ctx obj
+              let obj' = delayedYegorInsideOut ctx obj
               logStep "Normalized" obj'
               return obj'
           | otherwise = applyRulesChainWith limits obj

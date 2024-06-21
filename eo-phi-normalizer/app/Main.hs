@@ -50,7 +50,7 @@ import Language.EO.Phi.Pipeline.EOTests.PrepareTests (prepareTests)
 import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
+import Language.EO.Phi.Rules.Delayed (delayedYegorInsideOut, delayedYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Main.Utf8
@@ -454,7 +454,7 @@ main = withUtf8 do
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          Nothing -> return (True, "Yegor's rules (builtin)", [delayedYegorInsideOutAsRule])
       unless (single || json) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
@@ -463,7 +463,7 @@ main = withUtf8 do
           uniqueResults
             -- Something here seems incorrect
             | chain = map fst $ applyRulesChainWith' limits ctx (Formation bindings)
-            | builtin = return [LogEntry "" (fastYegorInsideOut ctx (Formation bindings)) 0]
+            | builtin = return [LogEntry "" (delayedYegorInsideOut ctx (Formation bindings)) 0]
             | otherwise = (\x -> [LogEntry "" x 0]) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
@@ -519,7 +519,7 @@ main = withUtf8 do
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          Nothing -> return (True, "Yegor's rules (builtin)", [delayedYegorInsideOutAsRule])
       let (Program bindings) = program'
           inputObject
             | asPackage = Formation (injectLamdbaPackage bindings)
@@ -547,7 +547,7 @@ main = withUtf8 do
             else do
               forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
                 case logEntryLog of
-                  Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree obj)
+                  Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree (hideRho obj))
                   Right (Bytes bytes) -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ bytes)
         else do
           let dataize
