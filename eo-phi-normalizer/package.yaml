@@ -58,6 +58,8 @@ dependencies:
   - regex-compat
   - cereal
   - bytestring
+  - hashable
+  - unordered-containers
 
 default-extensions:
   - ImportQualifiedPost

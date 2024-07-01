@@ -86,6 +86,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , asPackage :: Bool
   , minimizeStuckTerms :: Bool
   , wrapRawBytes :: Bool
+  , disabledAtomNames :: [String]
   }
   deriving (Show)
 
@@ -236,6 +237,7 @@ commandParser =
     latex <- latexSwitch
     asPackage <- asPackageSwitch
     minimizeStuckTerms <- minimizeStuckTermsSwitch
+    disabledAtomNames <- many $ strOption (long "disable-atom" <> help "Disable a particular atom by its name.")
     pure CLI'DataizePhi{..}
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
@@ -528,6 +530,7 @@ main = withUtf8 do
             (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
               , builtinRules = builtin
+              , disabledAtomNames = mkDisabledAtomNames disabledAtomNames
               }
       if chain
         then do

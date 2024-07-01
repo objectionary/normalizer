@@ -163,12 +163,14 @@ library
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , lens
     , mtl
     , regex-compat
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , yaml
   default-language: Haskell2010
 
@@ -201,6 +203,7 @@ executable normalizer
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , lens
     , mtl
     , optparse-applicative
@@ -208,6 +211,7 @@ executable normalizer
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -266,12 +270,14 @@ test-suite doctests
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , lens
     , mtl
     , regex-compat
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , yaml
   default-language: Haskell2010
 
@@ -313,6 +319,7 @@ test-suite spec
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , hspec
     , hspec-discover
     , lens
@@ -321,6 +328,7 @@ test-suite spec
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , with-utf8
     , yaml
   default-language: Haskell2010

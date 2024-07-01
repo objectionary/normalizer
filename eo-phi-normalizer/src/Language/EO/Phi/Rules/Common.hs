@@ -1,12 +1,13 @@
 {-# HLINT ignore "Use &&" #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# HLINT ignore "Redundant fmap" #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
-{-# HLINT ignore "Redundant fmap" #-}
 
 module Language.EO.Phi.Rules.Common where
 
@@ -16,6 +17,8 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
+import Data.HashSet (HashSet, fromList)
+import Data.Hashable (Hashable)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
@@ -56,10 +59,15 @@ unsafeParseWith parser input =
     Right object -> object
 
 type NamedRule = (String, Rule)
+newtype DisabledAtomName = DisabledAtomName String deriving newtype (Eq, Hashable)
+
+mkDisabledAtomNames :: [String] -> HashSet DisabledAtomName
+mkDisabledAtomNames = fromList . (DisabledAtomName <$>)
 
 data Context = Context
   { builtinRules :: Bool
   , allRules :: [NamedRule]
+  , disabledAtomNames :: HashSet DisabledAtomName
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
@@ -82,6 +90,7 @@ defaultContext rules obj =
   Context
     { builtinRules = False
     , allRules = rules
+    , disabledAtomNames = fromList []
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
