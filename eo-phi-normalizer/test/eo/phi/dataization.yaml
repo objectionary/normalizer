@@ -79,7 +79,7 @@ tests:
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ, ρ ↦ ⟦ ρ ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ ⟧, c ↦ ξ.ρ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ, ρ ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧ ⟧, λ ⤍ Package ⟧
 
   - name: "usage of Φ with a loop"
     dependencies: []

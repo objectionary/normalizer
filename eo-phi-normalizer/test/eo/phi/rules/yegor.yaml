@@ -63,8 +63,6 @@ rules:
       !b[ ξ ↦ ⟦ !τ ↦ !b, !B ⟧ ]
     when:
       - apply_in_abstract_subformations: false
-      - nf_inside_formation: '!b'
-      - nf: '⟦ !B ⟧'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
@@ -101,8 +99,6 @@ rules:
       ⟦ !τ1 ↦ !b0[ ξ ↦ !b_cur ], !τ2 ↦ !b1[ ξ ↦ !b_cur ], !B ⟧
     when:
       - apply_in_subformations: false
-      - nf: '!b0'
-      - nf: '!b1'
     tests: []
 
   - name: R_COPY1
@@ -118,7 +114,6 @@ rules:
       ⟦ !τ ↦ !b[ ξ ↦ !b_cur ], !B ⟧
     when:
       - apply_in_subformations: false
-      - nf: '!b'
     tests: []
 
   - name: R_COPY
@@ -131,7 +126,6 @@ rules:
       ⟦ !τ ↦ !b[ ξ ↦ !b_cur ], !B1 ⟧(!B2)
     when:
       - apply_in_subformations: false
-      - nf: '!b'
     tests: []
 
   - name: R_COPY_EMPTY
@@ -210,7 +204,6 @@ rules:
       - present_attrs:
           attrs: ['ρ']
           bindings: ['!B']
-      - nf: '⟦ !B ⟧'
     tests:
       - name: 'Accessing nonexistent attribute'
         input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
