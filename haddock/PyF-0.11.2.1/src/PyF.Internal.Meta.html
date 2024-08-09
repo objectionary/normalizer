@@ -1,0 +1,1139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE GADTs #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE NamedFieldPuns #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskellQuotes #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">PyF.Internal.Meta</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier">toExp</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PyF.Internal.Meta.html#baseDynFlags"><span class="hs-identifier">baseDynFlags</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier">toName</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if MIN_VERSION_ghc(9,2,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Type</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HsWildCardBndrs</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">HsType</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">HsSigType</span></span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">HsSig</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">sig_body</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Hs.Type</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsWildCardBndrs</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">HsType</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">HsImplicitBndrs</span><span class="hs-special">(</span><span class="hs-identifier">HsIB</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">hsib_body</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(8,10,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Hs.Types</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsWildCardBndrs</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">HsType</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">HsImplicitBndrs</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsIB</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">hsib_body</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsTypes</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsWildCardBndrs</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">HsType</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">HsImplicitBndrs</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsIB</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">hsib_body</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.Syntax.Basic</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">field_label</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(8,10,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Expr</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Expr</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Extension</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Ext</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Pat</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Pat</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Lit</span></span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsExpr</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Expr</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsExtension</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Ext</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsPat</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Pat</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsLit</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">B</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Syntax</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">GhcTH</span></span><span>
+</span><span id="line-37"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Language.Haskell.TH.Syntax</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">TH</span></span><span class="hs-cpp">
+
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="PyF.Internal.ParserEx.html"><span class="hs-identifier">PyF.Internal.ParserEx</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PyF.Internal.ParserEx.html#fakeSettings"><span class="hs-identifier">fakeSettings</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">PyF.Internal.ParserEx</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fakeLlvmConfig</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">fakeSettings</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.SourceText</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">il_value</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">rationalFromFractionalLit</span></span><span class="hs-special">,</span><span class="annot"><span class="hs-identifier">SourceText</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.SrcLoc</span></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.Name</span></span><span>
+</span><span id="line-52"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.Name.Reader</span></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Data.FastString</span></span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,2,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Utils.Outputable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ppr</span></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.Basic</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Boxity</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.SourceText</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">FractionalLit</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Types.SourceText</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">il_value</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">rationalFromFractionalLit</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">FractionalLit</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Driver.Ppr</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">showSDoc</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Utils.Outputable</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">ppr</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">showSDoc</span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">GHC.Types.Basic</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">il_value</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">fl_value</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Boxity</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Driver.Session</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">DynFlags</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">xopt_set</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">defaultDynFlags</span></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Unit.Module</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Module</span></span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">SrcLoc</span><span>
+</span><span id="line-71"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Name</span><span>
+</span><span id="line-72"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">RdrName</span><span>
+</span><span id="line-73"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">FastString</span><span>
+</span><span id="line-74"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Outputable</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">ppr</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">showSDoc</span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">BasicTypes</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">il_value</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">fl_value</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">Boxity</span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">DynFlags</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">DynFlags</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">xopt_set</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">defaultDynFlags</span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">Module</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-80"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Stack</span></span><span class="hs-cpp">
+
+#if MIN_VERSION_ghc(9,2,0)
+</span><span class="hs-comment">-- TODO: why this disapears in GHC &gt;= 9.2?</span><span>
+</span><span id="line-84"></span><span class="annot"><a href="PyF.Internal.Meta.html#fl_value"><span class="hs-identifier hs-type">fl_value</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FractionalLit</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Rational</span></span><span>
+</span><span id="line-85"></span><span id="fl_value"><span class="annot"><span class="annottext">fl_value :: FractionalLit -&gt; Rational
+</span><a href="PyF.Internal.Meta.html#fl_value"><span class="hs-identifier hs-var hs-var">fl_value</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FractionalLit -&gt; Rational
+</span><span class="hs-identifier hs-var">rationalFromFractionalLit</span></span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-88"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-type">toLit</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HsLit</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GhcPs</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Lit</span></span><span>
+</span><span id="line-89"></span><span id="toLit"><span class="annot"><span class="annottext">toLit :: HsLit GhcPs -&gt; Lit
+</span><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var hs-var">toLit</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsChar</span></span><span> </span><span class="annot"><span class="annottext">XHsChar GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250928"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679250928"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.CharL</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679250928"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-90"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsCharPrim</span></span><span> </span><span class="annot"><span class="annottext">XHsCharPrim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250931"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679250931"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.CharPrimL</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679250931"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-91"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsString</span></span><span> </span><span class="annot"><span class="annottext">XHsString GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250934"><span class="annot"><span class="annottext">FastString
+</span><a href="#local-6989586621679250934"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.StringL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FastString -&gt; String
+</span><span class="hs-identifier hs-var">unpackFS</span></span><span> </span><span class="annot"><span class="annottext">FastString
+</span><a href="#local-6989586621679250934"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsStringPrim</span></span><span> </span><span class="annot"><span class="annottext">XHsStringPrim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250938"><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679250938"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Word8] -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.StringPrimL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ByteString -&gt; [Word8]
+</span><span class="hs-identifier hs-var">B.unpack</span></span><span> </span><span class="annot"><span class="annottext">ByteString
+</span><a href="#local-6989586621679250938"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsInt</span></span><span> </span><span class="annot"><span class="annottext">XHsInt GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250942"><span class="annot"><span class="annottext">IntegralLit
+</span><a href="#local-6989586621679250942"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.IntegerL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IntegralLit -&gt; Integer
+</span><span class="hs-identifier hs-var">il_value</span></span><span> </span><span class="annot"><span class="annottext">IntegralLit
+</span><a href="#local-6989586621679250942"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsIntPrim</span></span><span> </span><span class="annot"><span class="annottext">XHsIntPrim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250945"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250945"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.IntPrimL</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250945"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-95"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsWordPrim</span></span><span> </span><span class="annot"><span class="annottext">XHsWordPrim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250948"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250948"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.WordPrimL</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250948"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-96"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsInt64Prim</span></span><span> </span><span class="annot"><span class="annottext">XHsInt64Prim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250951"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250951"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.IntegerL</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250951"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-97"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsWord64Prim</span></span><span> </span><span class="annot"><span class="annottext">XHsWord64Prim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250953"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250953"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.WordPrimL</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250953"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-98"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsInteger</span></span><span> </span><span class="annot"><span class="annottext">XHsInteger GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250955"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250955"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.IntegerL</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679250955"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-99"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsRat</span></span><span> </span><span class="annot"><span class="annottext">XHsRat GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250957"><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250957"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rational -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.FloatPrimL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FractionalLit -&gt; Rational
+</span><a href="PyF.Internal.Meta.html#fl_value"><span class="hs-identifier hs-var">fl_value</span></a></span><span> </span><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250957"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-100"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsFloatPrim</span></span><span> </span><span class="annot"><span class="annottext">XHsFloatPrim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250960"><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250960"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rational -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.FloatPrimL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FractionalLit -&gt; Rational
+</span><a href="PyF.Internal.Meta.html#fl_value"><span class="hs-identifier hs-var">fl_value</span></a></span><span> </span><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250960"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsDoublePrim</span></span><span> </span><span class="annot"><span class="annottext">XHsDoublePrim GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250962"><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250962"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rational -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.DoublePrimL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FractionalLit -&gt; Rational
+</span><a href="PyF.Internal.Meta.html#fl_value"><span class="hs-identifier hs-var">fl_value</span></a></span><span> </span><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250962"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,7,0)
+</span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsInt8Prim</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">i</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.IntPrimL</span><span> </span><span class="hs-identifier">i</span><span>
+</span><span id="line-104"></span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsInt16Prim</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">i</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.IntPrimL</span><span> </span><span class="hs-identifier">i</span><span>
+</span><span id="line-105"></span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsInt32Prim</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">i</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.IntPrimL</span><span> </span><span class="hs-identifier">i</span><span>
+</span><span id="line-106"></span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsWord8Prim</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">i</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.WordPrimL</span><span> </span><span class="hs-identifier">i</span><span>
+</span><span id="line-107"></span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsWord16Prim</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">i</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.WordPrimL</span><span> </span><span class="hs-identifier">i</span><span>
+</span><span id="line-108"></span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsWord32Prim</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">i</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.WordPrimL</span><span> </span><span class="hs-identifier">i</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if !MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-identifier">toLit</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">XLit</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">noTH</span><span> </span><span class="hs-string">&quot;toLit&quot;</span><span> </span><span class="hs-string">&quot;XLit&quot;</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-115"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit%27"><span class="hs-identifier hs-type">toLit'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">OverLitVal</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Lit</span></span><span>
+</span><span id="line-116"></span><span id="toLit%27"><span class="annot"><span class="annottext">toLit' :: OverLitVal -&gt; Lit
+</span><a href="PyF.Internal.Meta.html#toLit%27"><span class="hs-identifier hs-var hs-var">toLit'</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsIntegral</span></span><span> </span><span id="local-6989586621679250966"><span class="annot"><span class="annottext">IntegralLit
+</span><a href="#local-6989586621679250966"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.IntegerL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IntegralLit -&gt; Integer
+</span><span class="hs-identifier hs-var">il_value</span></span><span> </span><span class="annot"><span class="annottext">IntegralLit
+</span><a href="#local-6989586621679250966"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit%27"><span class="hs-identifier hs-var">toLit'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsFractional</span></span><span> </span><span id="local-6989586621679250968"><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250968"><span class="hs-identifier hs-var">f</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Rational -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.RationalL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FractionalLit -&gt; Rational
+</span><a href="PyF.Internal.Meta.html#fl_value"><span class="hs-identifier hs-var">fl_value</span></a></span><span> </span><span class="annot"><span class="annottext">FractionalLit
+</span><a href="#local-6989586621679250968"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-118"></span><span class="annot"><a href="PyF.Internal.Meta.html#toLit%27"><span class="hs-identifier hs-var">toLit'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsIsString</span></span><span> </span><span class="annot"><span class="annottext">SourceText
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250971"><span class="annot"><span class="annottext">FastString
+</span><a href="#local-6989586621679250971"><span class="hs-identifier hs-var">fs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Lit
+</span><span class="hs-identifier hs-var">TH.StringL</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FastString -&gt; String
+</span><span class="hs-identifier hs-var">unpackFS</span></span><span> </span><span class="annot"><span class="annottext">FastString
+</span><a href="#local-6989586621679250971"><span class="hs-identifier hs-var">fs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="annot"><a href="PyF.Internal.Meta.html#toType"><span class="hs-identifier hs-type">toType</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HsType</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GhcPs</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Type</span></span><span>
+</span><span id="line-121"></span><span id="toType"><span class="annot"><span class="annottext">toType :: HsType GhcPs -&gt; Type
+</span><a href="PyF.Internal.Meta.html#toType"><span class="hs-identifier hs-var hs-var">toType</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsWildCardTy</span></span><span> </span><span class="annot"><span class="annottext">XWildCardTy GhcPs
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Type
+</span><span class="hs-identifier hs-var">TH.WildCardT</span></span><span>
+</span><span id="line-122"></span><span class="annot"><a href="PyF.Internal.Meta.html#toType"><span class="hs-identifier hs-var">toType</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsTyVar</span></span><span> </span><span class="annot"><span class="annottext">XTyVar GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">PromotionFlag
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250976"><span class="annot"><span class="annottext">LIdP GhcPs
+</span><a href="#local-6989586621679250976"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679250977"><span class="annot"><span class="annottext">n' :: RdrName
+</span><a href="#local-6989586621679250977"><span class="hs-identifier hs-var hs-var">n'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnN RdrName -&gt; RdrName
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">LIdP GhcPs
+GenLocated SrcSpanAnnN RdrName
+</span><a href="#local-6989586621679250976"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-124"></span><span>   </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">RdrName -&gt; Bool
+</span><span class="hs-identifier hs-var">isRdrTyVar</span></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679250977"><span class="hs-identifier hs-var">n'</span></a></span><span>
+</span><span id="line-125"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Type
+</span><span class="hs-identifier hs-var">TH.VarT</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var">toName</span></a></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679250977"><span class="hs-identifier hs-var">n'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-126"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Type
+</span><span class="hs-identifier hs-var">TH.ConT</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var">toName</span></a></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679250977"><span class="hs-identifier hs-var">n'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span class="annot"><a href="PyF.Internal.Meta.html#toType"><span class="hs-identifier hs-var">toType</span></a></span><span> </span><span id="local-6989586621679250982"><span class="annot"><span class="annottext">HsType GhcPs
+</span><a href="#local-6989586621679250982"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Type
+forall e a. (HasCallStack, Show e) =&gt; String -&gt; e -&gt; a
+</span><a href="PyF.Internal.Meta.html#todo"><span class="hs-identifier hs-var">todo</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;toType&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; SDoc -&gt; String
+</span><span class="hs-identifier hs-var">showSDoc</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Extension] -&gt; DynFlags
+</span><a href="PyF.Internal.Meta.html#baseDynFlags"><span class="hs-identifier hs-var">baseDynFlags</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(SDoc -&gt; String)
+-&gt; (HsType GhcPs -&gt; SDoc) -&gt; HsType GhcPs -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HsType GhcPs -&gt; SDoc
+forall a. Outputable a =&gt; a -&gt; SDoc
+</span><span class="hs-identifier hs-var">ppr</span></span><span> </span><span class="annot"><span class="annottext">(HsType GhcPs -&gt; String) -&gt; HsType GhcPs -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">HsType GhcPs
+</span><a href="#local-6989586621679250982"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="annot"><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-type">toName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">RdrName</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Name</span></span><span>
+</span><span id="line-130"></span><span id="toName"><span class="annot"><span class="annottext">toName :: RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var hs-var">toName</span></a></span></span><span> </span><span id="local-6989586621679250985"><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679250985"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679250985"><span class="hs-identifier hs-var">n</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-131"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Unqual</span></span><span> </span><span id="local-6989586621679250987"><span class="annot"><span class="annottext">OccName
+</span><a href="#local-6989586621679250987"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Name
+</span><span class="hs-identifier hs-var">TH.mkName</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OccName -&gt; String
+</span><span class="hs-identifier hs-var">occNameString</span></span><span> </span><span class="annot"><span class="annottext">OccName
+</span><a href="#local-6989586621679250987"><span class="hs-identifier hs-var">o</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-132"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Qual</span></span><span> </span><span id="local-6989586621679250990"><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679250990"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span id="local-6989586621679250991"><span class="annot"><span class="annottext">OccName
+</span><a href="#local-6989586621679250991"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Name
+</span><span class="hs-identifier hs-var">TH.mkName</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ModuleName -&gt; String
+</span><span class="hs-identifier hs-var">Module.moduleNameString</span></span><span> </span><span class="annot"><span class="annottext">ModuleName
+</span><a href="#local-6989586621679250990"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">OccName -&gt; String
+</span><span class="hs-identifier hs-var">occNameString</span></span><span> </span><span class="annot"><span class="annottext">OccName
+</span><a href="#local-6989586621679250991"><span class="hs-identifier hs-var">o</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Orig</span></span><span> </span><span id="local-6989586621679250994"><span class="annot"><span class="annottext">Module
+</span><a href="#local-6989586621679250994"><span class="hs-identifier hs-var">_m</span></a></span></span><span> </span><span id="local-6989586621679250995"><span class="annot"><span class="annottext">OccName
+</span><a href="#local-6989586621679250995"><span class="hs-identifier hs-var">_o</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Name
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;PyFMeta: not supported toName (Orig _)&quot;</span></span><span>
+</span><span id="line-134"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Exact</span></span><span> </span><span id="local-6989586621679250998"><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679250998"><span class="hs-identifier hs-var">nm</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Name -&gt; String
+forall a. NamedThing a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">getOccString</span></span><span> </span><span class="annot"><span class="annottext">Name
+</span><a href="#local-6989586621679250998"><span class="hs-identifier hs-var">nm</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-135"></span><span>    </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;[]&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">'</span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-136"></span><span>    </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;()&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">'</span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-137"></span><span>    </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Name
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;toName: exact name encountered&quot;</span></span><span>
+</span><span id="line-138"></span><span>
+</span><span id="line-139"></span><span id="local-6989586621679250767"><span class="annot"><a href="PyF.Internal.Meta.html#toFieldExp"><span class="hs-identifier hs-type">toFieldExp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679250767"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-140"></span><span id="toFieldExp"><span class="annot"><span class="annottext">toFieldExp :: forall a. a
+</span><a href="PyF.Internal.Meta.html#toFieldExp"><span class="hs-identifier hs-var hs-var">toFieldExp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span>
+</span><span id="line-141"></span><span>
+</span><span id="line-142"></span><span class="annot"><a href="PyF.Internal.Meta.html#toPat"><span class="hs-identifier hs-type">toPat</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">DynFlags</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Pat.Pat</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GhcPs</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Pat</span></span><span>
+</span><span id="line-143"></span><span id="toPat"><span class="annot"><span class="annottext">toPat :: DynFlags -&gt; Pat GhcPs -&gt; Pat
+</span><a href="PyF.Internal.Meta.html#toPat"><span class="hs-identifier hs-var hs-var">toPat</span></a></span></span><span> </span><span id="local-6989586621679251005"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251005"><span class="hs-identifier hs-var">_dynFlags</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Pat.VarPat</span></span><span> </span><span class="annot"><span class="annottext">XVarPat GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LIdP GhcPs -&gt; RdrName
+GenLocated SrcSpanAnnN RdrName -&gt; RdrName
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251007"><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251007"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Pat
+</span><span class="hs-identifier hs-var">TH.VarP</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var">toName</span></a></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251007"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span class="annot"><a href="PyF.Internal.Meta.html#toPat"><span class="hs-identifier hs-var">toPat</span></a></span><span> </span><span id="local-6989586621679251009"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251009"><span class="hs-identifier hs-var">dynFlags</span></a></span></span><span> </span><span id="local-6989586621679251010"><span class="annot"><span class="annottext">Pat GhcPs
+</span><a href="#local-6989586621679251010"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Pat
+forall e a. (HasCallStack, Show e) =&gt; String -&gt; e -&gt; a
+</span><a href="PyF.Internal.Meta.html#todo"><span class="hs-identifier hs-var">todo</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Advanced pattern match are not supported in PyF. See https://github.com/guibou/PyF/issues/107 if that's a problem for you.&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; SDoc -&gt; String
+</span><span class="hs-identifier hs-var">showSDoc</span></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251009"><span class="hs-identifier hs-var">dynFlags</span></a></span><span> </span><span class="annot"><span class="annottext">(SDoc -&gt; String) -&gt; (Pat GhcPs -&gt; SDoc) -&gt; Pat GhcPs -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Pat GhcPs -&gt; SDoc
+forall a. Outputable a =&gt; a -&gt; SDoc
+</span><span class="hs-identifier hs-var">ppr</span></span><span> </span><span class="annot"><span class="annottext">(Pat GhcPs -&gt; String) -&gt; Pat GhcPs -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Pat GhcPs
+</span><a href="#local-6989586621679251010"><span class="hs-identifier hs-var">p</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="hs-comment">{- ORMOLU_DISABLE -}</span><span>
+</span><span id="line-147"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-type">toExp</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">DynFlags</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Expr.HsExpr</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GhcPs</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">TH.Exp</span></span><span>
+</span><span id="line-148"></span><span id="toExp"><span class="annot"><span class="annottext">toExp :: DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var hs-var">toExp</span></a></span></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsVar</span></span><span> </span><span class="annot"><span class="annottext">XVar GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251012"><span class="annot"><span class="annottext">LIdP GhcPs
+</span><a href="#local-6989586621679251012"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679251013"><span class="annot"><span class="annottext">n' :: RdrName
+</span><a href="#local-6989586621679251013"><span class="hs-identifier hs-var hs-var">n'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnN RdrName -&gt; RdrName
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">LIdP GhcPs
+GenLocated SrcSpanAnnN RdrName
+</span><a href="#local-6989586621679251012"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-150"></span><span>   </span><span class="hs-keyword">in</span><span> </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">RdrName -&gt; Bool
+</span><span class="hs-identifier hs-var">isRdrDataCon</span></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251013"><span class="hs-identifier hs-var">n'</span></a></span><span>
+</span><span id="line-151"></span><span>        </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.ConE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var">toName</span></a></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251013"><span class="hs-identifier hs-var">n'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-152"></span><span>        </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.VarE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var">toName</span></a></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251013"><span class="hs-identifier hs-var">n'</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsUnboundVar</span></span><span> </span><span class="annot"><span class="annottext">XUnboundVar GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251018"><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251018"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Name -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.UnboundVarE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Name
+</span><span class="hs-identifier hs-var">TH.mkName</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Name) -&gt; (RdrName -&gt; String) -&gt; RdrName -&gt; Name
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">OccName -&gt; String
+</span><span class="hs-identifier hs-var">occNameString</span></span><span> </span><span class="annot"><span class="annottext">(OccName -&gt; String) -&gt; (RdrName -&gt; OccName) -&gt; RdrName -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">RdrName -&gt; OccName
+</span><span class="hs-identifier hs-var">rdrNameOcc</span></span><span> </span><span class="annot"><span class="annottext">(RdrName -&gt; Name) -&gt; RdrName -&gt; Name
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">RdrName
+</span><a href="#local-6989586621679251018"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsUnboundVar</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">n</span><span class="hs-special">)</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.UnboundVarE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">TH.mkName</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">occNameString</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">n</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsUnboundVar</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">n</span><span class="hs-special">)</span><span>              </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.UnboundVarE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">TH.mkName</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">occNameString</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">Expr.unboundVarOcc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">n</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Expr.HsIPVar</span></span><span> </span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Exp
+forall e a. (HasCallStack, Show e) =&gt; String -&gt; e -&gt; a
+</span><a href="PyF.Internal.Meta.html#noTH"><span class="hs-identifier hs-var">noTH</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;toExp&quot;</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;HsIPVar&quot;</span></span><span>
+</span><span id="line-161"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsLit</span></span><span> </span><span class="annot"><span class="annottext">XLitE GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251024"><span class="annot"><span class="annottext">HsLit GhcPs
+</span><a href="#local-6989586621679251024"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Lit -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.LitE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HsLit GhcPs -&gt; Lit
+</span><a href="PyF.Internal.Meta.html#toLit"><span class="hs-identifier hs-var">toLit</span></a></span><span> </span><span class="annot"><span class="annottext">HsLit GhcPs
+</span><a href="#local-6989586621679251024"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-162"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsOverLit</span></span><span> </span><span class="annot"><span class="annottext">XOverLitE GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">OverLit</span></span><span> </span><span class="hs-special">{</span><span id="local-6989586621679251028"><span class="annot"><span class="annottext">OverLitVal
+ol_val :: OverLitVal
+ol_val :: forall p. HsOverLit p -&gt; OverLitVal
+</span><a href="#local-6989586621679251028"><span class="hs-identifier hs-var hs-var">ol_val</span></a></span></span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Lit -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.LitE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">OverLitVal -&gt; Lit
+</span><a href="PyF.Internal.Meta.html#toLit%27"><span class="hs-identifier hs-var">toLit'</span></a></span><span> </span><span class="annot"><span class="annottext">OverLitVal
+</span><a href="#local-6989586621679251028"><span class="hs-identifier hs-var">ol_val</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-163"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251030"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251030"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsApp</span></span><span> </span><span class="annot"><span class="annottext">XApp GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251032"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251032"><span class="hs-identifier hs-var">e1</span></a></span></span><span> </span><span id="local-6989586621679251033"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251033"><span class="hs-identifier hs-var">e2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.AppE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251030"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251032"><span class="hs-identifier hs-var">e1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251030"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251033"><span class="hs-identifier hs-var">e2</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251035"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251035"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsAppType</span></span><span> </span><span class="annot"><span class="annottext">XAppTypeE GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251037"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251037"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="annot"><span class="annottext">LHsToken &quot;@&quot; GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">HsWC</span></span><span class="hs-special">{</span><span id="local-6989586621679251039"><span class="annot"><span class="annottext">LHsType (NoGhcTc GhcPs)
+hswc_body :: LHsType (NoGhcTc GhcPs)
+hswc_body :: forall pass thing. HsWildCardBndrs pass thing -&gt; thing
+</span><a href="#local-6989586621679251039"><span class="hs-identifier hs-var hs-var">hswc_body</span></a></span></span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Type -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.AppTypeE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251035"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251037"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HsType GhcPs -&gt; Type
+</span><a href="PyF.Internal.Meta.html#toType"><span class="hs-identifier hs-var">toType</span></a></span><span> </span><span class="annot"><span class="annottext">(HsType GhcPs -&gt; Type)
+-&gt; (LHsType (NoGhcTc GhcPs) -&gt; HsType GhcPs)
+-&gt; LHsType (NoGhcTc GhcPs)
+-&gt; Type
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">LHsType (NoGhcTc GhcPs) -&gt; HsType GhcPs
+GenLocated SrcSpanAnnA (HsType GhcPs) -&gt; HsType GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(LHsType (NoGhcTc GhcPs) -&gt; Type)
+-&gt; LHsType (NoGhcTc GhcPs) -&gt; Type
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">LHsType (NoGhcTc GhcPs)
+</span><a href="#local-6989586621679251039"><span class="hs-identifier hs-var">hswc_body</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-166"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251042"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251042"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.ExprWithTySig</span></span><span> </span><span class="annot"><span class="annottext">XExprWithTySig GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251044"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251044"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">HsWC</span></span><span class="hs-special">{</span><span class="annot"><span class="annottext">hswc_body :: forall pass thing. HsWildCardBndrs pass thing -&gt; thing
+</span><span class="hs-identifier hs-var">hswc_body</span></span><span class="hs-glyph">=</span><span class="annot"><span class="annottext">LHsSigType (NoGhcTc GhcPs) -&gt; HsSigType GhcPs
+GenLocated SrcSpanAnnA (HsSigType GhcPs) -&gt; HsSigType GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">HsSig</span></span><span class="hs-special">{</span><span id="local-6989586621679251045"><span class="annot"><span class="annottext">LHsType GhcPs
+sig_body :: forall pass. HsSigType pass -&gt; LHsType pass
+sig_body :: LHsType GhcPs
+</span><span class="hs-identifier hs-var hs-var">sig_body</span></span></span><span class="hs-special">}</span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Type -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.SigE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251042"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251044"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HsType GhcPs -&gt; Type
+</span><a href="PyF.Internal.Meta.html#toType"><span class="hs-identifier hs-var">toType</span></a></span><span> </span><span class="annot"><span class="annottext">(HsType GhcPs -&gt; Type)
+-&gt; (LHsType GhcPs -&gt; HsType GhcPs) -&gt; LHsType GhcPs -&gt; Type
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">LHsType GhcPs -&gt; HsType GhcPs
+GenLocated SrcSpanAnnA (HsType GhcPs) -&gt; HsType GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(LHsType GhcPs -&gt; Type) -&gt; LHsType GhcPs -&gt; Type
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">LHsType GhcPs
+</span><a href="#local-6989586621679251045"><span class="hs-identifier hs-var">sig_body</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,2,0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsAppType</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">e</span><span> </span><span class="hs-identifier">HsWC</span><span> </span><span class="hs-special">{</span><span class="hs-identifier">hswc_body</span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.AppTypeE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toType</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">hswc_body</span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.ExprWithTySig</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">e</span><span> </span><span class="hs-identifier">HsWC</span><span class="hs-special">{</span><span class="hs-identifier">hswc_body</span><span class="hs-glyph">=</span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">HsSig</span><span class="hs-special">{</span><span class="hs-identifier">sig_body</span><span class="hs-special">}</span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.SigE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toType</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">sig_body</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(8,8,0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsAppType</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">e</span><span> </span><span class="hs-identifier">HsWC</span><span> </span><span class="hs-special">{</span><span class="hs-identifier">hswc_body</span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.AppTypeE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toType</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">hswc_body</span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.ExprWithTySig</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">e</span><span> </span><span class="hs-identifier">HsWC</span><span class="hs-special">{</span><span class="hs-identifier">hswc_body</span><span class="hs-glyph">=</span><span class="hs-identifier">HsIB</span><span class="hs-special">{</span><span class="hs-identifier">hsib_body</span><span class="hs-special">}</span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.SigE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toType</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">hsib_body</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsAppType</span><span> </span><span class="hs-identifier">HsWC</span><span> </span><span class="hs-special">{</span><span class="hs-identifier">hswc_body</span><span class="hs-special">}</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.AppTypeE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toType</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">hswc_body</span><span class="hs-special">)</span><span>
+</span><span id="line-175"></span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.ExprWithTySig</span><span> </span><span class="hs-identifier">HsWC</span><span class="hs-special">{</span><span class="hs-identifier">hswc_body</span><span class="hs-glyph">=</span><span class="hs-identifier">HsIB</span><span class="hs-special">{</span><span class="hs-identifier">hsib_body</span><span class="hs-special">}</span><span class="hs-special">}</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.SigE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toType</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">hsib_body</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251047"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251047"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.OpApp</span></span><span> </span><span class="annot"><span class="annottext">XOpApp GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251049"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251049"><span class="hs-identifier hs-var">e1</span></a></span></span><span> </span><span id="local-6989586621679251050"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251050"><span class="hs-identifier hs-var">o</span></a></span></span><span> </span><span id="local-6989586621679251051"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251051"><span class="hs-identifier hs-var">e2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp -&gt; Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.UInfixE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251047"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251049"><span class="hs-identifier hs-var">e1</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251047"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251050"><span class="hs-identifier hs-var">o</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251047"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251051"><span class="hs-identifier hs-var">e2</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251053"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251053"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.NegApp</span></span><span> </span><span class="annot"><span class="annottext">XNegApp GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251055"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251055"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="annot"><span class="annottext">SyntaxExpr GhcPs
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.AppE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Name -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.VarE</span></span><span> </span><span class="hs-special">'</span><span class="hs-identifier">negate</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251053"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251055"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-179"></span><span class="hs-comment">-- NOTE: for lambda, there is only one match</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251056"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251056"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsLam</span></span><span> </span><span class="annot"><span class="annottext">XLam GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.MG</span></span><span> </span><span class="annot"><span class="annottext">XMG GhcPs (XRec GhcPs (HsExpr GhcPs))
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XRec GhcPs [LMatch GhcPs (XRec GhcPs (HsExpr GhcPs))]
+-&gt; [GenLocated
+      SrcSpanAnnA (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))]
+GenLocated
+  SrcSpanAnnL
+  [GenLocated
+     SrcSpanAnnA (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))]
+-&gt; [GenLocated
+      SrcSpanAnnA (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))]
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(GenLocated
+   SrcSpanAnnA (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))
+ -&gt; Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))
+-&gt; [GenLocated
+      SrcSpanAnnA (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))]
+-&gt; [Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">GenLocated
+  SrcSpanAnnA (Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))
+-&gt; Match GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Expr.Match</span></span><span> </span><span class="annot"><span class="annottext">XCMatch GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">HsMatchContext GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(GenLocated SrcSpanAnnA (Pat GhcPs) -&gt; Pat GhcPs)
+-&gt; [GenLocated SrcSpanAnnA (Pat GhcPs)] -&gt; [Pat GhcPs]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (Pat GhcPs) -&gt; Pat GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251060"><span class="annot"><span class="annottext">[Pat GhcPs]
+</span><a href="#local-6989586621679251060"><span class="hs-identifier hs-var">ps</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.GRHSs</span></span><span> </span><span class="annot"><span class="annottext">XCGRHSs GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">LGRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+-&gt; GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+GenLocated
+  (SrcAnn NoEpAnns)
+  (GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs)))
+-&gt; GRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Expr.GRHS</span></span><span> </span><span class="annot"><span class="annottext">XCGRHS GhcPs (GenLocated SrcSpanAnnA (HsExpr GhcPs))
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">[GuardLStmt GhcPs]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251063"><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251063"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">HsLocalBinds GhcPs
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Pat] -&gt; Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.LamE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Pat GhcPs -&gt; Pat) -&gt; [Pat GhcPs] -&gt; [Pat]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; Pat GhcPs -&gt; Pat
+</span><a href="PyF.Internal.Meta.html#toPat"><span class="hs-identifier hs-var">toPat</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251056"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Pat GhcPs]
+</span><a href="#local-6989586621679251060"><span class="hs-identifier hs-var">ps</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251056"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251063"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsLam</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.MG</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">Expr.Match</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">ps</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.GRHSs</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">[</span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Expr.GRHS</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span class="hs-special">]</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.LamE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fmap</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toPat</span><span> </span><span class="hs-identifier">d</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">ps</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-comment">-- toExp (Expr.Let _ bs e)                       = TH.LetE (toDecs bs) (toExp e)</span><span>
+</span><span id="line-186"></span><span class="hs-comment">-- toExp (Expr.If _ a b c)                       = TH.CondE (toExp a) (toExp b) (toExp c)</span><span>
+</span><span id="line-187"></span><span class="hs-comment">-- toExp (Expr.MultiIf _ ifs)                    = TH.MultiIfE (map toGuard ifs)</span><span>
+</span><span id="line-188"></span><span class="hs-comment">-- toExp (Expr.Case _ e alts)                    = TH.CaseE (toExp e) (map toMatch alts)</span><span>
+</span><span id="line-189"></span><span class="hs-comment">-- toExp (Expr.Do _ ss)                          = TH.DoE (map toStmt ss)</span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- toExp e@Expr.MDo{}                            = noTH &quot;toExp&quot; e</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9, 2, 0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251065"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251065"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.ExplicitTuple</span></span><span> </span><span class="annot"><span class="annottext">XExplicitTuple GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251067"><span class="annot"><span class="annottext">[HsTupArg GhcPs]
+</span><a href="#local-6989586621679251067"><span class="hs-identifier hs-var">args</span></a></span></span><span> </span><span id="local-6989586621679251068"><span class="annot"><span class="annottext">Boxity
+</span><a href="#local-6989586621679251068"><span class="hs-identifier hs-var">boxity</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Maybe Exp] -&gt; Exp
+</span><a href="#local-6989586621679251069"><span class="hs-identifier hs-var">ctor</span></a></span><span> </span><span class="annot"><span class="annottext">[Maybe Exp]
+</span><a href="#local-6989586621679251070"><span class="hs-identifier hs-var">tupArgs</span></a></span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.ExplicitTuple</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">args</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">boxity</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">ctor</span><span> </span><span class="hs-identifier">tupArgs</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-197"></span><span>    </span><span id="local-6989586621679251075"><span class="annot"><span class="annottext">toTupArg :: HsTupArg id -&gt; Maybe (HsExpr id)
+</span><a href="#local-6989586621679251075"><span class="hs-identifier hs-var hs-var">toTupArg</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.Present</span></span><span> </span><span class="annot"><span class="annottext">XPresent id
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251077"><span class="annot"><span class="annottext">XRec id (HsExpr id)
+</span><a href="#local-6989586621679251077"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HsExpr id -&gt; Maybe (HsExpr id)
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(HsExpr id -&gt; Maybe (HsExpr id)) -&gt; HsExpr id -&gt; Maybe (HsExpr id)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated l (HsExpr id) -&gt; HsExpr id
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec id (HsExpr id)
+GenLocated l (HsExpr id)
+</span><a href="#local-6989586621679251077"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-198"></span><span>    </span><span class="annot"><a href="#local-6989586621679251075"><span class="hs-identifier hs-var">toTupArg</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.Missing</span></span><span> </span><span class="annot"><span class="annottext">XMissing id
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe (HsExpr id)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-199"></span><span>    </span><span class="annot"><a href="#local-6989586621679251075"><span class="hs-identifier hs-var">toTupArg</span></a></span><span> </span><span class="annot"><span class="annottext">HsTupArg id
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe (HsExpr id)
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;impossible case&quot;</span></span><span>
+</span><span id="line-200"></span><span>
+</span><span id="line-201"></span><span>    </span><span id="local-6989586621679251069"><span class="annot"><span class="annottext">ctor :: [Maybe Exp] -&gt; Exp
+</span><a href="#local-6989586621679251069"><span class="hs-identifier hs-var hs-var">ctor</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Boxity
+</span><a href="#local-6989586621679251068"><span class="hs-identifier hs-var">boxity</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-202"></span><span>      </span><span class="annot"><span class="annottext">Boxity
+</span><span class="hs-identifier hs-var">Boxed</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Maybe Exp] -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.TupE</span></span><span>
+</span><span id="line-203"></span><span>      </span><span class="annot"><span class="annottext">Boxity
+</span><span class="hs-identifier hs-var">Unboxed</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Maybe Exp] -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.UnboxedTupE</span></span><span class="hs-cpp">
+
+#if MIN_VERSION_ghc(8,10,0)
+</span><span>    </span><span id="local-6989586621679251070"><span class="annot"><span class="annottext">tupArgs :: [Maybe Exp]
+</span><a href="#local-6989586621679251070"><span class="hs-identifier hs-var hs-var">tupArgs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(HsTupArg GhcPs -&gt; Maybe Exp) -&gt; [HsTupArg GhcPs] -&gt; [Maybe Exp]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; Maybe (HsExpr GhcPs) -&gt; Maybe Exp
+forall a b. (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251065"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Maybe (HsExpr GhcPs) -&gt; Maybe Exp)
+-&gt; (HsTupArg GhcPs -&gt; Maybe (HsExpr GhcPs))
+-&gt; HsTupArg GhcPs
+-&gt; Maybe Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HsTupArg GhcPs -&gt; Maybe (HsExpr GhcPs)
+forall {id} {l}.
+(XRec id (HsExpr id) ~ GenLocated l (HsExpr id)) =&gt;
+HsTupArg id -&gt; Maybe (HsExpr id)
+</span><a href="#local-6989586621679251075"><span class="hs-identifier hs-var">toTupArg</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[HsTupArg GhcPs]
+</span><a href="#local-6989586621679251067"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">tupArgs</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="hs-identifier">traverse</span><span> </span><span class="hs-identifier">toTupArg</span><span> </span><span class="hs-identifier">args</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-209"></span><span>      </span><span class="hs-identifier">Nothing</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">error</span><span> </span><span class="hs-string">&quot;Tuple section are not supported by template haskell &lt; 8.10&quot;</span><span>
+</span><span id="line-210"></span><span>      </span><span class="hs-identifier">Just</span><span> </span><span class="hs-identifier">args'</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">fmap</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">args'</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-213"></span><span class="hs-comment">{- ORMOLU_ENABLE -}</span><span>
+</span><span id="line-214"></span><span>
+</span><span id="line-215"></span><span class="hs-comment">-- toExp (Expr.List _ xs)                        = TH.ListE (fmap toExp xs)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,3,0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251083"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251083"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.HsPar</span></span><span> </span><span class="annot"><span class="annottext">XPar GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">LHsToken &quot;(&quot; GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251085"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251085"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="annot"><span class="annottext">LHsToken &quot;)&quot; GhcPs
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.ParensE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251083"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp)
+-&gt; (XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; XRec GhcPs (HsExpr GhcPs)
+-&gt; Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (HsExpr GhcPs) -&gt; Exp)
+-&gt; XRec GhcPs (HsExpr GhcPs) -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251085"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.HsPar</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.ParensE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">e</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251087"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251087"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.SectionL</span></span><span> </span><span class="annot"><span class="annottext">XSectionL GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251089"><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251089"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251090"><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251090"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Exp -&gt; Exp -&gt; Maybe Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.InfixE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Exp -&gt; Maybe Exp
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Exp -&gt; Maybe Exp)
+-&gt; (HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Maybe Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251087"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Maybe Exp) -&gt; HsExpr GhcPs -&gt; Maybe Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251089"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251087"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251090"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe Exp
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-222"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251092"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251092"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.SectionR</span></span><span> </span><span class="annot"><span class="annottext">XSectionR GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251094"><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251094"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs) -&gt; HsExpr GhcPs
+GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251095"><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251095"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Exp -&gt; Exp -&gt; Maybe Exp -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.InfixE</span></span><span> </span><span class="annot"><span class="annottext">Maybe Exp
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251092"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251094"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Exp -&gt; Maybe Exp
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(Exp -&gt; Maybe Exp)
+-&gt; (HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Maybe Exp
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251092"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Maybe Exp) -&gt; HsExpr GhcPs -&gt; Maybe Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251095"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-223"></span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.RecordCon</span></span><span> </span><span class="annot"><span class="annottext">XRecordCon GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251097"><span class="annot"><span class="annottext">XRec GhcPs (ConLikeP GhcPs)
+</span><a href="#local-6989586621679251097"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">HsRecFields</span></span><span> </span><span class="hs-special">{</span><span id="local-6989586621679251099"><span class="annot"><span class="annottext">[LHsRecField GhcPs (XRec GhcPs (HsExpr GhcPs))]
+rec_flds :: [LHsRecField GhcPs (XRec GhcPs (HsExpr GhcPs))]
+rec_flds :: forall p arg. HsRecFields p arg -&gt; [LHsRecField p arg]
+</span><a href="#local-6989586621679251099"><span class="hs-identifier hs-var hs-var">rec_flds</span></a></span></span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-224"></span><span>  </span><span class="annot"><span class="annottext">Name -&gt; [FieldExp] -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.RecConE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">RdrName -&gt; Name
+</span><a href="PyF.Internal.Meta.html#toName"><span class="hs-identifier hs-var">toName</span></a></span><span> </span><span class="annot"><span class="annottext">(RdrName -&gt; Name)
+-&gt; (XRec GhcPs (ConLikeP GhcPs) -&gt; RdrName)
+-&gt; XRec GhcPs (ConLikeP GhcPs)
+-&gt; Name
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (ConLikeP GhcPs) -&gt; RdrName
+GenLocated SrcSpanAnnN RdrName -&gt; RdrName
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (ConLikeP GhcPs) -&gt; Name)
+-&gt; XRec GhcPs (ConLikeP GhcPs) -&gt; Name
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (ConLikeP GhcPs)
+</span><a href="#local-6989586621679251097"><span class="hs-identifier hs-var">name</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(GenLocated
+   SrcSpanAnnA
+   (HsFieldBind
+      (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs))
+      (GenLocated SrcSpanAnnA (HsExpr GhcPs)))
+ -&gt; FieldExp)
+-&gt; [GenLocated
+      SrcSpanAnnA
+      (HsFieldBind
+         (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs))
+         (GenLocated SrcSpanAnnA (HsExpr GhcPs)))]
+-&gt; [FieldExp]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">GenLocated
+  SrcSpanAnnA
+  (HsFieldBind
+     (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs))
+     (GenLocated SrcSpanAnnA (HsExpr GhcPs)))
+-&gt; FieldExp
+forall a. a
+</span><a href="PyF.Internal.Meta.html#toFieldExp"><span class="hs-identifier hs-var">toFieldExp</span></a></span><span> </span><span class="annot"><span class="annottext">[LHsRecField GhcPs (XRec GhcPs (HsExpr GhcPs))]
+[GenLocated
+   SrcSpanAnnA
+   (HsFieldBind
+      (GenLocated (SrcAnn NoEpAnns) (FieldOcc GhcPs))
+      (GenLocated SrcSpanAnnA (HsExpr GhcPs)))]
+</span><a href="#local-6989586621679251099"><span class="hs-identifier hs-var">rec_flds</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-225"></span><span>
+</span><span id="line-226"></span><span class="hs-comment">-- toExp (Expr.RecUpdate _ e xs)                 = TH.RecUpdE (toExp e) (fmap toFieldExp xs)</span><span>
+</span><span id="line-227"></span><span class="hs-comment">-- toExp (Expr.ListComp _ e ss)                  = TH.CompE $ map convert ss ++ [TH.NoBindS (toExp e)]</span><span>
+</span><span id="line-228"></span><span class="hs-comment">--  where</span><span>
+</span><span id="line-229"></span><span class="hs-comment">--   convert (Expr.QualStmt _ st)                = toStmt st</span><span>
+</span><span id="line-230"></span><span class="hs-comment">--   convert s                                   = noTH &quot;toExp ListComp&quot; s</span><span>
+</span><span id="line-231"></span><span class="hs-comment">-- toExp (Expr.ExpTypeSig _ e t)                 = TH.SigE (toExp e) (toType t)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9, 2, 0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251102"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251102"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.ExplicitList</span></span><span> </span><span class="annot"><span class="annottext">XExplicitList GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs)
+-&gt; [GenLocated SrcSpanAnnA (HsExpr GhcPs)] -&gt; [HsExpr GhcPs]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679251104"><span class="annot"><span class="annottext">[HsExpr GhcPs]
+</span><a href="#local-6989586621679251104"><span class="hs-identifier hs-var">args</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Exp] -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.ListE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; [HsExpr GhcPs] -&gt; [Exp]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251102"><span class="hs-identifier hs-var">d</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[HsExpr GhcPs]
+</span><a href="#local-6989586621679251104"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">Expr.ExplicitList</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">args</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.ListE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">map</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">d</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">args</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251106"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Expr.ArithSeq</span></span><span> </span><span class="annot"><span class="annottext">XArithSeq GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe (SyntaxExpr GhcPs)
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251108"><span class="annot"><span class="annottext">ArithSeqInfo GhcPs
+</span><a href="#local-6989586621679251108"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Range -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.ArithSeqE</span></span><span> </span><span class="annot"><span class="annottext">(Range -&gt; Exp) -&gt; Range -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">ArithSeqInfo GhcPs
+</span><a href="#local-6989586621679251108"><span class="hs-identifier hs-var">e</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-238"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">From</span></span><span> </span><span id="local-6989586621679251111"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251111"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Range
+</span><span class="hs-identifier hs-var">TH.FromR</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251111"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-239"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FromThen</span></span><span> </span><span id="local-6989586621679251114"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251114"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679251115"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251115"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp -&gt; Range
+</span><span class="hs-identifier hs-var">TH.FromThenR</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251114"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251115"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-240"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FromTo</span></span><span> </span><span id="local-6989586621679251118"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251118"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679251119"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251119"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp -&gt; Range
+</span><span class="hs-identifier hs-var">TH.FromToR</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251118"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251119"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-241"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">FromThenTo</span></span><span> </span><span id="local-6989586621679251122"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251122"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679251123"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251123"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span id="local-6989586621679251124"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251124"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; Exp -&gt; Exp -&gt; Range
+</span><span class="hs-identifier hs-var">TH.FromThenToR</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251122"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251123"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251106"><span class="hs-identifier hs-var">d</span></a></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; Exp) -&gt; HsExpr GhcPs -&gt; Exp
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251124"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,7,0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsOverLabel</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">lbl</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.LabelE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fromSourceText</span><span> </span><span class="hs-identifier">lbl</span><span class="hs-special">)</span><span>
+</span><span id="line-244"></span><span>   </span><span class="hs-keyword">where</span><span>
+</span><span id="line-245"></span><span>     </span><span class="hs-identifier">fromSourceText</span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-identifier">SourceText</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">String</span><span>
+</span><span id="line-246"></span><span>     </span><span class="hs-identifier">fromSourceText</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">SourceText</span><span> </span><span class="hs-identifier">s</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-identifier">s</span><span>
+</span><span id="line-247"></span><span>     </span><span class="hs-identifier">fromSourceText</span><span> </span><span class="hs-identifier">NoSourceText</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-string">&quot;&quot;</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,6,0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsOverLabel</span></span><span> </span><span class="annot"><span class="annottext">XOverLabel GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251127"><span class="annot"><span class="annottext">SourceText
+</span><a href="#local-6989586621679251127"><span class="hs-identifier hs-var">lbl</span></a></span></span><span> </span><span class="annot"><span class="annottext">FastString
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.LabelE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SourceText -&gt; String
+</span><a href="#local-6989586621679251129"><span class="hs-identifier hs-var">fromSourceText</span></a></span><span> </span><span class="annot"><span class="annottext">SourceText
+</span><a href="#local-6989586621679251127"><span class="hs-identifier hs-var">lbl</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-250"></span><span>   </span><span class="hs-keyword">where</span><span>
+</span><span id="line-251"></span><span>     </span><span class="annot"><a href="#local-6989586621679251129"><span class="hs-identifier hs-type">fromSourceText</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SourceText</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-252"></span><span>     </span><span id="local-6989586621679251129"><span class="annot"><span class="annottext">fromSourceText :: SourceText -&gt; String
+</span><a href="#local-6989586621679251129"><span class="hs-identifier hs-var hs-var">fromSourceText</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">SourceText</span></span><span> </span><span id="local-6989586621679251131"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679251131"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679251131"><span class="hs-identifier hs-var">s</span></a></span><span>
+</span><span id="line-253"></span><span>     </span><span class="annot"><a href="#local-6989586621679251129"><span class="hs-identifier hs-var">fromSourceText</span></a></span><span> </span><span class="annot"><span class="annottext">SourceText
+</span><span class="hs-identifier hs-var">NoSourceText</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9, 2, 0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsOverLabel</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">lbl</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.LabelE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-identifier">lbl</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-comment">-- It's not quite clear what to do in case when overloaded syntax is</span><span>
+</span><span id="line-258"></span><span class="hs-comment">-- enabled thus match on Nothing</span><span>
+</span><span id="line-259"></span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsOverLabel</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">Nothing</span><span> </span><span class="hs-identifier">lbl</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.LabelE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-identifier">lbl</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">#if MIN_VERSION_ghc(9,6,0)
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251133"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251133"><span class="hs-identifier hs-var">dynFlags</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsGetField</span></span><span> </span><span class="annot"><span class="annottext">XGetField GhcPs
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679251135"><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+</span><a href="#local-6989586621679251135"><span class="hs-identifier hs-var">expr</span></a></span></span><span> </span><span id="local-6989586621679251136"><span class="annot"><span class="annottext">XRec GhcPs (DotFieldOcc GhcPs)
+</span><a href="#local-6989586621679251136"><span class="hs-identifier hs-var">field</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Exp -&gt; String -&gt; Exp
+</span><span class="hs-identifier hs-var">TH.GetFieldE</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; HsExpr GhcPs -&gt; Exp
+</span><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251133"><span class="hs-identifier hs-var">dynFlags</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (HsExpr GhcPs)
+GenLocated SrcSpanAnnA (HsExpr GhcPs)
+</span><a href="#local-6989586621679251135"><span class="hs-identifier hs-var">expr</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">FastString -&gt; String
+</span><span class="hs-identifier hs-var">unpackFS</span></span><span> </span><span class="annot"><span class="annottext">(FastString -&gt; String)
+-&gt; (XRec GhcPs (DotFieldOcc GhcPs) -&gt; FastString)
+-&gt; XRec GhcPs (DotFieldOcc GhcPs)
+-&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">FieldLabelString -&gt; FastString
+</span><span class="hs-identifier hs-var">field_label</span></span><span> </span><span class="annot"><span class="annottext">(FieldLabelString -&gt; FastString)
+-&gt; (GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+    -&gt; FieldLabelString)
+-&gt; GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+-&gt; FastString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">GenLocated SrcSpanAnnN FieldLabelString -&gt; FieldLabelString
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(GenLocated SrcSpanAnnN FieldLabelString -&gt; FieldLabelString)
+-&gt; (GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+    -&gt; GenLocated SrcSpanAnnN FieldLabelString)
+-&gt; GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+-&gt; FieldLabelString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">DotFieldOcc GhcPs -&gt; XRec GhcPs FieldLabelString
+DotFieldOcc GhcPs -&gt; GenLocated SrcSpanAnnN FieldLabelString
+forall p. DotFieldOcc p -&gt; XRec p FieldLabelString
+</span><span class="hs-identifier hs-var">dfoLabel</span></span><span> </span><span class="annot"><span class="annottext">(DotFieldOcc GhcPs -&gt; GenLocated SrcSpanAnnN FieldLabelString)
+-&gt; (GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+    -&gt; DotFieldOcc GhcPs)
+-&gt; GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+-&gt; GenLocated SrcSpanAnnN FieldLabelString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">GenLocated (SrcAnn NoEpAnns) (DotFieldOcc GhcPs)
+-&gt; DotFieldOcc GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">unLoc</span></span><span> </span><span class="annot"><span class="annottext">(XRec GhcPs (DotFieldOcc GhcPs) -&gt; String)
+-&gt; XRec GhcPs (DotFieldOcc GhcPs) -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">XRec GhcPs (DotFieldOcc GhcPs)
+</span><a href="#local-6989586621679251136"><span class="hs-identifier hs-var">field</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9, 4, 0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">dynFlags</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsGetField</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">expr</span><span> </span><span class="hs-identifier">field</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.GetFieldE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">dynFlags</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-identifier">expr</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">dfoLabel</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">field</span><span class="hs-special">)</span><span>
+</span><span id="line-265"></span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsProjection</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">fields</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.ProjectionE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fmap</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">dfoLabel</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">fields</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9, 2, 0)
+</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">dynFlags</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsGetField</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">expr</span><span> </span><span class="hs-identifier">field</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.GetFieldE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">dynFlags</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-identifier">expr</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">hflLabel</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">field</span><span class="hs-special">)</span><span>
+</span><span id="line-268"></span><span class="hs-identifier">toExp</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">HsProjection</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">fields</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">TH.ProjectionE</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">fmap</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">unpackFS</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">hflLabel</span><span> </span><span class="hs-operator">.</span><span> </span><span class="hs-identifier">unLoc</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">fields</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="annot"><a href="PyF.Internal.Meta.html#toExp"><span class="hs-identifier hs-var">toExp</span></a></span><span> </span><span id="local-6989586621679251139"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251139"><span class="hs-identifier hs-var">dynFlags</span></a></span></span><span> </span><span id="local-6989586621679251140"><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251140"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Exp
+forall e a. (HasCallStack, Show e) =&gt; String -&gt; e -&gt; a
+</span><a href="PyF.Internal.Meta.html#todo"><span class="hs-identifier hs-var">todo</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;toExp&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">DynFlags -&gt; SDoc -&gt; String
+</span><span class="hs-identifier hs-var">showSDoc</span></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251139"><span class="hs-identifier hs-var">dynFlags</span></a></span><span> </span><span class="annot"><span class="annottext">(SDoc -&gt; String)
+-&gt; (HsExpr GhcPs -&gt; SDoc) -&gt; HsExpr GhcPs -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs -&gt; SDoc
+forall a. Outputable a =&gt; a -&gt; SDoc
+</span><span class="hs-identifier hs-var">ppr</span></span><span> </span><span class="annot"><span class="annottext">(HsExpr GhcPs -&gt; String) -&gt; HsExpr GhcPs -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679251140"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-271"></span><span>
+</span><span id="line-272"></span><span id="local-6989586621679250748"><span id="local-6989586621679250749"><span class="annot"><a href="PyF.Internal.Meta.html#todo"><span class="hs-identifier hs-type">todo</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679250748"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679250748"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679250749"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-273"></span><span id="todo"><span class="annot"><span class="annottext">todo :: forall e a. (HasCallStack, Show e) =&gt; String -&gt; e -&gt; a
+</span><a href="PyF.Internal.Meta.html#todo"><span class="hs-identifier hs-var hs-var">todo</span></a></span></span><span> </span><span id="local-6989586621679251147"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679251147"><span class="hs-identifier hs-var">fun</span></a></span></span><span> </span><span id="local-6989586621679251148"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679251148"><span class="hs-identifier hs-var">thing</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; a
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; a) -&gt; ([String] -&gt; String) -&gt; [String] -&gt; a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; a) -&gt; [String] -&gt; a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><a href="PyF.Internal.Meta.html#moduleName"><span class="hs-identifier hs-var">moduleName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679251147"><span class="hs-identifier hs-var">fun</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;: not implemented: &quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">e -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679251148"><span class="hs-identifier hs-var">thing</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Please open an issue at https://github.com/guibou/PyF/issues&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-274"></span><span>
+</span><span id="line-275"></span><span id="local-6989586621679251152"><span id="local-6989586621679251153"><span class="annot"><a href="PyF.Internal.Meta.html#noTH"><span class="hs-identifier hs-type">noTH</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HasCallStack</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="#local-6989586621679251152"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251152"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679251153"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-276"></span><span id="noTH"><span class="annot"><span class="annottext">noTH :: forall e a. (HasCallStack, Show e) =&gt; String -&gt; e -&gt; a
+</span><a href="PyF.Internal.Meta.html#noTH"><span class="hs-identifier hs-var hs-var">noTH</span></a></span></span><span> </span><span id="local-6989586621679251160"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679251160"><span class="hs-identifier hs-var">fun</span></a></span></span><span> </span><span id="local-6989586621679251161"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679251161"><span class="hs-identifier hs-var">thing</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; a
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; a) -&gt; ([String] -&gt; String) -&gt; [String] -&gt; a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; a) -&gt; [String] -&gt; a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String
+</span><a href="PyF.Internal.Meta.html#moduleName"><span class="hs-identifier hs-var">moduleName</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679251160"><span class="hs-identifier hs-var">fun</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;: no TemplateHaskell for: &quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">e -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679251161"><span class="hs-identifier hs-var">thing</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Please open an issue at https://github.com/guibou/PyF/issues&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-277"></span><span>
+</span><span id="line-278"></span><span class="annot"><a href="PyF.Internal.Meta.html#moduleName"><span class="hs-identifier hs-type">moduleName</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-279"></span><span id="moduleName"><span class="annot"><span class="annottext">moduleName :: String
+</span><a href="PyF.Internal.Meta.html#moduleName"><span class="hs-identifier hs-var hs-var">moduleName</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;PyF.Internal.Meta&quot;</span></span><span>
+</span><span id="line-280"></span><span>
+</span><span id="line-281"></span><span class="annot"><a href="PyF.Internal.Meta.html#baseDynFlags"><span class="hs-identifier hs-type">baseDynFlags</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">GhcTH.Extension</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">DynFlags</span></span><span>
+</span><span id="line-282"></span><span id="baseDynFlags"><span class="annot"><span class="annottext">baseDynFlags :: [Extension] -&gt; DynFlags
+</span><a href="PyF.Internal.Meta.html#baseDynFlags"><span class="hs-identifier hs-var hs-var">baseDynFlags</span></a></span></span><span> </span><span id="local-6989586621679251162"><span class="annot"><span class="annottext">[Extension]
+</span><a href="#local-6989586621679251162"><span class="hs-identifier hs-var">exts</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(DynFlags -&gt; Extension -&gt; DynFlags)
+-&gt; DynFlags -&gt; [Extension] -&gt; DynFlags
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldl</span></span><span> </span><span class="annot"><span class="annottext">DynFlags -&gt; Extension -&gt; DynFlags
+</span><span class="hs-identifier hs-var">xopt_set</span></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679251164"><span class="hs-identifier hs-var">dynFlags</span></a></span><span> </span><span class="annot"><span class="annottext">[Extension]
+</span><a href="#local-6989586621679251165"><span class="hs-identifier hs-var">enable</span></a></span><span>
+</span><span id="line-283"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-284"></span><span>    </span><span id="local-6989586621679251165"><span class="annot"><span class="annottext">enable :: [Extension]
+</span><a href="#local-6989586621679251165"><span class="hs-identifier hs-var hs-var">enable</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Extension
+</span><span class="hs-identifier hs-var">GhcTH.TemplateHaskellQuotes</span></span><span> </span><span class="annot"><span class="annottext">Extension -&gt; [Extension] -&gt; [Extension]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Extension]
+</span><a href="#local-6989586621679251162"><span class="hs-identifier hs-var">exts</span></a></span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,6,0)
+</span><span>    </span><span id="local-6989586621679251164"><span class="annot"><span class="annottext">dynFlags :: DynFlags
+</span><a href="#local-6989586621679251164"><span class="hs-identifier hs-var hs-var">dynFlags</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Settings -&gt; DynFlags
+</span><span class="hs-identifier hs-var">defaultDynFlags</span></span><span> </span><span class="annot"><span class="annottext">Settings
+</span><a href="PyF.Internal.ParserEx.html#fakeSettings"><span class="hs-identifier hs-var">fakeSettings</span></a></span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">dynFlags</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">defaultDynFlags</span><span> </span><span class="hs-identifier">fakeSettings</span><span> </span><span class="hs-identifier">fakeLlvmConfig</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-291"></span></pre></body></html>

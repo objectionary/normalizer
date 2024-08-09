@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE TypeApplications #-}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="annot"><span class="hs-comment">-- | This module is here to parse Haskell expression using the GHC Api</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">PyF.Internal.Parser</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="PyF.Internal.Parser.html#parseExpression"><span class="hs-identifier">parseExpression</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span class="hs-cpp">
+
+#if MIN_VERSION_ghc(9,6,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Parser.Errors.Types</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">PsMessage</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Parser.Lexer</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ParseResult</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">PState</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(8,10,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lexer</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">ParseResult</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">PState</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Lexer</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">ParseResult</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,3,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.Error</span></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Utils.Outputable</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Utils.Error</span></span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,4,0)
+</span><span class="hs-cpp">#elif MIN_VERSION_ghc(9,2,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-identifier">GHC.Parser.Errors.Ppr</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">ParserErrorPpr</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.SrcLoc</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">SrcLoc</span></span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,0,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Driver.Session</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">DynFlags</span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Types.SrcLoc</span></span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">DynFlags</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">DynFlags</span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">SrcLoc</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(8,10,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Expr</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Expr</span></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Hs.Extension</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Ext</span></span><span class="hs-cpp">
+#else
+</span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsExpr</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Expr</span><span>
+</span><span id="line-49"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">HsExtension</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="hs-identifier">Ext</span><span>
+</span><span id="line-50"></span><span class="hs-keyword">import</span><span> </span><span class="hs-identifier">Outputable</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">showSDoc</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-53"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><a href="PyF.Internal.ParserEx.html"><span class="hs-identifier">PyF.Internal.ParserEx</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">ParseExp</span></span><span>
+</span><span id="line-54"></span><span>
+</span><span id="line-55"></span><span class="annot"><a href="PyF.Internal.Parser.html#parseExpression"><span class="hs-identifier hs-type">parseExpression</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">RealSrcLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">DynFlags</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">HsExpr</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">GhcPs</span></span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span id="parseExpression"><span class="annot"><span class="annottext">parseExpression :: RealSrcLoc
+-&gt; String -&gt; DynFlags -&gt; Either (Int, Int, String) (HsExpr GhcPs)
+</span><a href="PyF.Internal.Parser.html#parseExpression"><span class="hs-identifier hs-var hs-var">parseExpression</span></a></span></span><span> </span><span id="local-6989586621679250649"><span class="annot"><span class="annottext">RealSrcLoc
+</span><a href="#local-6989586621679250649"><span class="hs-identifier hs-var">initLoc</span></a></span></span><span> </span><span id="local-6989586621679250650"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679250650"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679250651"><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679250651"><span class="hs-identifier hs-var">dynFlags</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">RealSrcLoc
+-&gt; String -&gt; DynFlags -&gt; ParseResult (LocatedA (HsExpr GhcPs))
+</span><a href="PyF.Internal.ParserEx.html#parseExpression"><span class="hs-identifier hs-var">ParseExp.parseExpression</span></a></span><span> </span><span class="annot"><span class="annottext">RealSrcLoc
+</span><a href="#local-6989586621679250649"><span class="hs-identifier hs-var">initLoc</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679250650"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">DynFlags
+</span><a href="#local-6989586621679250651"><span class="hs-identifier hs-var">dynFlags</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-58"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">POk</span></span><span> </span><span class="annot"><span class="annottext">PState
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679250654"><span class="annot"><span class="annottext">LocatedA (HsExpr GhcPs)
+</span><a href="#local-6989586621679250654"><span class="hs-identifier hs-var">locatedExpr</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-59"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679250655"><span class="annot"><span class="annottext">expr :: HsExpr GhcPs
+</span><a href="#local-6989586621679250655"><span class="hs-identifier hs-var hs-var">expr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LocatedA (HsExpr GhcPs) -&gt; HsExpr GhcPs
+forall l e. GenLocated l e -&gt; e
+</span><span class="hs-identifier hs-var">SrcLoc.unLoc</span></span><span> </span><span class="annot"><span class="annottext">LocatedA (HsExpr GhcPs)
+</span><a href="#local-6989586621679250654"><span class="hs-identifier hs-var">locatedExpr</span></a></span><span>
+</span><span id="line-60"></span><span>       </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">HsExpr GhcPs -&gt; Either (Int, Int, String) (HsExpr GhcPs)
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span>
+</span><span id="line-61"></span><span>            </span><span class="annot"><span class="annottext">HsExpr GhcPs
+</span><a href="#local-6989586621679250655"><span class="hs-identifier hs-var">expr</span></a></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="hs-comment">{- ORMOLU_DISABLE #-}</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,2,0)
+</span><span>    </span><span class="hs-comment">-- TODO messages?</span><span>
+</span><span id="line-66"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">PFailed</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">PState</span></span><span class="hs-special">{</span><span class="annot"><span class="annottext">loc :: PState -&gt; PsLoc
+</span><span class="hs-identifier hs-var">loc</span></span><span class="hs-glyph">=</span><span class="annot"><span class="annottext">PsLoc -&gt; RealSrcLoc
+</span><span class="hs-identifier hs-var">SrcLoc.psRealLoc</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679250661"><span class="annot"><span class="annottext">RealSrcLoc
+</span><a href="#local-6989586621679250661"><span class="hs-identifier hs-var">srcLoc</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">errors :: PState -&gt; Messages PsMessage
+</span><span class="hs-identifier hs-var">errors</span></span><span class="hs-glyph">=</span><span id="local-6989586621679250663"><span class="annot"><span class="annottext">Messages PsMessage
+</span><a href="#local-6989586621679250663"><span class="hs-identifier hs-var">errorMessages</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,0,0)
+</span><span>    </span><span class="hs-identifier">PFailed</span><span> </span><span class="hs-identifier">PState</span><span class="hs-special">{</span><span class="hs-identifier">loc</span><span class="hs-glyph">=</span><span class="hs-identifier">SrcLoc.psRealLoc</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">srcLoc</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">messages</span><span class="hs-glyph">=</span><span class="hs-identifier">msgs</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(8,10,0)
+</span><span>    </span><span class="hs-identifier">PFailed</span><span> </span><span class="hs-identifier">PState</span><span class="hs-special">{</span><span class="hs-identifier">loc</span><span class="hs-glyph">=</span><span class="hs-identifier">srcLoc</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">messages</span><span class="hs-glyph">=</span><span class="hs-identifier">msgs</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">PFailed</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">SrcLoc.srcSpanEnd</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">SrcLoc.RealSrcLoc</span><span> </span><span class="hs-identifier">srcLoc</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">doc</span><span> </span><span class="hs-glyph">-&gt;</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(9,7,0)
+</span><span>            </span><span class="hs-keyword">let</span><span>
+</span><span id="line-77"></span><span>                </span><span class="hs-identifier">err</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">renderWithContext</span><span> </span><span class="hs-identifier">defaultSDocContext</span><span>
+</span><span id="line-78"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">vcat</span><span>
+</span><span id="line-79"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">formatBulleted</span><span>
+</span><span id="line-80"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">map</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-identifier">psMessage</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">diagnosticMessage</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">defaultDiagnosticOpts</span><span> </span><span class="hs-glyph">@</span><span class="hs-identifier">PsMessage</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">psMessage</span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">errMsgDiagnostic</span><span>
+</span><span id="line-82"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">sortMsgBag</span><span> </span><span class="hs-identifier">Nothing</span><span>
+</span><span id="line-83"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">getMessages</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">errorMessages</span><span>
+</span><span id="line-84"></span><span>                </span><span class="hs-identifier">line'</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocLine</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-85"></span><span>                </span><span class="hs-identifier">col</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocCol</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-86"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">line'</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">col</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">err</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,6,0)
+</span><span>            </span><span class="hs-keyword">let</span><span>
+</span><span id="line-89"></span><span>                </span><span id="local-6989586621679250669"><span class="annot"><span class="annottext">err :: String
+</span><a href="#local-6989586621679250669"><span class="hs-identifier hs-var hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">SDocContext -&gt; SDoc -&gt; String
+</span><span class="hs-identifier hs-var">renderWithContext</span></span><span> </span><span class="annot"><span class="annottext">SDocContext
+</span><span class="hs-identifier hs-var">defaultSDocContext</span></span><span>
+</span><span id="line-90"></span><span>                    </span><span class="annot"><span class="annottext">(SDoc -&gt; String) -&gt; SDoc -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[SDoc] -&gt; SDoc
+forall doc. IsDoc doc =&gt; [doc] -&gt; doc
+</span><span class="hs-identifier hs-var">vcat</span></span><span>
+</span><span id="line-91"></span><span>                    </span><span class="annot"><span class="annottext">([SDoc] -&gt; SDoc) -&gt; [SDoc] -&gt; SDoc
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(DecoratedSDoc -&gt; SDoc) -&gt; [DecoratedSDoc] -&gt; [SDoc]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SDocContext -&gt; DecoratedSDoc -&gt; SDoc
+</span><span class="hs-identifier hs-var">formatBulleted</span></span><span> </span><span class="annot"><span class="annottext">SDocContext
+</span><span class="hs-identifier hs-var">defaultSDocContext</span></span><span class="hs-special">)</span><span>
+</span><span id="line-92"></span><span>                    </span><span class="annot"><span class="annottext">([DecoratedSDoc] -&gt; [SDoc]) -&gt; [DecoratedSDoc] -&gt; [SDoc]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(PsMessage -&gt; DecoratedSDoc) -&gt; [PsMessage] -&gt; [DecoratedSDoc]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679250674"><span class="annot"><span class="annottext">PsMessage
+</span><a href="#local-6989586621679250674"><span class="hs-identifier hs-var">psMessage</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">DiagnosticOpts PsMessage -&gt; PsMessage -&gt; DecoratedSDoc
+forall a. Diagnostic a =&gt; DiagnosticOpts a -&gt; a -&gt; DecoratedSDoc
+</span><span class="hs-identifier hs-var">diagnosticMessage</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">forall a. Diagnostic a =&gt; DiagnosticOpts a
+</span><span class="hs-identifier hs-var">defaultDiagnosticOpts</span></span><span> </span><span class="hs-glyph">@</span><span class="annot"><span class="hs-identifier hs-type">PsMessage</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">PsMessage
+</span><a href="#local-6989586621679250674"><span class="hs-identifier hs-var">psMessage</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-93"></span><span>                    </span><span class="annot"><span class="annottext">([PsMessage] -&gt; [DecoratedSDoc]) -&gt; [PsMessage] -&gt; [DecoratedSDoc]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(MsgEnvelope PsMessage -&gt; PsMessage)
+-&gt; [MsgEnvelope PsMessage] -&gt; [PsMessage]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">MsgEnvelope PsMessage -&gt; PsMessage
+forall e. MsgEnvelope e -&gt; e
+</span><span class="hs-identifier hs-var">errMsgDiagnostic</span></span><span>
+</span><span id="line-94"></span><span>                    </span><span class="annot"><span class="annottext">([MsgEnvelope PsMessage] -&gt; [PsMessage])
+-&gt; [MsgEnvelope PsMessage] -&gt; [PsMessage]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Maybe DiagOpts
+-&gt; Bag (MsgEnvelope PsMessage) -&gt; [MsgEnvelope PsMessage]
+forall e. Maybe DiagOpts -&gt; Bag (MsgEnvelope e) -&gt; [MsgEnvelope e]
+</span><span class="hs-identifier hs-var">sortMsgBag</span></span><span> </span><span class="annot"><span class="annottext">Maybe DiagOpts
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-95"></span><span>                    </span><span class="annot"><span class="annottext">(Bag (MsgEnvelope PsMessage) -&gt; [MsgEnvelope PsMessage])
+-&gt; Bag (MsgEnvelope PsMessage) -&gt; [MsgEnvelope PsMessage]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Messages PsMessage -&gt; Bag (MsgEnvelope PsMessage)
+forall e. Messages e -&gt; Bag (MsgEnvelope e)
+</span><span class="hs-identifier hs-var">getMessages</span></span><span> </span><span class="annot"><span class="annottext">(Messages PsMessage -&gt; Bag (MsgEnvelope PsMessage))
+-&gt; Messages PsMessage -&gt; Bag (MsgEnvelope PsMessage)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Messages PsMessage
+</span><a href="#local-6989586621679250663"><span class="hs-identifier hs-var">errorMessages</span></a></span><span>
+</span><span id="line-96"></span><span>                </span><span id="local-6989586621679250680"><span class="annot"><span class="annottext">line' :: Int
+</span><a href="#local-6989586621679250680"><span class="hs-identifier hs-var hs-var">line'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RealSrcLoc -&gt; Int
+</span><span class="hs-identifier hs-var">SrcLoc.srcLocLine</span></span><span> </span><span class="annot"><span class="annottext">RealSrcLoc
+</span><a href="#local-6989586621679250661"><span class="hs-identifier hs-var">srcLoc</span></a></span><span>
+</span><span id="line-97"></span><span>                </span><span id="local-6989586621679250682"><span class="annot"><span class="annottext">col :: Int
+</span><a href="#local-6989586621679250682"><span class="hs-identifier hs-var hs-var">col</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">RealSrcLoc -&gt; Int
+</span><span class="hs-identifier hs-var">SrcLoc.srcLocCol</span></span><span> </span><span class="annot"><span class="annottext">RealSrcLoc
+</span><a href="#local-6989586621679250661"><span class="hs-identifier hs-var">srcLoc</span></a></span><span>
+</span><span id="line-98"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">(Int, Int, String) -&gt; Either (Int, Int, String) (HsExpr GhcPs)
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679250680"><span class="hs-identifier hs-var">line'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679250682"><span class="hs-identifier hs-var">col</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679250669"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,3,0)
+</span><span>            </span><span class="hs-keyword">let</span><span>
+</span><span id="line-101"></span><span>                </span><span class="hs-identifier">err</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">renderWithContext</span><span> </span><span class="hs-identifier">defaultSDocContext</span><span>
+</span><span id="line-102"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">vcat</span><span>
+</span><span id="line-103"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">map</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">formatBulleted</span><span> </span><span class="hs-identifier">defaultSDocContext</span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">diagnosticMessage</span><span>
+</span><span id="line-105"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">map</span><span> </span><span class="hs-identifier">errMsgDiagnostic</span><span>
+</span><span id="line-106"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">sortMsgBag</span><span> </span><span class="hs-identifier">Nothing</span><span>
+</span><span id="line-107"></span><span>                    </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">getMessages</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">errorMessages</span><span>
+</span><span id="line-108"></span><span>                </span><span class="hs-identifier">line</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocLine</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-109"></span><span>                </span><span class="hs-identifier">col</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocCol</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-110"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">line</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">col</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">err</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(9,2,0)
+</span><span>            </span><span class="hs-keyword">let</span><span>
+</span><span id="line-113"></span><span>                </span><span class="hs-identifier">psErrToString</span><span> </span><span class="hs-identifier">e</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">show</span><span> </span><span class="hs-operator">$</span><span> </span><span class="hs-identifier">ParserErrorPpr.pprError</span><span> </span><span class="hs-identifier">e</span><span>
+</span><span id="line-114"></span><span>                </span><span class="hs-identifier">err</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">concatMap</span><span> </span><span class="hs-identifier">psErrToString</span><span> </span><span class="hs-identifier">errorMessages</span><span>
+</span><span id="line-115"></span><span>                </span><span class="hs-identifier">line</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocLine</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-116"></span><span>                </span><span class="hs-identifier">col</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocCol</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-117"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">line</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">col</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">err</span><span class="hs-special">)</span><span class="hs-cpp">
+#elif MIN_VERSION_ghc(8,10,0)
+</span><span>            </span><span class="hs-keyword">let</span><span> </span><span class="hs-comment">-- TODO: do not ignore &quot;warnMessages&quot;</span><span>
+</span><span id="line-120"></span><span>                </span><span class="hs-comment">-- I have no idea what they can be</span><span>
+</span><span id="line-121"></span><span>                </span><span class="hs-special">(</span><span class="hs-identifier">_warnMessages</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">errorMessages</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">msgs</span><span> </span><span class="hs-identifier">dynFlags</span><span>
+</span><span id="line-122"></span><span>                </span><span class="hs-identifier">err</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">concatMap</span><span> </span><span class="hs-identifier">show</span><span> </span><span class="hs-identifier">errorMessages</span><span>
+</span><span id="line-123"></span><span>                </span><span class="hs-identifier">line</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocLine</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-124"></span><span>                </span><span class="hs-identifier">col</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocCol</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-125"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">line</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">col</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">err</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>            </span><span class="hs-keyword">let</span><span> </span><span class="hs-identifier">err</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">showSDoc</span><span> </span><span class="hs-identifier">dynFlags</span><span> </span><span class="hs-identifier">doc</span><span>
+</span><span id="line-128"></span><span>                </span><span class="hs-identifier">line</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocLine</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-129"></span><span>                </span><span class="hs-identifier">col</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">SrcLoc.srcLocCol</span><span> </span><span class="hs-identifier">srcLoc</span><span>
+</span><span id="line-130"></span><span>            </span><span class="hs-keyword">in</span><span> </span><span class="hs-identifier">Left</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">line</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">col</span><span class="hs-special">,</span><span> </span><span class="hs-identifier">err</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-cpp">
+#if MIN_VERSION_ghc(8,10,0)
+</span><span class="hs-cpp">#elif MIN_VERSION_ghc(8,6,0)
+</span><span>    </span><span class="hs-comment">-- Only here to satisfy GHC checker which was not able to consider this as total with GHC &lt;8.10</span><span>
+</span><span id="line-136"></span><span>    </span><span class="hs-identifier">PFailed</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">error</span><span> </span><span class="hs-string">&quot;The impossible happen: this case is not possible&quot;</span><span class="hs-cpp">
+#endif
+</span></pre></body></html>
