@@ -143,6 +143,8 @@ library
   exposed-modules:
       Language.EO.Phi
       Language.EO.Phi.Dataize
+      Language.EO.Phi.Dataize.Atoms
+      Language.EO.Phi.Dataize.Context
       Language.EO.Phi.Dependencies
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
@@ -251,6 +253,8 @@ test-suite doctests
   other-modules:
       Language.EO.Phi
       Language.EO.Phi.Dataize
+      Language.EO.Phi.Dataize.Atoms
+      Language.EO.Phi.Dataize.Context
       Language.EO.Phi.Dependencies
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data

@@ -15,7 +15,7 @@ import Data.List (dropWhileEnd)
 import Data.String (IsString (..))
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
-import Language.EO.Phi.Dataize (defaultContext)
+import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common (Rule, equalProgram)

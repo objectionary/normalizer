@@ -18,6 +18,5 @@ Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
+  pipeline                 Run pipeline-related commands.
 ```

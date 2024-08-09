@@ -192,6 +192,7 @@
               runtimeInputs = [
                 inputs.mdsh.packages.${system}.default
                 pkgs.mdbook-linkcheck
+                pkgs.yq-go
                 stack-wrapped
               ];
               text =
@@ -203,11 +204,11 @@
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
                       "normalizer.md"
+                      "pipeline.md"
                       "quick-start.md"
-                      "normalizer/transform.md"
-                      "normalizer/metrics.md"
                       "normalizer/dataize.md"
-                      "normalizer/report.md"
+                      "normalizer/metrics.md"
+                      "normalizer/transform.md"
                       "contributing.md"
                     ]}
 

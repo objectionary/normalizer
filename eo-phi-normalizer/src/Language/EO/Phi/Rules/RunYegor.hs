@@ -1,6 +1,6 @@
 module Language.EO.Phi.Rules.RunYegor where
 
-import Language.EO.Phi.Dataize
+import Language.EO.Phi.Dataize.Context
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml qualified as Yaml
 import Language.EO.Phi.Syntax (printTree)

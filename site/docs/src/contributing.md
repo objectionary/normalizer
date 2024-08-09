@@ -25,7 +25,17 @@ We recommend using [stack](https://docs.haskellstack.org/en/stable) for quick lo
 Build the project using `stack`.
 
 ```sh
+export LC_ALL=C.UTF-8
 stack build
+```
+
+## Test
+
+Run all tests
+
+```sh
+export LC_ALL=C.UTF-8
+stack test
 ```
 
 ## Run
@@ -48,9 +58,7 @@ Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
-  prepare-pipeline-tests   Prepare EO test files for the pipeline.
+  pipeline                 Run pipeline-related commands.
 ```
 
 Or, omit the executable name.
@@ -71,17 +79,7 @@ Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
-  prepare-pipeline-tests   Prepare EO test files for the pipeline.
-```
-
-## Test
-
-Run all tests
-
-```sh
-stack test
+  pipeline                 Run pipeline-related commands.
 ```
 
 ## Docs

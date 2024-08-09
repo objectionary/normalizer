@@ -66,7 +66,7 @@ normalizer transform --help
 ```
 
 ```console
-Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
+Usage: normalizer transform [-r|--rules FILE] [-c|--chain] [-j|--json] [--tex]
                             [-o|--output-file FILE] [-s|--single]
                             [--max-depth INT] [--max-growth-factor INT] [FILE]
                             [-d|--dependency-file FILE]
@@ -74,9 +74,11 @@ Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
   Transform a PHI program.
 
 Available options:
-  -r,--rules FILE          FILE with user-defined rules. Must be specified.
+  -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
+                           set of rules is used.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
+  --tex                    Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   -s,--single              Output a single expression.
@@ -105,10 +107,30 @@ normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml ce
 ```console
 Rule set based on Yegor's draft
 Input:
-{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }
+{⟦
+  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
+  result ↦ ξ.c.times (x ↦ ⟦
+    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+  ⟧
+  ).plus (x ↦ ⟦
+    Δ ⤍ 40-40-00-00-00-00-00-00
+  ⟧
+),
+  λ ⤍ Package
+⟧}
 ====================================================
 Result 1 out of 1:
-{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }
+{⟦
+  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
+  result ↦ ξ.c.times (x ↦ ⟦
+    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+  ⟧
+  ).plus (x ↦ ⟦
+    Δ ⤍ 40-40-00-00-00-00-00-00
+  ⟧
+),
+  λ ⤍ Package
+⟧}
 ----------------------------------------------------
 ```
 
@@ -123,10 +145,30 @@ normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor
 ```console
 Rule set based on Yegor's draft
 Input:
-{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }
+{⟦
+  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
+  result ↦ ξ.c.times (x ↦ ⟦
+    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+  ⟧
+  ).plus (x ↦ ⟦
+    Δ ⤍ 40-40-00-00-00-00-00-00
+  ⟧
+),
+  λ ⤍ Package
+⟧}
 ====================================================
 Result 1 out of 1:
-[ 1 / 1 ] Normal form: { ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }
+[ 1 / 1 ] Normal form: {⟦
+  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
+  result ↦ ξ.c.times (x ↦ ⟦
+    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+  ⟧
+  ).plus (x ↦ ⟦
+    Δ ⤍ 40-40-00-00-00-00-00-00
+  ⟧
+),
+  λ ⤍ Package
+⟧}
 ----------------------------------------------------
 ```
 
@@ -138,12 +180,12 @@ normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rule
 
 ```json
 {
-  "input": "{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }",
+  "input": "{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}",
   "output": [
     [
       [
         "Normal form",
-        "{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }"
+        "{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}"
       ]
     ]
   ]
@@ -157,7 +199,17 @@ normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yego
 ```
 
 ```console
-{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }
+{⟦
+  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
+  result ↦ ξ.c.times (x ↦ ⟦
+    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+  ⟧
+  ).plus (x ↦ ⟦
+    Δ ⤍ 40-40-00-00-00-00-00-00
+  ⟧
+),
+  λ ⤍ Package
+⟧}
 ```
 
 ### `--single` `--json`
@@ -167,7 +219,7 @@ normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rul
 ```
 
 ```console
-"{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }"
+"{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}"
 ```
 
 ### `--output-file FILE`
@@ -186,5 +238,5 @@ cat celsius.phi | normalizer transform --single --json --rules ./eo-phi-normaliz
 ```
 
 ```console
-"{ ⟦ c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)), result ↦ ξ.c.times (x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧).plus (x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), λ ⤍ Package ⟧ }"
+"{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}"
 ```

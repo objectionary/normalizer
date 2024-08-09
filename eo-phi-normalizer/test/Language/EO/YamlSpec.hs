@@ -4,7 +4,7 @@
 module Language.EO.YamlSpec where
 
 import Control.Monad (forM_)
-import Language.EO.Phi.Dataize (defaultContext)
+import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyOneRule)
 import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption (..), convertRuleNamed)
 import Test.EO.Yaml

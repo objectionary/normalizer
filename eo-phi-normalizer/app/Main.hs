@@ -42,6 +42,7 @@ import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
+import Language.EO.Phi.Dataize.Context
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
@@ -591,7 +592,8 @@ main = withUtf8 do
             (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
               , builtinRules = builtin
-              , enabledAtomNames = mkEnabledAtomNames disabledAtomNames enabledAtomNames
+              , enabledAtoms = mkEnabledAtoms enabledAtomNames disabledAtomNames
+              , knownAtoms = knownAtomsMap
               }
       if chain
         then do

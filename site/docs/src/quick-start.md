@@ -16,14 +16,13 @@ normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor
 ```
 
 ```console
-{ ⟦
+{⟦
   c ↦ ⟦
     Δ ⤍ 40-39-00-00-00-00-00-00
-  ⟧
-  , result ↦ ⟦
+  ⟧,
+  result ↦ ⟦
     Δ ⤍ 40-53-40-00-00-00-00-00
-  ⟧
-  , λ ⤍ Package
-⟧
-}
+  ⟧,
+  λ ⤍ Package
+⟧}
 ```
