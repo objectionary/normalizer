@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -24,9 +25,11 @@ import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize (defaultContext)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, intToBytes, objectSize)
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
+import PyF (fmt)
 import Test.Hspec
 import Test.QuickCheck
 
@@ -307,12 +310,17 @@ parseTests = Yaml.decodeFileThrow
 spec :: Spec
 spec = do
   ruleset <- runIO $ parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
-  let rulesFromYaml = map convertRuleNamed (rules ruleset)
   inputs <- runIO $ parseTests "./test/eo/phi/confluence.yaml"
+  let rulesFromYaml = map convertRuleNamed (rules ruleset)
+      builtinRules = [fastYegorInsideOutAsRule]
+      testWithRules :: String -> [NamedRule] -> SpecWith ()
+      testWithRules source rules = do
+        it [fmt|Are confluent with {source} rules (via QuickCheck)|] (confluent rules)
+        describe
+          "Are confluent (regression tests)"
+          $ forM_ (tests inputs)
+          $ \input -> do
+            it (printTree input) (input `shouldSatisfy` confluentOnObject rules)
   describe "Yegor's rules" $ do
-    it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
-    describe
-      "Are confluent (regression tests)"
-      $ forM_ (tests inputs)
-      $ \input -> do
-        it (printTree input) (input `shouldSatisfy` confluentOnObject rulesFromYaml)
+    testWithRules "yegor.yaml" rulesFromYaml
+    testWithRules "built-in" builtinRules

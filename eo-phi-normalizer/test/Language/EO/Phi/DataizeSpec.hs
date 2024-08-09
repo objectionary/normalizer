@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Language.EO.Phi.DataizeSpec where
@@ -11,8 +12,10 @@ import Language.EO.Phi (printTree)
 import Language.EO.Phi qualified as Phi
 import Language.EO.Phi.Dataize (dataizeRecursively, defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
-import Language.EO.Phi.Rules.Common (equalObject)
+import Language.EO.Phi.Rules.Common (NamedRule, equalObject)
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
+import PyF (fmt)
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests)
 
 newtype ObjectOrBytes = ObjectOrBytes (Either Phi.Object Phi.Bytes)
@@ -39,22 +42,28 @@ spec :: Spec
 spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
   ruleset <- runIO $ parseRuleSetFromFile "test/eo/phi/rules/yegor.yaml"
-  let rules = map convertRuleNamed ruleset.rules
-  describe title $
-    forM_ tests $
-      \test -> do
-        deps <- runIO $ mapM getProgram test.dependencies
-        let mergedProgs = case deepMergePrograms (test.input : deps) of
-              Left err -> error ("Error merging programs: " ++ err)
-              Right prog -> prog
-        let ctx = defaultContext rules (progToObj mergedProgs)
-        let inputObj = progToObj test.input
-        let expectedResult = case test.output of
-              Object obj -> Left obj
-              Bytes bytes -> Right bytes
-        it test.name $ do
-          let dataizedResult = dataizeRecursively ctx inputObj
-          ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
+  let rulesFromYaml = map convertRuleNamed ruleset.rules
+      builtinRules = [fastYegorInsideOutAsRule]
+      testWithRules :: String -> [NamedRule] -> SpecWith ()
+      testWithRules source rules =
+        describe [fmt|With {source} rules|] $
+          forM_ tests $
+            \test -> do
+              deps <- runIO $ mapM getProgram test.dependencies
+              let mergedProgs = case deepMergePrograms (test.input : deps) of
+                    Left err -> error ("Error merging programs: " ++ err)
+                    Right prog -> prog
+                  ctx = defaultContext rules (progToObj mergedProgs)
+                  inputObj = progToObj test.input
+                  expectedResult = case test.output of
+                    Object obj -> Left obj
+                    Bytes bytes -> Right bytes
+                  dataizedResult = dataizeRecursively ctx inputObj
+              it test.name $ do
+                ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
+  describe title $ do
+    testWithRules "yegor.yaml" rulesFromYaml
+    testWithRules "built-in" builtinRules
 
 progToObj :: Phi.Program -> Phi.Object
 progToObj (Phi.Program bindings) = Phi.Formation bindings
