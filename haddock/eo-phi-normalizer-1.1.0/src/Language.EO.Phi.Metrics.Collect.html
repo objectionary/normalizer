@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE BlockArguments #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE InstanceSigs #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE OverloadedLabels #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-10"></span><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><span id="line-11"></span><span class="hs-pragma">{-# LANGUAGE UndecidableInstances #-}</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Metrics.Collect</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Lens</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(+=)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.State</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">State</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">execState</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">runState</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">forM_</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Generics.Labels</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">catMaybes</span></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Traversable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">forM</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html"><span class="hs-identifier">Language.EO.Phi.Metrics.Data</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier">BindingMetrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier">BindingsByPathMetrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier">MetricsCount</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ObjectMetrics"><span class="hs-identifier">ObjectMetrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier">Path</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier">ProgramMetrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html"><span class="hs-identifier">Language.EO.Phi.Rules.Common</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedStrings</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedLists</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">type</span><span> </span><span id="HeightSafe"><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#HeightSafe"><span class="hs-identifier hs-var">HeightSafe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span id="local-6989586621679638797"><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#count"><span class="hs-identifier hs-type">count</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679638797"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679638797"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span></span><span>
+</span><span id="line-32"></span><span id="count"><span class="annot"><span class="annottext">count :: forall a. (a -&gt; Bool) -&gt; [a] -&gt; Int
+</span><a href="Language.EO.Phi.Metrics.Collect.html#count"><span class="hs-identifier hs-var hs-var">count</span></a></span></span><span> </span><span id="local-6989586621679638997"><span class="annot"><span class="annottext">a -&gt; Bool
+</span><a href="#local-6989586621679638997"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[a] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">([a] -&gt; Int) -&gt; ([a] -&gt; [a]) -&gt; [a] -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Bool) -&gt; [a] -&gt; [a]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Bool
+</span><a href="#local-6989586621679638997"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#getHeight"><span class="hs-identifier hs-type">getHeight</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#HeightSafe"><span class="hs-identifier hs-type">HeightSafe</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#HeightSafe"><span class="hs-identifier hs-type">HeightSafe</span></a></span><span>
+</span><span id="line-35"></span><span id="getHeight"><span class="annot"><span class="annottext">getHeight :: [Binding] -&gt; [HeightSafe] -&gt; HeightSafe
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getHeight"><span class="hs-identifier hs-var hs-var">getHeight</span></a></span></span><span> </span><span id="local-6989586621679639001"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639001"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span id="local-6989586621679639002"><span class="annot"><span class="annottext">[HeightSafe]
+</span><a href="#local-6989586621679639002"><span class="hs-identifier hs-var">heights</span></a></span></span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679639003"><span class="hs-identifier hs-var">hasDeltaBinding</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; HeightSafe
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HeightSafe
+</span><a href="#local-6989586621679639004"><span class="hs-identifier hs-var">heightAttributes</span></a></span><span>
+</span><span id="line-38"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-39"></span><span>  </span><span id="local-6989586621679639004"><span class="annot"><span class="annottext">heightAttributes :: HeightSafe
+</span><a href="#local-6989586621679639004"><span class="hs-identifier hs-var hs-var">heightAttributes</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-40"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[HeightSafe] -&gt; [Int]
+forall a. [Maybe a] -&gt; [a]
+</span><span class="hs-identifier hs-var">catMaybes</span></span><span> </span><span class="annot"><span class="annottext">[HeightSafe]
+</span><a href="#local-6989586621679639002"><span class="hs-identifier hs-var">heights</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-41"></span><span>      </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">HeightSafe
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-42"></span><span>      </span><span id="local-6989586621679639005"><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679639005"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; HeightSafe
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Int] -&gt; Int
+forall a. Ord a =&gt; [a] -&gt; a
+forall (t :: * -&gt; *) a. (Foldable t, Ord a) =&gt; t a -&gt; a
+</span><span class="hs-identifier hs-var">minimum</span></span><span> </span><span class="annot"><span class="annottext">[Int]
+</span><a href="#local-6989586621679639005"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span>  </span><span id="local-6989586621679639008"><span class="annot"><span class="annottext">isBinding :: Binding -&gt; Bool
+</span><a href="#local-6989586621679639008"><span class="hs-identifier hs-var hs-var">isBinding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-45"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-type">DeltaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span>  </span><span id="local-6989586621679639003"><span class="annot"><span class="annottext">hasDeltaBinding :: Bool
+</span><a href="#local-6989586621679639003"><span class="hs-identifier hs-var hs-var">hasDeltaBinding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="#local-6989586621679639008"><span class="hs-identifier hs-var">isBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639001"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#countDataless"><span class="hs-identifier hs-type">countDataless</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#HeightSafe"><span class="hs-identifier hs-type">HeightSafe</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-51"></span><span id="countDataless"><span class="annot"><span class="annottext">countDataless :: HeightSafe -&gt; Int
+</span><a href="Language.EO.Phi.Metrics.Collect.html#countDataless"><span class="hs-identifier hs-var hs-var">countDataless</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679639012"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679639012"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679639012"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">0</span></span><span>
+</span><span id="line-54"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#countDataless"><span class="hs-identifier hs-var">countDataless</span></a></span><span> </span><span class="annot"><span class="annottext">HeightSafe
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">type</span><span> </span><span id="InspectM"><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#InspectM"><span class="hs-identifier hs-var">InspectM</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">State</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#HeightSafe"><span class="hs-identifier hs-type">HeightSafe</span></a></span><span>
+</span><span id="line-57"></span><span>
+</span><span id="line-58"></span><span class="hs-keyword">class</span><span> </span><span id="Inspectable"><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#Inspectable"><span class="hs-identifier hs-var">Inspectable</span></a></span></span><span> </span><span id="local-6989586621679638815"><span class="annot"><a href="#local-6989586621679638815"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-59"></span><span>  </span><span id="inspect"><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-type">inspect</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679638815"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#InspectM"><span class="hs-identifier hs-type">InspectM</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#Inspectable"><span class="hs-identifier hs-type">Inspectable</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-type">inspect</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#InspectM"><span class="hs-identifier hs-type">InspectM</span></a></span><span>
+</span><span id="line-63"></span><span>  </span><span id="local-6989586621679639024"><span class="annot"><span class="annottext">inspect :: Binding -&gt; InspectM
+</span><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-var hs-var hs-var hs-var">inspect</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-64"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639026"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639026"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; InspectM
+forall a. Inspectable a =&gt; a -&gt; InspectM
+</span><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-var">inspect</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639026"><span class="hs-identifier hs-var">obj</span></a></span><span>
+</span><span id="line-65"></span><span>    </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">HeightSafe -&gt; InspectM
+forall a. a -&gt; StateT MetricsCount Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">HeightSafe
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-keyword">instance</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#Inspectable"><span class="hs-identifier hs-type">Inspectable</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-68"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-type">inspect</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#InspectM"><span class="hs-identifier hs-type">InspectM</span></a></span><span>
+</span><span id="line-69"></span><span>  </span><span id="local-6989586621679639157"><span class="annot"><span class="annottext">inspect :: Object -&gt; InspectM
+</span><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-var hs-var hs-var hs-var">inspect</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-70"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679639159"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639159"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span class="hs-cpp">
+      #formations += 1
+</span><span>      </span><span class="hs-identifier">heights</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">forM</span><span> </span><span class="hs-identifier">bindings</span><span> </span><span class="hs-identifier">inspect</span><span>
+</span><span id="line-73"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span class="hs-identifier">height</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">getHeight</span><span> </span><span class="hs-identifier">bindings</span><span> </span><span class="hs-identifier">heights</span><span class="hs-cpp">
+      #dataless += countDataless height
+</span><span>      </span><span class="hs-identifier">pure</span><span> </span><span class="hs-identifier">height</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-type">Application</span></a></span><span> </span><span id="local-6989586621679639163"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639163"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679639164"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639164"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span class="hs-cpp">
+      #applications += 1
+</span><span>      </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">inspect</span><span> </span><span class="hs-identifier">obj</span><span>
+</span><span id="line-79"></span><span>      </span><span class="hs-identifier">forM_</span><span> </span><span class="hs-identifier">bindings</span><span> </span><span class="hs-identifier">inspect</span><span>
+</span><span id="line-80"></span><span>      </span><span class="hs-identifier">pure</span><span> </span><span class="hs-identifier">Nothing</span><span>
+</span><span id="line-81"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-type">ObjectDispatch</span></a></span><span> </span><span id="local-6989586621679639166"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639166"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span class="hs-cpp">
+      #dispatches += 1
+</span><span>      </span><span class="hs-identifier">_</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-identifier">inspect</span><span> </span><span class="hs-identifier">obj</span><span>
+</span><span id="line-84"></span><span>      </span><span class="hs-identifier">pure</span><span> </span><span class="hs-identifier">Nothing</span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">HeightSafe -&gt; InspectM
+forall a. a -&gt; StateT MetricsCount Identity a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">HeightSafe
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-86"></span><span>
+</span><span id="line-87"></span><span class="hs-comment">-- | Get metrics for an object</span><span>
+</span><span id="line-88"></span><span class="hs-comment">--</span><span>
+</span><span id="line-89"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#958;, &#945;0 &#8614; &#934;.org.eolang.bytes( &#916; &#10509; 00- ) &#10215;&quot;</span><span>
+</span><span id="line-90"></span><span class="hs-comment">-- Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 3}</span><span>
+</span><span id="line-91"></span><span class="hs-comment">--</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#958;, &#916; &#10509; 00- &#10215;&quot;</span><span>
+</span><span id="line-93"></span><span class="hs-comment">-- Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}</span><span>
+</span><span id="line-94"></span><span class="hs-comment">--</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#958;, &#945;1 &#8614; &#10214; &#916; &#10509; 00- &#10215; &#10215;&quot;</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}</span><span>
+</span><span id="line-97"></span><span class="hs-comment">--</span><span>
+</span><span id="line-98"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#958;, &#945;1 &#8614; &#10214; &#945;2 &#8614; &#10214; &#916; &#10509; 00- &#10215; &#10215; &#10215;&quot;</span><span>
+</span><span id="line-99"></span><span class="hs-comment">-- Metrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}</span><span>
+</span><span id="line-100"></span><span class="hs-comment">--</span><span>
+</span><span id="line-101"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#916; &#10509; 00- &#10215;&quot;</span><span>
+</span><span id="line-102"></span><span class="hs-comment">-- Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}</span><span>
+</span><span id="line-103"></span><span class="hs-comment">--</span><span>
+</span><span id="line-104"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#8709; &#10215; &#10215;&quot;</span><span>
+</span><span id="line-105"></span><span class="hs-comment">-- Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 0}</span><span>
+</span><span id="line-106"></span><span class="hs-comment">--</span><span>
+</span><span id="line-107"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#8709; &#10215; &#10215; &#10215;&quot;</span><span>
+</span><span id="line-108"></span><span class="hs-comment">-- Metrics {dataless = 3, applications = 0, formations = 3, dispatches = 0}</span><span>
+</span><span id="line-109"></span><span class="hs-comment">--</span><span>
+</span><span id="line-110"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#8709; &#10215; &#10215; &#10215; &#10215;&quot;</span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- Metrics {dataless = 4, applications = 0, formations = 4, dispatches = 0}</span><span>
+</span><span id="line-112"></span><span class="hs-comment">--</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; org &#8614; &#10214; &#10215; &#10215;&quot;</span><span>
+</span><span id="line-114"></span><span class="hs-comment">-- Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 0}</span><span>
+</span><span id="line-115"></span><span class="hs-comment">--</span><span>
+</span><span id="line-116"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215;.e &#10215;&quot;</span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- Metrics {dataless = 5, applications = 1, formations = 5, dispatches = 5}</span><span>
+</span><span id="line-118"></span><span class="hs-comment">--</span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#934;.something(&#945;1 &#8614; &#10214; &#945;2 &#8614; &#10214; &#945;3 &#8614; &#10214; &#916; &#10509; 01- &#10215; &#10215; &#10215;) &#10215;&quot;</span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- Metrics {dataless = 2, applications = 1, formations = 4, dispatches = 1}</span><span>
+</span><span id="line-121"></span><span class="hs-comment">--</span><span>
+</span><span id="line-122"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c, &#916; &#10509; 01- &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214; &#916; &#10509; 01- &#10215;).d &#10215;.e &#10215;&quot;</span><span>
+</span><span id="line-123"></span><span class="hs-comment">-- Metrics {dataless = 2, applications = 1, formations = 5, dispatches = 5}</span><span>
+</span><span id="line-124"></span><span class="hs-comment">--</span><span>
+</span><span id="line-125"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; org &#8614; &#10214; &#916; &#10509; 01-, c &#8614; &#8709; &#10215;(c &#8614; &#10214; &#10215;) &#10215;&quot;</span><span>
+</span><span id="line-126"></span><span class="hs-comment">-- Metrics {dataless = 2, applications = 1, formations = 3, dispatches = 0}</span><span>
+</span><span id="line-127"></span><span class="hs-comment">--</span><span>
+</span><span id="line-128"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#916; &#10509; 01- &#10215;.a &#10215; &#10215; &#10215; &#10215;&quot;</span><span>
+</span><span id="line-129"></span><span class="hs-comment">-- Metrics {dataless = 4, applications = 0, formations = 5, dispatches = 1}</span><span>
+</span><span id="line-130"></span><span class="hs-comment">--</span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- &gt;&gt;&gt; getThisObjectMetrics &quot;&#10214; &#945;0 &#8614; &#10214; &#945;0 &#8614; &#10214; &#10215;.a &#10215;, &#945;0 &#8614; &#10214; &#916; &#10509; 01- &#10215;.b &#10215;&quot;</span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- Metrics {dataless = 3, applications = 0, formations = 4, dispatches = 2}</span><span>
+</span><span id="line-133"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#getThisObjectMetrics"><span class="hs-identifier hs-type">getThisObjectMetrics</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span>
+</span><span id="line-134"></span><span id="getThisObjectMetrics"><span class="annot"><span class="annottext">getThisObjectMetrics :: Object -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getThisObjectMetrics"><span class="hs-identifier hs-var hs-var">getThisObjectMetrics</span></a></span></span><span> </span><span id="local-6989586621679639168"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639168"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">InspectM -&gt; MetricsCount -&gt; MetricsCount
+forall s a. State s a -&gt; s -&gt; s
+</span><span class="hs-identifier hs-var">execState</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; InspectM
+forall a. Inspectable a =&gt; a -&gt; InspectM
+</span><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-var">inspect</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639168"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MetricsCount
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-135"></span><span>
+</span><span id="line-136"></span><span class="hs-comment">-- | Get an object by a path within a given object.</span><span>
+</span><span id="line-137"></span><span class="hs-comment">--</span><span>
+</span><span id="line-138"></span><span class="hs-comment">-- If no object is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.</span><span>
+</span><span id="line-139"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getObjectByPath [&quot;org&quot;, &quot;eolang&quot;] &quot;&#10214; org &#8614; &#10214; eolang &#8614; &#10214; x &#8614; &#10214; &#966; &#8614; &#934;.org.eolang.bool ( &#945;0 &#8614; &#934;.org.eolang.bytes (&#916; &#10509; 01-) ) &#10215;, z &#8614; &#10214; y &#8614; &#10214; x &#8614; &#8709;, &#966; &#8614; &#958;.x &#10215;, &#966; &#8614; &#934;.org.eolang.bool ( &#945;0 &#8614; &#934;.org.eolang.bytes (&#916; &#10509; 01-) ) &#10215;, &#955; &#10509; Package &#10215;, &#955; &#10509; Package &#10215;&#10215;&quot;</span><span>
+</span><span id="line-140"></span><span class="hs-comment">-- Right (Formation [AlphaBinding (Label (LabelId &quot;x&quot;)) (Formation [AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId &quot;org&quot;))) (Label (LabelId &quot;eolang&quot;))) (Label (LabelId &quot;bool&quot;))) [AlphaBinding (Alpha (AlphaIndex &quot;\945\&amp;0&quot;)) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId &quot;org&quot;))) (Label (LabelId &quot;eolang&quot;))) (Label (LabelId &quot;bytes&quot;))) [DeltaBinding (Bytes &quot;01-&quot;)])])]),AlphaBinding (Label (LabelId &quot;z&quot;)) (Formation [AlphaBinding (Label (LabelId &quot;y&quot;)) (Formation [EmptyBinding (Label (LabelId &quot;x&quot;)),AlphaBinding Phi (ObjectDispatch ThisObject (Label (LabelId &quot;x&quot;)))]),AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId &quot;org&quot;))) (Label (LabelId &quot;eolang&quot;))) (Label (LabelId &quot;bool&quot;))) [AlphaBinding (Alpha (AlphaIndex &quot;\945\&amp;0&quot;)) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId &quot;org&quot;))) (Label (LabelId &quot;eolang&quot;))) (Label (LabelId &quot;bytes&quot;))) [DeltaBinding (Bytes &quot;01-&quot;)])])]),LambdaBinding (Function &quot;Package&quot;)])</span><span>
+</span><span id="line-141"></span><span class="hs-comment">--</span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getObjectByPath [&quot;a&quot;] &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215;.e &#10215;&quot;</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- Right (ObjectDispatch (Formation [AlphaBinding (Label (LabelId &quot;b&quot;)) (Formation [EmptyBinding (Label (LabelId &quot;c&quot;)),AlphaBinding (Label (LabelId &quot;d&quot;)) (Formation [AlphaBinding Phi (ObjectDispatch (ObjectDispatch ThisObject Rho) (Label (LabelId &quot;c&quot;)))])]),AlphaBinding (Label (LabelId &quot;e&quot;)) (ObjectDispatch (Application (ObjectDispatch ThisObject (Label (LabelId &quot;b&quot;))) [AlphaBinding (Label (LabelId &quot;c&quot;)) (Formation [])]) (Label (LabelId &quot;d&quot;)))]) (Label (LabelId &quot;e&quot;)))</span><span>
+</span><span id="line-144"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#getObjectByPath"><span class="hs-identifier hs-type">getObjectByPath</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span>
+</span><span id="line-145"></span><span id="getObjectByPath"><span class="annot"><span class="annottext">getObjectByPath :: Object -&gt; Path -&gt; Either Path Object
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getObjectByPath"><span class="hs-identifier hs-var hs-var">getObjectByPath</span></a></span></span><span> </span><span id="local-6989586621679639170"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639170"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span id="local-6989586621679639171"><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639171"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-146"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639171"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-147"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Either Path Object
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639170"><span class="hs-identifier hs-var">object</span></a></span><span>
+</span><span id="line-148"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679639172"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639172"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679639173"><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639173"><span class="hs-identifier hs-var">ps</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-149"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639170"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-150"></span><span>        </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679639174"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639174"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-151"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Object]
+</span><a href="#local-6989586621679639175"><span class="hs-identifier hs-var">objectByPath'</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-152"></span><span>            </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Either Path Object
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639171"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-153"></span><span>            </span><span class="hs-special">(</span><span id="local-6989586621679639176"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639176"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Object]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Either Path Object
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639176"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-154"></span><span>         </span><span class="hs-keyword">where</span><span>
+</span><span id="line-155"></span><span>          </span><span id="local-6989586621679639175"><span class="annot"><span class="annottext">objectByPath' :: [Object]
+</span><a href="#local-6989586621679639175"><span class="hs-identifier hs-var hs-var">objectByPath'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-156"></span><span>            </span><span class="hs-keyword">do</span><span>
+</span><span id="line-157"></span><span>              </span><span id="local-6989586621679639177"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679639177"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639174"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-158"></span><span>              </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679639178"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639178"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span>
+</span><span id="line-159"></span><span>                </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679639177"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-160"></span><span>                  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-type">AlphaIndex</span></a></span><span> </span><span id="local-6989586621679639181"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639181"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span id="local-6989586621679639182"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639182"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639181"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639172"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Object -&gt; Path -&gt; Either Path Object
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getObjectByPath"><span class="hs-identifier hs-var">getObjectByPath</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639182"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639173"><span class="hs-identifier hs-var">ps</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-161"></span><span>                  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Label"><span class="hs-identifier hs-type">Label</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelId"><span class="hs-identifier hs-type">LabelId</span></a></span><span> </span><span id="local-6989586621679639185"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639185"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span id="local-6989586621679639186"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639186"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639185"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639172"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Object -&gt; Path -&gt; Either Path Object
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getObjectByPath"><span class="hs-identifier hs-var">getObjectByPath</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639186"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639173"><span class="hs-identifier hs-var">ps</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-162"></span><span>                  </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Path -&gt; Either Path Object
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639171"><span class="hs-identifier hs-var">path</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-163"></span><span>              </span><span class="annot"><span class="annottext">Object -&gt; [Object]
+forall a. a -&gt; [a]
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639178"><span class="hs-identifier hs-var">obj</span></a></span><span>
+</span><span id="line-164"></span><span>        </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Either Path Object
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639171"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-165"></span><span>
+</span><span id="line-166"></span><span class="hs-comment">-- | Get metrics for bindings of a formation that is accessible by a path within a given object.</span><span>
+</span><span id="line-167"></span><span class="hs-comment">--</span><span>
+</span><span id="line-168"></span><span class="hs-comment">-- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.</span><span>
+</span><span id="line-169"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getBindingsByPathMetrics [&quot;a&quot;] &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215;.e &#10215;&quot;</span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- Left [&quot;a&quot;]</span><span>
+</span><span id="line-171"></span><span class="hs-comment">--</span><span>
+</span><span id="line-172"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getBindingsByPathMetrics [&quot;a&quot;] &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215; &#10215;&quot;</span><span>
+</span><span id="line-173"></span><span class="hs-comment">-- Right (BindingsByPathMetrics {path = [&quot;a&quot;], bindingsMetrics = [BindingMetrics {name = &quot;b&quot;, metrics = Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = &quot;e&quot;, metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]})</span><span>
+</span><span id="line-174"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#getBindingsByPathMetrics"><span class="hs-identifier hs-type">getBindingsByPathMetrics</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span>
+</span><span id="line-175"></span><span id="getBindingsByPathMetrics"><span class="annot"><span class="annottext">getBindingsByPathMetrics :: Object -&gt; Path -&gt; Either Path BindingsByPathMetrics
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getBindingsByPathMetrics"><span class="hs-identifier hs-var hs-var">getBindingsByPathMetrics</span></a></span></span><span> </span><span id="local-6989586621679639188"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639188"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span id="local-6989586621679639189"><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639189"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-176"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Path -&gt; Either Path Object
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getObjectByPath"><span class="hs-identifier hs-var">getObjectByPath</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639188"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639189"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-177"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679639190"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639190"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-178"></span><span>      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679639191"><span class="annot"><span class="annottext">attributes' :: [(HeightSafe, MetricsCount)]
+</span><a href="#local-6989586621679639191"><span class="hs-identifier hs-var hs-var">attributes'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(InspectM -&gt; MetricsCount -&gt; (HeightSafe, MetricsCount))
+-&gt; MetricsCount -&gt; InspectM -&gt; (HeightSafe, MetricsCount)
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">InspectM -&gt; MetricsCount -&gt; (HeightSafe, MetricsCount)
+forall s a. State s a -&gt; s -&gt; (a, s)
+</span><span class="hs-identifier hs-var">runState</span></span><span> </span><span class="annot"><span class="annottext">MetricsCount
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="annot"><span class="annottext">(InspectM -&gt; (HeightSafe, MetricsCount))
+-&gt; (Binding -&gt; InspectM) -&gt; Binding -&gt; (HeightSafe, MetricsCount)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; InspectM
+forall a. Inspectable a =&gt; a -&gt; InspectM
+</span><a href="Language.EO.Phi.Metrics.Collect.html#inspect"><span class="hs-identifier hs-var">inspect</span></a></span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; (HeightSafe, MetricsCount))
+-&gt; [Binding] -&gt; [(HeightSafe, MetricsCount)]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639190"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-179"></span><span>          </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[HeightSafe]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679639194"><span class="annot"><span class="annottext">[MetricsCount]
+</span><a href="#local-6989586621679639194"><span class="hs-identifier hs-var">objectMetrics</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(HeightSafe, MetricsCount)] -&gt; ([HeightSafe], [MetricsCount])
+forall a b. [(a, b)] -&gt; ([a], [b])
+</span><span class="hs-identifier hs-var">unzip</span></span><span> </span><span class="annot"><span class="annottext">[(HeightSafe, MetricsCount)]
+</span><a href="#local-6989586621679639191"><span class="hs-identifier hs-var">attributes'</span></a></span><span>
+</span><span id="line-180"></span><span>          </span><span id="local-6989586621679639196"><span class="annot"><span class="annottext">bindingsMetrics :: [BindingMetrics]
+</span><a href="#local-6989586621679639196"><span class="hs-identifier hs-var hs-var">bindingsMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-181"></span><span>            </span><span id="local-6989586621679639197"><span class="annot"><span class="annottext">(Binding, MetricsCount)
+</span><a href="#local-6989586621679639197"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [MetricsCount] -&gt; [(Binding, MetricsCount)]
+forall a b. [a] -&gt; [b] -&gt; [(a, b)]
+</span><span class="hs-identifier hs-var">zip</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639190"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="annot"><span class="annottext">[MetricsCount]
+</span><a href="#local-6989586621679639194"><span class="hs-identifier hs-var">objectMetrics</span></a></span><span>
+</span><span id="line-182"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Binding, MetricsCount)
+</span><a href="#local-6989586621679639197"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-183"></span><span>              </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-type">AlphaIndex</span></a></span><span> </span><span id="local-6989586621679639198"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639198"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679639199"><span class="annot"><span class="annottext">MetricsCount
+</span><a href="#local-6989586621679639199"><span class="hs-identifier hs-var">metrics</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-type">BindingMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">String
+MetricsCount
+name :: String
+metrics :: MetricsCount
+$sel:name:BindingMetrics :: String
+$sel:metrics:BindingMetrics :: MetricsCount
+</span><a href="#local-6989586621679639198"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span class="hs-special">]</span><span>
+</span><span id="line-184"></span><span>              </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Label"><span class="hs-identifier hs-type">Label</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelId"><span class="hs-identifier hs-type">LabelId</span></a></span><span> </span><span id="local-6989586621679639203"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639203"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679639204"><span class="annot"><span class="annottext">MetricsCount
+</span><a href="#local-6989586621679639204"><span class="hs-identifier hs-var">metrics</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-type">BindingMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">String
+MetricsCount
+$sel:name:BindingMetrics :: String
+$sel:metrics:BindingMetrics :: MetricsCount
+name :: String
+metrics :: MetricsCount
+</span><a href="#local-6989586621679639201"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span class="hs-special">]</span><span>
+</span><span id="line-185"></span><span>              </span><span class="annot"><span class="annottext">(Binding, MetricsCount)
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-186"></span><span>       </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">BindingsByPathMetrics -&gt; Either Path BindingsByPathMetrics
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">(BindingsByPathMetrics -&gt; Either Path BindingsByPathMetrics)
+-&gt; BindingsByPathMetrics -&gt; Either Path BindingsByPathMetrics
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingsByPathMetrics"><span class="hs-identifier hs-type">BindingsByPathMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">Path
+[BindingMetrics]
+path :: Path
+bindingsMetrics :: [BindingMetrics]
+$sel:path:BindingsByPathMetrics :: Path
+$sel:bindingsMetrics:BindingsByPathMetrics :: [BindingMetrics]
+</span><a href="#local-6989586621679639189"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-187"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Either Path BindingsByPathMetrics
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639189"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-188"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679639208"><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639208"><span class="hs-identifier hs-var">path'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Either Path BindingsByPathMetrics
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639208"><span class="hs-identifier hs-var">path'</span></a></span><span>
+</span><span id="line-189"></span><span>
+</span><span id="line-190"></span><span class="hs-comment">-- | Get metrics for an object and for bindings of a formation accessible by a given path.</span><span>
+</span><span id="line-191"></span><span class="hs-comment">--</span><span>
+</span><span id="line-192"></span><span class="hs-comment">-- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.</span><span>
+</span><span id="line-193"></span><span class="hs-comment">--</span><span>
+</span><span id="line-194"></span><span class="hs-comment">-- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.</span><span>
+</span><span id="line-195"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getObjectMetrics (Just [&quot;a&quot;]) &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215;.e &#10215;&quot;</span><span>
+</span><span id="line-196"></span><span class="hs-comment">-- Left [&quot;a&quot;]</span><span>
+</span><span id="line-197"></span><span class="hs-comment">--</span><span>
+</span><span id="line-198"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getObjectMetrics (Just [&quot;a&quot;]) &quot;&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215; &#10215;&quot;</span><span>
+</span><span id="line-199"></span><span class="hs-comment">-- Right (ObjectMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = [&quot;a&quot;], bindingsMetrics = [BindingMetrics {name = &quot;b&quot;, metrics = Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = &quot;e&quot;, metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), thisObjectMetrics = Metrics {dataless = 5, applications = 1, formations = 5, dispatches = 4}})</span><span>
+</span><span id="line-200"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#getObjectMetrics"><span class="hs-identifier hs-type">getObjectMetrics</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ObjectMetrics"><span class="hs-identifier hs-type">ObjectMetrics</span></a></span><span>
+</span><span id="line-201"></span><span id="getObjectMetrics"><span class="annot"><span class="annottext">getObjectMetrics :: Object -&gt; Maybe Path -&gt; Either Path ObjectMetrics
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getObjectMetrics"><span class="hs-identifier hs-var hs-var">getObjectMetrics</span></a></span></span><span> </span><span id="local-6989586621679639210"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639210"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span id="local-6989586621679639211"><span class="annot"><span class="annottext">Maybe Path
+</span><a href="#local-6989586621679639211"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-202"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679639212"><span class="annot"><span class="annottext">thisObjectMetrics :: MetricsCount
+</span><a href="#local-6989586621679639212"><span class="hs-identifier hs-var hs-var">thisObjectMetrics</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Object -&gt; MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getThisObjectMetrics"><span class="hs-identifier hs-var">getThisObjectMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639210"><span class="hs-identifier hs-var">object</span></a></span><span>
+</span><span id="line-203"></span><span>  </span><span id="local-6989586621679639213"><span class="annot"><span class="annottext">Maybe BindingsByPathMetrics
+</span><a href="#local-6989586621679639213"><span class="hs-identifier hs-var">bindingsByPathMetrics</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Maybe Path
+-&gt; (Path -&gt; Either Path BindingsByPathMetrics)
+-&gt; Either Path (Maybe BindingsByPathMetrics)
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span><span class="hs-identifier hs-var">forM</span></span><span> </span><span class="annot"><span class="annottext">Maybe Path
+</span><a href="#local-6989586621679639211"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">((Path -&gt; Either Path BindingsByPathMetrics)
+ -&gt; Either Path (Maybe BindingsByPathMetrics))
+-&gt; (Path -&gt; Either Path BindingsByPathMetrics)
+-&gt; Either Path (Maybe BindingsByPathMetrics)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679639214"><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639214"><span class="hs-identifier hs-var">path'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Path -&gt; Either Path BindingsByPathMetrics
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getBindingsByPathMetrics"><span class="hs-identifier hs-var">getBindingsByPathMetrics</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639210"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">Path
+</span><a href="#local-6989586621679639214"><span class="hs-identifier hs-var">path'</span></a></span><span>
+</span><span id="line-204"></span><span>  </span><span class="annot"><span class="annottext">ObjectMetrics -&gt; Either Path ObjectMetrics
+forall a. a -&gt; Either Path a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ObjectMetrics"><span class="hs-identifier hs-type">ObjectMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">Maybe BindingsByPathMetrics
+MetricsCount
+thisObjectMetrics :: MetricsCount
+bindingsByPathMetrics :: Maybe BindingsByPathMetrics
+$sel:bindingsByPathMetrics:ObjectMetrics :: Maybe BindingsByPathMetrics
+$sel:thisObjectMetrics:ObjectMetrics :: MetricsCount
+</span><a href="#local-6989586621679639212"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-205"></span><span>
+</span><span id="line-206"></span><span class="hs-comment">-- | Get metrics for a program and for bindings of a formation accessible by a given path.</span><span>
+</span><span id="line-207"></span><span class="hs-comment">--</span><span>
+</span><span id="line-208"></span><span class="hs-comment">-- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.</span><span>
+</span><span id="line-209"></span><span class="hs-comment">--</span><span>
+</span><span id="line-210"></span><span class="hs-comment">-- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.</span><span>
+</span><span id="line-211"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getProgramMetrics (Just [&quot;org&quot;, &quot;eolang&quot;]) &quot;{&#10214; org &#8614; &#10214; eolang &#8614; &#10214; x &#8614; &#10214; &#966; &#8614; &#934;.org.eolang.bool ( &#945;0 &#8614; &#934;.org.eolang.bytes (&#916; &#10509; 01-) ) &#10215;, z &#8614; &#10214; y &#8614; &#10214; x &#8614; &#8709;, &#966; &#8614; &#958;.x &#10215;, &#966; &#8614; &#934;.org.eolang.bool ( &#945;0 &#8614; &#934;.org.eolang.bytes (&#916; &#10509; 01-) ) &#10215;, &#955; &#10509; Package &#10215;, &#955; &#10509; Package &#10215;&#10215; }&quot;</span><span>
+</span><span id="line-212"></span><span class="hs-comment">-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = [&quot;org&quot;,&quot;eolang&quot;], bindingsMetrics = [BindingMetrics {name = &quot;x&quot;, metrics = Metrics {dataless = 1, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = &quot;z&quot;, metrics = Metrics {dataless = 2, applications = 2, formations = 2, dispatches = 7}}]}), programMetrics = Metrics {dataless = 6, applications = 4, formations = 6, dispatches = 13}})</span><span>
+</span><span id="line-213"></span><span class="hs-comment">--</span><span>
+</span><span id="line-214"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getProgramMetrics (Just [&quot;a&quot;]) &quot;{&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215;.e &#10215;}&quot;</span><span>
+</span><span id="line-215"></span><span class="hs-comment">-- Left [&quot;a&quot;]</span><span>
+</span><span id="line-216"></span><span class="hs-comment">--</span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- &gt;&gt;&gt; flip getProgramMetrics (Just [&quot;a&quot;]) &quot;{&#10214; a &#8614; &#10214; b &#8614; &#10214; c &#8614; &#8709;, d &#8614; &#10214; &#966; &#8614; &#958;.&#961;.c &#10215; &#10215;, e &#8614; &#958;.b(c &#8614; &#10214;&#10215;).d &#10215; &#10215;}&quot;</span><span>
+</span><span id="line-218"></span><span class="hs-comment">-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = [&quot;a&quot;], bindingsMetrics = [BindingMetrics {name = &quot;b&quot;, metrics = Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = &quot;e&quot;, metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 5, applications = 1, formations = 5, dispatches = 4}})</span><span>
+</span><span id="line-219"></span><span class="annot"><a href="Language.EO.Phi.Metrics.Collect.html#getProgramMetrics"><span class="hs-identifier hs-type">getProgramMetrics</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Path</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier hs-type">ProgramMetrics</span></a></span><span>
+</span><span id="line-220"></span><span id="getProgramMetrics"><span class="annot"><span class="annottext">getProgramMetrics :: Program -&gt; Maybe Path -&gt; Either Path ProgramMetrics
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getProgramMetrics"><span class="hs-identifier hs-var hs-var">getProgramMetrics</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span id="local-6989586621679639220"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639220"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679639221"><span class="annot"><span class="annottext">Maybe Path
+</span><a href="#local-6989586621679639221"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-221"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ObjectMetrics"><span class="hs-identifier hs-type">ObjectMetrics</span></a></span><span class="hs-special">{</span><span id="local-6989586621679639222"><span id="local-6989586621679639223"><span class="annot"><span class="annottext">Maybe BindingsByPathMetrics
+MetricsCount
+$sel:bindingsByPathMetrics:ObjectMetrics :: ObjectMetrics -&gt; Maybe BindingsByPathMetrics
+$sel:thisObjectMetrics:ObjectMetrics :: ObjectMetrics -&gt; MetricsCount
+bindingsByPathMetrics :: Maybe BindingsByPathMetrics
+thisObjectMetrics :: MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AbindingsByPathMetrics%3AObjectMetrics"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Maybe Path -&gt; Either Path ObjectMetrics
+</span><a href="Language.EO.Phi.Metrics.Collect.html#getObjectMetrics"><span class="hs-identifier hs-var">getObjectMetrics</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639220"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe Path
+</span><a href="#local-6989586621679639221"><span class="hs-identifier hs-var">path</span></a></span><span>
+</span><span id="line-222"></span><span>  </span><span class="annot"><span class="annottext">ProgramMetrics -&gt; Either Path ProgramMetrics
+forall a. a -&gt; Either Path a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier hs-type">ProgramMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">$sel:programMetrics:ProgramMetrics :: MetricsCount
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3AprogramMetrics%3AProgramMetrics"><span class="hs-identifier hs-var">programMetrics</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MetricsCount
+</span><a href="#local-6989586621679639223"><span class="hs-identifier hs-var">thisObjectMetrics</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe BindingsByPathMetrics
+bindingsByPathMetrics :: Maybe BindingsByPathMetrics
+$sel:bindingsByPathMetrics:ProgramMetrics :: Maybe BindingsByPathMetrics
+</span><a href="#local-6989586621679639222"><span class="hs-glyph hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-223"></span></pre></body></html>

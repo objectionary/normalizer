@@ -1,0 +1,301 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE TypeApplications #-}</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Dependencies</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.html"><span class="hs-identifier">Language.EO.Phi</span></a></span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">foldM</span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-type">bindingAttr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Attribute"><span class="hs-identifier hs-type">Attribute</span></a></span><span>
+</span><span id="line-10"></span><span id="bindingAttr"><span class="annot"><span class="annottext">bindingAttr :: Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var hs-var">bindingAttr</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633393"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633393"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Maybe Attribute
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633393"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-11"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633395"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633395"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Maybe Attribute
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633395"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-12"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-type">DeltaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Maybe Attribute
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AlphaIndex -&gt; Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-var">Alpha</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; AlphaIndex
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-var">AlphaIndex</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#916;&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaEmptyBinding"><span class="hs-identifier hs-var">DeltaEmptyBinding</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Maybe Attribute
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AlphaIndex -&gt; Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-var">Alpha</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; AlphaIndex
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-var">AlphaIndex</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#916;&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-type">LambdaBinding</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Maybe Attribute
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">AlphaIndex -&gt; Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-var">Alpha</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; AlphaIndex
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-var">AlphaIndex</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#955;&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaBindings"><span class="hs-identifier hs-type">MetaBindings</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Attribute
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-16"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaDeltaBinding"><span class="hs-identifier hs-type">MetaDeltaBinding</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Attribute
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#zipBindings"><span class="hs-identifier hs-type">zipBindings</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span id="zipBindings"><span class="annot"><span class="annottext">zipBindings :: [Binding] -&gt; [Binding] -&gt; ([Binding], [(Binding, Binding)])
+</span><a href="Language.EO.Phi.Dependencies.html#zipBindings"><span class="hs-identifier hs-var hs-var">zipBindings</span></a></span></span><span> </span><span id="local-6989586621679633404"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633404"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679633405"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633405"><span class="hs-identifier hs-var">ys</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633406"><span class="hs-identifier hs-var">xs'</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; [Binding]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633407"><span class="hs-identifier hs-var">ys'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[(Binding, Binding)]
+</span><a href="#local-6989586621679633408"><span class="hs-identifier hs-var">collisions</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-21"></span><span>  </span><span id="local-6989586621679633409"><span class="annot"><span class="annottext">as :: [Maybe Attribute]
+</span><a href="#local-6989586621679633409"><span class="hs-keyword hs-var hs-var">as</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Maybe Attribute) -&gt; [Binding] -&gt; [Maybe Attribute]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633404"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-22"></span><span>  </span><span id="local-6989586621679633410"><span class="annot"><span class="annottext">bs :: [Maybe Attribute]
+</span><a href="#local-6989586621679633410"><span class="hs-identifier hs-var hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Maybe Attribute) -&gt; [Binding] -&gt; [Maybe Attribute]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633405"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>  </span><span id="local-6989586621679633406"><span class="annot"><span class="annottext">xs' :: [Binding]
+</span><a href="#local-6989586621679633406"><span class="hs-identifier hs-var hs-var">xs'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633415"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633415"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633415"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633404"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633415"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Attribute -&gt; [Maybe Attribute] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`notElem`</span></span><span> </span><span class="annot"><span class="annottext">[Maybe Attribute]
+</span><a href="#local-6989586621679633410"><span class="hs-identifier hs-var">bs</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-25"></span><span>  </span><span id="local-6989586621679633407"><span class="annot"><span class="annottext">ys' :: [Binding]
+</span><a href="#local-6989586621679633407"><span class="hs-identifier hs-var hs-var">ys'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633420"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633420"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633420"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633405"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633420"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Attribute -&gt; [Maybe Attribute] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`notElem`</span></span><span> </span><span class="annot"><span class="annottext">[Maybe Attribute]
+</span><a href="#local-6989586621679633409"><span class="hs-keyword hs-var">as</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-26"></span><span>  </span><span id="local-6989586621679633408"><span class="annot"><span class="annottext">collisions :: [(Binding, Binding)]
+</span><a href="#local-6989586621679633408"><span class="hs-identifier hs-var hs-var">collisions</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633423"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633424"><span class="hs-identifier hs-var">y</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633423"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633423"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633404"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-special">,</span><span> </span><span id="local-6989586621679633424"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633424"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633405"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633423"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Attribute -&gt; Maybe Attribute -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Maybe Attribute
+</span><a href="Language.EO.Phi.Dependencies.html#bindingAttr"><span class="hs-identifier hs-var">bindingAttr</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633424"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-31"></span><span>    </span><span class="hs-special">]</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#isPackage"><span class="hs-identifier hs-type">isPackage</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-34"></span><span id="isPackage"><span class="annot"><span class="annottext">isPackage :: [Binding] -&gt; Bool
+</span><a href="Language.EO.Phi.Dependencies.html#isPackage"><span class="hs-identifier hs-var hs-var">isPackage</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Dependencies.html#isPackageBinding"><span class="hs-identifier hs-var">isPackageBinding</span></a></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#isPackageBinding"><span class="hs-identifier hs-type">isPackageBinding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-37"></span><span id="isPackageBinding"><span class="annot"><span class="annottext">isPackageBinding :: Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Dependencies.html#isPackageBinding"><span class="hs-identifier hs-var hs-var">isPackageBinding</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-type">LambdaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Function"><span class="hs-identifier hs-type">Function</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Package&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#isPackageBinding"><span class="hs-identifier hs-var">isPackageBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#mergeBinding"><span class="hs-identifier hs-type">mergeBinding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span>
+</span><span id="line-41"></span><span id="mergeBinding"><span class="annot"><span class="annottext">mergeBinding :: Binding -&gt; Binding -&gt; Either String Binding
+</span><a href="Language.EO.Phi.Dependencies.html#mergeBinding"><span class="hs-identifier hs-var hs-var">mergeBinding</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633430"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633430"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633432"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633432"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633433"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633433"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633434"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633434"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633430"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Attribute -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633433"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633430"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">(Object -&gt; Binding)
+-&gt; ([Binding] -&gt; Object) -&gt; [Binding] -&gt; Binding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">([Binding] -&gt; Binding)
+-&gt; Either String [Binding] -&gt; Either String Binding
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; Either String [Binding]
+</span><a href="Language.EO.Phi.Dependencies.html#mergeBindings"><span class="hs-identifier hs-var">mergeBindings</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633432"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633434"><span class="hs-identifier hs-var">ys</span></a></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#mergeBinding"><span class="hs-identifier hs-var">mergeBinding</span></a></span><span> </span><span id="local-6989586621679633438"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633438"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679633439"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633439"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633438"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Binding -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633439"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Either String Binding
+forall a. a -&gt; Either String a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633438"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-44"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#mergeBinding"><span class="hs-identifier hs-var">mergeBinding</span></a></span><span> </span><span id="local-6989586621679633440"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633440"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679633441"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633441"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; Either String Binding
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String Binding)
+-&gt; String -&gt; Either String Binding
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-46"></span><span>    </span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="hs-glyph">@</span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-47"></span><span>      </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;conflict when adding dependencies (trying to merge non-formations)&quot;</span></span><span>
+</span><span id="line-48"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; String
+forall a. Print a =&gt; a -&gt; String
+</span><a href="Language.EO.Phi.Syntax.html#printTree"><span class="hs-identifier hs-var">printTree</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633440"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-49"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; String
+forall a. Print a =&gt; a -&gt; String
+</span><a href="Language.EO.Phi.Syntax.html#printTree"><span class="hs-identifier hs-var">printTree</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633441"><span class="hs-identifier hs-var">y</span></a></span><span>
+</span><span id="line-50"></span><span>      </span><span class="hs-special">]</span><span>
+</span><span id="line-51"></span><span>
+</span><span id="line-52"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#mergeBindings"><span class="hs-identifier hs-type">mergeBindings</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-53"></span><span id="mergeBindings"><span class="annot"><span class="annottext">mergeBindings :: [Binding] -&gt; [Binding] -&gt; Either String [Binding]
+</span><a href="Language.EO.Phi.Dependencies.html#mergeBindings"><span class="hs-identifier hs-var hs-var">mergeBindings</span></a></span></span><span> </span><span id="local-6989586621679633444"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633444"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span id="local-6989586621679633445"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633445"><span class="hs-identifier hs-var">ys</span></a></span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Bool
+</span><a href="Language.EO.Phi.Dependencies.html#isPackage"><span class="hs-identifier hs-var">isPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633444"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Bool
+</span><a href="Language.EO.Phi.Dependencies.html#isPackage"><span class="hs-identifier hs-var">isPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633445"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-55"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; ([Binding], [(Binding, Binding)])
+</span><a href="Language.EO.Phi.Dependencies.html#zipBindings"><span class="hs-identifier hs-var">zipBindings</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633444"><span class="hs-identifier hs-var">xs</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633445"><span class="hs-identifier hs-var">ys</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-56"></span><span>        </span><span class="hs-special">(</span><span id="local-6989586621679633447"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633447"><span class="hs-identifier hs-var">zs</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679633448"><span class="annot"><span class="annottext">[(Binding, Binding)]
+</span><a href="#local-6989586621679633448"><span class="hs-identifier hs-var">collisions</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-57"></span><span>          </span><span id="local-6989586621679633449"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633449"><span class="hs-identifier hs-var">ws</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">((Binding, Binding) -&gt; Either String Binding)
+-&gt; [(Binding, Binding)] -&gt; Either String [Binding]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m (t b)
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Binding -&gt; Either String Binding)
+-&gt; (Binding, Binding) -&gt; Either String Binding
+forall a b c. (a -&gt; b -&gt; c) -&gt; (a, b) -&gt; c
+</span><span class="hs-identifier hs-var">uncurry</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Binding -&gt; Either String Binding
+</span><a href="Language.EO.Phi.Dependencies.html#mergeBinding"><span class="hs-identifier hs-var">mergeBinding</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[(Binding, Binding)]
+</span><a href="#local-6989586621679633448"><span class="hs-identifier hs-var">collisions</span></a></span><span>
+</span><span id="line-58"></span><span>          </span><span class="annot"><span class="annottext">[Binding] -&gt; Either String [Binding]
+forall a. a -&gt; Either String a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633447"><span class="hs-identifier hs-var">zs</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; [Binding]
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633449"><span class="hs-identifier hs-var">ws</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-60"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; Either String [Binding]
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Either String [Binding])
+-&gt; String -&gt; Either String [Binding]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-61"></span><span>        </span><span class="annot"><span class="annottext">forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="hs-glyph">@</span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-62"></span><span>          </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;conflict when adding dependencies (trying to merge non-Package formations &quot;</span></span><span>
+</span><span id="line-63"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Object -&gt; String
+forall a. Print a =&gt; a -&gt; String
+</span><a href="Language.EO.Phi.Syntax.html#printTree"><span class="hs-identifier hs-var">printTree</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633444"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Object -&gt; String
+forall a. Print a =&gt; a -&gt; String
+</span><a href="Language.EO.Phi.Syntax.html#printTree"><span class="hs-identifier hs-var">printTree</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633445"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot; )&quot;</span></span><span>
+</span><span id="line-66"></span><span>          </span><span class="hs-special">]</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#deepMerge"><span class="hs-identifier hs-type">deepMerge</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-69"></span><span id="deepMerge"><span class="annot"><span class="annottext">deepMerge :: Program -&gt; Program -&gt; Either String Program
+</span><a href="Language.EO.Phi.Dependencies.html#deepMerge"><span class="hs-identifier hs-var hs-var">deepMerge</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span id="local-6989586621679633454"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633454"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span id="local-6989586621679633455"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633455"><span class="hs-identifier hs-var">ys</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Program
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-var">Program</span></a></span><span> </span><span class="annot"><span class="annottext">([Binding] -&gt; Program)
+-&gt; Either String [Binding] -&gt; Either String Program
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; Either String [Binding]
+</span><a href="Language.EO.Phi.Dependencies.html#mergeBindings"><span class="hs-identifier hs-var">mergeBindings</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding]
+</span><a href="#local-6989586621679633456"><span class="hs-identifier hs-var">mkPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633454"><span class="hs-identifier hs-var">xs</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding]
+</span><a href="#local-6989586621679633456"><span class="hs-identifier hs-var">mkPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633455"><span class="hs-identifier hs-var">ys</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-70"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-71"></span><span>  </span><span id="local-6989586621679633456"><span class="annot"><span class="annottext">mkPackage :: [Binding] -&gt; [Binding]
+</span><a href="#local-6989586621679633456"><span class="hs-identifier hs-var hs-var">mkPackage</span></a></span></span><span> </span><span id="local-6989586621679633457"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633457"><span class="hs-identifier hs-var">bs</span></a></span></span><span>
+</span><span id="line-72"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Bool
+</span><a href="Language.EO.Phi.Dependencies.html#isPackage"><span class="hs-identifier hs-var">isPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633457"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633457"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-comment">-- FIXME: check if lambda attribute exists and throw error!</span><span>
+</span><span id="line-74"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Function -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-var">LambdaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Function
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Function"><span class="hs-identifier hs-var">Function</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Package&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633457"><span class="hs-identifier hs-var">bs</span></a></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#deepMergePrograms"><span class="hs-identifier hs-type">deepMergePrograms</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span>
+</span><span id="line-77"></span><span id="deepMergePrograms"><span class="annot"><span class="annottext">deepMergePrograms :: [Program] -&gt; Either String Program
+</span><a href="Language.EO.Phi.Dependencies.html#deepMergePrograms"><span class="hs-identifier hs-var hs-var">deepMergePrograms</span></a></span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Program -&gt; Either String Program
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Program
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-var">Program</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-78"></span><span class="annot"><a href="Language.EO.Phi.Dependencies.html#deepMergePrograms"><span class="hs-identifier hs-var">deepMergePrograms</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679633459"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679633459"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679633460"><span class="annot"><span class="annottext">[Program]
+</span><a href="#local-6989586621679633460"><span class="hs-identifier hs-var">ps</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Program -&gt; Program -&gt; Either String Program)
+-&gt; Program -&gt; [Program] -&gt; Either String Program
+forall (t :: * -&gt; *) (m :: * -&gt; *) b a.
+(Foldable t, Monad m) =&gt;
+(b -&gt; a -&gt; m b) -&gt; b -&gt; t a -&gt; m b
+</span><span class="hs-identifier hs-var">foldM</span></span><span> </span><span class="annot"><span class="annottext">Program -&gt; Program -&gt; Either String Program
+</span><a href="Language.EO.Phi.Dependencies.html#deepMerge"><span class="hs-identifier hs-var">deepMerge</span></a></span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679633459"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">[Program]
+</span><a href="#local-6989586621679633460"><span class="hs-identifier hs-var">ps</span></a></span><span>
+</span><span id="line-79"></span></pre></body></html>

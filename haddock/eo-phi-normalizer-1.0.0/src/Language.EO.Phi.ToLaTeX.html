@@ -1,0 +1,802 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.ToLaTeX</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fold</span></span><span class="hs-special">)</span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">intersperse</span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.String</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">IsString</span></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.html"><span class="hs-identifier">Language.EO.Phi</span></a></span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html"><span class="hs-identifier">Language.EO.Phi.Rules.Yaml</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Regex</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">mkRegex</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">subRegex</span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">newtype</span><span> </span><span id="LaTeX"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="LaTeX"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span></span><span> </span><span class="hs-special">{</span><span id="unLaTeX"><span class="annot"><span class="annottext">LaTeX -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#unLaTeX"><span class="hs-identifier hs-var hs-var">unLaTeX</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">}</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">newtype</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679639349"><span class="annot"><span class="annottext">String -&gt; LaTeX
+(String -&gt; LaTeX) -&gt; IsString LaTeX
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; LaTeX
+fromString :: String -&gt; LaTeX
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">IsString</span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679639356"><span id="local-6989586621679639361"><span id="local-6989586621679639367"><span class="annot"><span class="annottext">NonEmpty LaTeX -&gt; LaTeX
+LaTeX -&gt; LaTeX -&gt; LaTeX
+(LaTeX -&gt; LaTeX -&gt; LaTeX)
+-&gt; (NonEmpty LaTeX -&gt; LaTeX)
+-&gt; (forall b. Integral b =&gt; b -&gt; LaTeX -&gt; LaTeX)
+-&gt; Semigroup LaTeX
+forall b. Integral b =&gt; b -&gt; LaTeX -&gt; LaTeX
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+$c&lt;&gt; :: LaTeX -&gt; LaTeX -&gt; LaTeX
+&lt;&gt; :: LaTeX -&gt; LaTeX -&gt; LaTeX
+$csconcat :: NonEmpty LaTeX -&gt; LaTeX
+sconcat :: NonEmpty LaTeX -&gt; LaTeX
+$cstimes :: forall b. Integral b =&gt; b -&gt; LaTeX -&gt; LaTeX
+stimes :: forall b. Integral b =&gt; b -&gt; LaTeX -&gt; LaTeX
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Semigroup</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679639376"><span id="local-6989586621679639381"><span id="local-6989586621679639385"><span class="annot"><span class="annottext">Semigroup LaTeX
+LaTeX
+Semigroup LaTeX =&gt;
+LaTeX
+-&gt; (LaTeX -&gt; LaTeX -&gt; LaTeX) -&gt; ([LaTeX] -&gt; LaTeX) -&gt; Monoid LaTeX
+[LaTeX] -&gt; LaTeX
+LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+$cmempty :: LaTeX
+mempty :: LaTeX
+$cmappend :: LaTeX -&gt; LaTeX -&gt; LaTeX
+mappend :: LaTeX -&gt; LaTeX -&gt; LaTeX
+$cmconcat :: [LaTeX] -&gt; LaTeX
+mconcat :: [LaTeX] -&gt; LaTeX
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Monoid</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639390"><span id="local-6989586621679639395"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-21"></span><span>  </span><span id="local-6989586621679639398"><span class="annot"><span class="annottext">show :: LaTeX -&gt; String
+</span><a href="#local-6989586621679639398"><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#latexToString"><span class="hs-identifier hs-var">latexToString</span></a></span><span>
+</span><span id="line-22"></span><span>
+</span><span id="line-23"></span><span class="hs-keyword">class</span><span> </span><span id="ToLatex"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-var">ToLatex</span></a></span></span><span> </span><span id="local-6989586621679639247"><span class="annot"><a href="#local-6989586621679639247"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-24"></span><span>  </span><span id="toLatex"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-type">toLatex</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679639247"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span><span>
+</span><span id="line-25"></span><span>  </span><span id="toLatexString"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatexString"><span class="hs-identifier hs-type">toLatexString</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679639247"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-26"></span><span>  </span><span id="local-6989586621679639404"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatexString"><span class="hs-identifier hs-var hs-var">toLatexString</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#latexToString"><span class="hs-identifier hs-var">latexToString</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; String) -&gt; (a -&gt; LaTeX) -&gt; a -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639409"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-29"></span><span>  </span><span id="local-6989586621679639418"><span class="annot"><span class="annottext">toLatex :: Program -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span> </span><span id="local-6989586621679639420"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639420"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-30"></span><span>    </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\Big\\{ &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639420"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; \\Big\\}&quot;</span></span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639424"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Attribute"><span class="hs-identifier hs-type">Attribute</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-33"></span><span>  </span><span id="local-6989586621679639433"><span class="annot"><span class="annottext">toLatex :: Attribute -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Phi"><span class="hs-identifier hs-var">Phi</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;@&quot;</span></span><span>
+</span><span id="line-34"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Rho"><span class="hs-identifier hs-var">Rho</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;^&quot;</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-type">AlphaIndex</span></a></span><span> </span><span id="local-6989586621679639438"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639438"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\alpha_&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. HasCallStack =&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">tail</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639438"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Label"><span class="hs-identifier hs-type">Label</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelId"><span class="hs-identifier hs-type">LabelId</span></a></span><span> </span><span id="local-6989586621679639442"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639442"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639442"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaAttr"><span class="hs-identifier hs-type">MetaAttr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelMetaId"><span class="hs-identifier hs-type">LabelMetaId</span></a></span><span> </span><span id="local-6989586621679639445"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639445"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639445"><span class="hs-identifier hs-var">l</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639448"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-40"></span><span>  </span><span id="local-6989586621679639466"><span class="annot"><span class="annottext">toLatex :: Binding -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679639468"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639468"><span class="hs-identifier hs-var">attr</span></a></span></span><span> </span><span id="local-6989586621679639469"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639469"><span class="hs-identifier hs-var">obj</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639468"><span class="hs-identifier hs-var">attr</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; -&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639469"><span class="hs-identifier hs-var">obj</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679639471"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639471"><span class="hs-identifier hs-var">attr</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639471"><span class="hs-identifier hs-var">attr</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; -&gt; ?&quot;</span></span><span>
+</span><span id="line-42"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-type">DeltaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Bytes"><span class="hs-identifier hs-type">Bytes</span></a></span><span> </span><span id="local-6989586621679639474"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639474"><span class="hs-identifier hs-var">bytes</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;D&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639474"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-43"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaEmptyBinding"><span class="hs-identifier hs-var">DeltaEmptyBinding</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;D&gt; ?&quot;</span></span><span>
+</span><span id="line-44"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-type">LambdaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Function"><span class="hs-identifier hs-type">Function</span></a></span><span> </span><span id="local-6989586621679639478"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639478"><span class="hs-identifier hs-var">fn</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;L&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639478"><span class="hs-identifier hs-var">fn</span></a></span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaBindings"><span class="hs-identifier hs-type">MetaBindings</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#BindingsMetaId"><span class="hs-identifier hs-type">BindingsMetaId</span></a></span><span> </span><span id="local-6989586621679639481"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639481"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639481"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-46"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaDeltaBinding"><span class="hs-identifier hs-type">MetaDeltaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#BytesMetaId"><span class="hs-identifier hs-type">BytesMetaId</span></a></span><span> </span><span id="local-6989586621679639484"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639484"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;D&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639484"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639487"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-49"></span><span>  </span><span id="local-6989586621679639527"><span class="annot"><span class="annottext">toLatex :: Object -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679639528"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639528"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-50"></span><span>    </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;[[ &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; LaTeX) -&gt; [Binding] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639528"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; ]]&quot;</span></span><span>
+</span><span id="line-51"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-type">Application</span></a></span><span> </span><span id="local-6989586621679639530"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639530"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679639531"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639531"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639530"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;( &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; LaTeX) -&gt; [Binding] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639531"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; )&quot;</span></span><span>
+</span><span id="line-53"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-type">ObjectDispatch</span></a></span><span> </span><span id="local-6989586621679639533"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639533"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679639534"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639534"><span class="hs-identifier hs-var">attr</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-54"></span><span>    </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639533"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639534"><span class="hs-identifier hs-var">attr</span></a></span><span>
+</span><span id="line-55"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#GlobalObject"><span class="hs-identifier hs-var">GlobalObject</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;Q&quot;</span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ThisObject"><span class="hs-identifier hs-var">ThisObject</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\xi&quot;</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\dead&quot;</span></span><span>
+</span><span id="line-58"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaObject"><span class="hs-identifier hs-type">MetaObject</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectMetaId"><span class="hs-identifier hs-type">ObjectMetaId</span></a></span><span> </span><span id="local-6989586621679639540"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639540"><span class="hs-identifier hs-var">metaId</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639540"><span class="hs-identifier hs-var">metaId</span></a></span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaTailContext"><span class="hs-identifier hs-type">MetaTailContext</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;rendering MetaTailContext in LaTex format&quot;</span></span><span>
+</span><span id="line-60"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaFunction"><span class="hs-identifier hs-type">MetaFunction</span></a></span><span> </span><span class="annot"><span class="annottext">MetaFunctionName
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;rendering MetaFunction in LaTex format&quot;</span></span><span>
+</span><span id="line-61"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaSubstThis"><span class="hs-identifier hs-type">MetaSubstThis</span></a></span><span> </span><span id="local-6989586621679639545"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639545"><span class="hs-identifier hs-var">obj1</span></a></span></span><span> </span><span id="local-6989586621679639546"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639546"><span class="hs-identifier hs-var">obj2</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\mathbb{S}(&quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639545"><span class="hs-identifier hs-var">obj1</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639546"><span class="hs-identifier hs-var">obj2</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;)&quot;</span></span><span>
+</span><span id="line-62"></span><span>
+</span><span id="line-63"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#removeOrgEolang"><span class="hs-identifier hs-type">removeOrgEolang</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-64"></span><span id="removeOrgEolang"><span class="annot"><span class="annottext">removeOrgEolang :: String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#removeOrgEolang"><span class="hs-identifier hs-var hs-var">removeOrgEolang</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; (String -&gt; Text) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HasCallStack =&gt; Text -&gt; Text -&gt; Text -&gt; Text
+Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">T.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;Q.org.eolang&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;QQ&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Text) -&gt; (String -&gt; Text) -&gt; String -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span>
+</span><span id="line-65"></span><span>
+</span><span id="line-66"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#substituteTau"><span class="hs-identifier hs-type">substituteTau</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-67"></span><span id="substituteTau"><span class="annot"><span class="annottext">substituteTau :: String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#substituteTau"><span class="hs-identifier hs-var hs-var">substituteTau</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Text -&gt; String
+</span><span class="hs-identifier hs-var">T.unpack</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; String) -&gt; (String -&gt; Text) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">HasCallStack =&gt; Text -&gt; Text -&gt; Text -&gt; Text
+Text -&gt; Text -&gt; Text -&gt; Text
+</span><span class="hs-identifier hs-var">T.replace</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;&#964;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><span class="hs-string">&quot;\\tau&quot;</span></span><span> </span><span class="annot"><span class="annottext">(Text -&gt; Text) -&gt; (String -&gt; Text) -&gt; String -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Text
+</span><span class="hs-identifier hs-var">T.pack</span></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#removeExclamationsMarks"><span class="hs-identifier hs-type">removeExclamationsMarks</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-70"></span><span id="removeExclamationsMarks"><span class="annot"><span class="annottext">removeExclamationsMarks :: String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#removeExclamationsMarks"><span class="hs-identifier hs-var hs-var">removeExclamationsMarks</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; String -&gt; String
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'!'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#removeAlpha"><span class="hs-identifier hs-type">removeAlpha</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-73"></span><span id="removeAlpha"><span class="annot"><span class="annottext">removeAlpha :: String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#removeAlpha"><span class="hs-identifier hs-var hs-var">removeAlpha</span></a></span></span><span> </span><span id="local-6989586621679639555"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639555"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Regex -&gt; String -&gt; String -&gt; String
+</span><span class="hs-identifier hs-var">subRegex</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Regex
+</span><span class="hs-identifier hs-var">mkRegex</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\\\alpha_([0-9]+) -&gt;&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639555"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;\\1-&gt;&quot;</span></span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- &gt;&gt;&gt; toLatex (&quot;{ &#10214; &#945;0 &#8614; &#958;, &#945;1 &#8614; &#934;.org.eolang.bytes( &#916; &#10509; 00- ) &#10215; }&quot; :: Program)</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- \Big\{ [[ 0-&gt; $, 1-&gt; QQ.bytes( D&gt; 00- ) ]] \Big\}</span><span>
+</span><span id="line-77"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#latexToString"><span class="hs-identifier hs-type">latexToString</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-78"></span><span id="latexToString"><span class="annot"><span class="annottext">latexToString :: LaTeX -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#latexToString"><span class="hs-identifier hs-var hs-var">latexToString</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#removeExclamationsMarks"><span class="hs-identifier hs-var">removeExclamationsMarks</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (LaTeX -&gt; String) -&gt; LaTeX -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#substituteTau"><span class="hs-identifier hs-var">substituteTau</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (LaTeX -&gt; String) -&gt; LaTeX -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#removeAlpha"><span class="hs-identifier hs-var">removeAlpha</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (LaTeX -&gt; String) -&gt; LaTeX -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#removeOrgEolang"><span class="hs-identifier hs-var">removeOrgEolang</span></a></span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; (LaTeX -&gt; String) -&gt; LaTeX -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; String
+</span><a href="Language.EO.Phi.ToLaTeX.html#unLaTeX"><span class="hs-identifier hs-var">unLaTeX</span></a></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-type">inMathMode</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span><span>
+</span><span id="line-81"></span><span id="inMathMode"><span class="annot"><span class="annottext">inMathMode :: LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var hs-var">inMathMode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; $ &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; (LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; $ &quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-comment">-- it's ok without separators here because rules have zero or one constraint from the context</span><span>
+</span><span id="line-84"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639559"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#RuleContext"><span class="hs-identifier hs-type">RuleContext</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-85"></span><span>  </span><span id="local-6989586621679639577"><span class="annot"><span class="annottext">toLatex :: RuleContext -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#RuleContext"><span class="hs-identifier hs-type">RuleContext</span></a></span><span class="hs-special">{</span><span id="local-6989586621679639579"><span id="local-6989586621679639580"><span id="local-6989586621679639581"><span class="annot"><span class="annottext">Maybe Attribute
+Maybe Object
+global_object :: Maybe Object
+current_object :: Maybe Object
+current_attribute :: Maybe Attribute
+$sel:global_object:RuleContext :: RuleContext -&gt; Maybe Object
+$sel:current_object:RuleContext :: RuleContext -&gt; Maybe Object
+$sel:current_attribute:RuleContext :: RuleContext -&gt; Maybe Attribute
+</span><a href="#local-6989586621679639579"><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var">..</span></a></span></span></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-86"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; (Object -&gt; LaTeX) -&gt; Maybe Object -&gt; LaTeX
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679639586"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639586"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#GlobalObject"><span class="hs-identifier hs-var">GlobalObject</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; -&gt; &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639586"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe Object
+</span><a href="#local-6989586621679639579"><span class="hs-identifier hs-var">global_object</span></a></span><span>
+</span><span id="line-87"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; (Object -&gt; LaTeX) -&gt; Maybe Object -&gt; LaTeX
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679639587"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639587"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639587"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; is the scope of the redex&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe Object
+</span><a href="#local-6989586621679639580"><span class="hs-identifier hs-var">current_object</span></a></span><span>
+</span><span id="line-88"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; (Attribute -&gt; LaTeX) -&gt; Maybe Attribute -&gt; LaTeX
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679639588"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639588"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639588"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; is the current attribute&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe Attribute
+</span><a href="#local-6989586621679639581"><span class="hs-identifier hs-var">current_attribute</span></a></span><span>
+</span><span id="line-89"></span><span>
+</span><span id="line-90"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639591"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#RuleAttribute"><span class="hs-identifier hs-type">RuleAttribute</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-91"></span><span>  </span><span id="local-6989586621679639597"><span class="annot"><span class="annottext">toLatex :: RuleAttribute -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectAttr"><span class="hs-identifier hs-type">ObjectAttr</span></a></span><span> </span><span id="local-6989586621679639599"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639599"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639599"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">RuleAttribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaAttr"><span class="hs-identifier hs-var">DeltaAttr</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\Delta&quot;</span></span><span>
+</span><span id="line-93"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">RuleAttribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#LambdaAttr"><span class="hs-identifier hs-var">LambdaAttr</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\lambda&quot;</span></span><span>
+</span><span id="line-94"></span><span>
+</span><span id="line-95"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639604"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Condition"><span class="hs-identifier hs-type">Condition</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-96"></span><span>  </span><span id="local-6989586621679639639"><span class="annot"><span class="annottext">toLatex :: Condition -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#IsNF"><span class="hs-identifier hs-type">IsNF</span></a></span><span> </span><span id="local-6989586621679639641"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639641"><span class="hs-identifier hs-var">nf</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639641"><span class="hs-identifier hs-var">nf</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\in\\mathcal{N}&quot;</span></span><span>
+</span><span id="line-97"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#IsNFInsideFormation"><span class="hs-identifier hs-type">IsNFInsideFormation</span></a></span><span> </span><span id="local-6989586621679639643"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639643"><span class="hs-identifier hs-var">nf_inside_formation</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639643"><span class="hs-identifier hs-var">nf_inside_formation</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; is nf inside formation&quot;</span></span><span>
+</span><span id="line-99"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#PresentAttrs"><span class="hs-identifier hs-type">PresentAttrs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#AttrsInBindings"><span class="hs-identifier hs-type">AttrsInBindings</span></a></span><span> </span><span id="local-6989586621679639646"><span class="annot"><span class="annottext">[RuleAttribute]
+</span><a href="#local-6989586621679639646"><span class="hs-identifier hs-var">attrs</span></a></span></span><span> </span><span id="local-6989586621679639647"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639647"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-100"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(RuleAttribute -&gt; LaTeX) -&gt; [RuleAttribute] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">RuleAttribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[RuleAttribute]
+</span><a href="#local-6989586621679639646"><span class="hs-identifier hs-var">attrs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; \\in &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; LaTeX) -&gt; [Binding] -&gt; LaTeX
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; [a] -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639647"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#AbsentAttrs"><span class="hs-identifier hs-type">AbsentAttrs</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#AttrsInBindings"><span class="hs-identifier hs-type">AttrsInBindings</span></a></span><span> </span><span id="local-6989586621679639650"><span class="annot"><span class="annottext">[RuleAttribute]
+</span><a href="#local-6989586621679639650"><span class="hs-identifier hs-var">attrs</span></a></span></span><span> </span><span id="local-6989586621679639651"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639651"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(RuleAttribute -&gt; LaTeX) -&gt; [RuleAttribute] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">RuleAttribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[RuleAttribute]
+</span><a href="#local-6989586621679639650"><span class="hs-identifier hs-var">attrs</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; \\notin &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; LaTeX) -&gt; [Binding] -&gt; LaTeX
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; [a] -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679639651"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-103"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#AttrNotEqual"><span class="hs-identifier hs-type">AttrNotEqual</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679639653"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639653"><span class="hs-identifier hs-var">attr1</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679639654"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639654"><span class="hs-identifier hs-var">attr2</span></a></span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; LaTeX -&gt; LaTeX
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639653"><span class="hs-identifier hs-var">attr1</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot; \\neq &quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679639654"><span class="hs-identifier hs-var">attr2</span></a></span><span>
+</span><span id="line-105"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#ApplyInSubformations"><span class="hs-identifier hs-type">ApplyInSubformations</span></a></span><span> </span><span id="local-6989586621679639656"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679639656"><span class="hs-identifier hs-var">apply_in_subformations</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-106"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679639656"><span class="hs-identifier hs-var">apply_in_subformations</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;not in subformations&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-107"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#ApplyInAbstractSubformations"><span class="hs-identifier hs-type">ApplyInAbstractSubformations</span></a></span><span> </span><span id="local-6989586621679639659"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679639659"><span class="hs-identifier hs-var">apply_in_abstract_subformations</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679639659"><span class="hs-identifier hs-var">apply_in_abstract_subformations</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;not in subformations&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#isNonEmptyContext"><span class="hs-identifier hs-type">isNonEmptyContext</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#RuleContext"><span class="hs-identifier hs-type">RuleContext</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-111"></span><span id="isNonEmptyContext"><span class="annot"><span class="annottext">isNonEmptyContext :: Maybe RuleContext -&gt; Bool
+</span><a href="Language.EO.Phi.ToLaTeX.html#isNonEmptyContext"><span class="hs-identifier hs-var hs-var">isNonEmptyContext</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-112"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#isNonEmptyContext"><span class="hs-identifier hs-var">isNonEmptyContext</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#RuleContext"><span class="hs-identifier hs-type">RuleContext</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe Object
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">Maybe Object
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="annot"><span class="annottext">Maybe Attribute
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-113"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#isNonEmptyContext"><span class="hs-identifier hs-var">isNonEmptyContext</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-114"></span><span>
+</span><span id="line-115"></span><span class="hs-comment">-- Renders all conditions on separate lines</span><span>
+</span><span id="line-116"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639663"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-117"></span><span>  </span><span id="local-6989586621679639694"><span class="annot"><span class="annottext">toLatex :: Rule -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span><span> </span><span id="local-6989586621679639696"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639696"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639697"><span class="annot"><span class="annottext">Maybe RuleContext
+</span><a href="#local-6989586621679639697"><span class="hs-identifier hs-var">context</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [MetaId]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639698"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639698"><span class="hs-identifier hs-var">pattern</span></a></span></span><span> </span><span id="local-6989586621679639699"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639699"><span class="hs-identifier hs-var">result</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [FreshMetaId]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639700"><span class="annot"><span class="annottext">[Condition]
+</span><a href="#local-6989586621679639700"><span class="hs-identifier hs-var">when</span></a></span></span><span> </span><span class="annot"><span class="annottext">[RuleTest]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-118"></span><span>    </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\rrule{&quot;</span></span><span>
+</span><span id="line-119"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639696"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-120"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;}: &amp;&quot;</span></span><span>
+</span><span id="line-121"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639698"><span class="hs-identifier hs-var">pattern</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-122"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\(\\trans\\)&quot;</span></span><span>
+</span><span id="line-123"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639699"><span class="hs-identifier hs-var">result</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Condition] -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[Condition]
+</span><a href="#local-6989586621679639700"><span class="hs-identifier hs-var">when</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext -&gt; Bool
+</span><a href="Language.EO.Phi.ToLaTeX.html#isNonEmptyContext"><span class="hs-identifier hs-var">isNonEmptyContext</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext
+</span><a href="#local-6989586621679639697"><span class="hs-identifier hs-var">context</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\\\\\text {if }&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span class="hs-special">)</span><span>
+</span><span id="line-125"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; (RuleContext -&gt; LaTeX) -&gt; Maybe RuleContext -&gt; LaTeX
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679639703"><span class="annot"><span class="annottext">RuleContext
+</span><a href="#local-6989586621679639703"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">RuleContext -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">RuleContext
+</span><a href="#local-6989586621679639703"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\\\&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext
+</span><a href="#local-6989586621679639697"><span class="hs-identifier hs-var">context</span></a></span><span>
+</span><span id="line-126"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;,\\\\&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Condition -&gt; LaTeX) -&gt; [Condition] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;&amp;&quot;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(LaTeX -&gt; LaTeX) -&gt; (Condition -&gt; LaTeX) -&gt; Condition -&gt; LaTeX
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Condition -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Condition]
+</span><a href="#local-6989586621679639700"><span class="hs-identifier hs-var">when</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>
+</span><span id="line-128"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679639706"><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ToLatex"><span class="hs-identifier hs-type">ToLatex</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span><span class="hs-special">]</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-129"></span><span>  </span><span id="local-6989586621679639717"><span class="annot"><span class="annottext">toLatex :: [Rule] -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var hs-var hs-var hs-var">toLatex</span></a></span></span><span> </span><span id="local-6989586621679639718"><span class="annot"><span class="annottext">[Rule]
+</span><a href="#local-6989586621679639718"><span class="hs-identifier hs-var">rules</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-130"></span><span>    </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\begin{figure*}\n\\begin{tabular}{rl}\n  &quot;</span></span><span>
+</span><span id="line-131"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\\\\\\\\n  &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Rule -&gt; LaTeX) -&gt; [Rule] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Rule -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[Rule]
+</span><a href="#local-6989586621679639718"><span class="hs-identifier hs-var">rules</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-132"></span><span>      </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\n\\end{tabular}\n\\end{figure*}&quot;</span></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- Renders all conditions in one line</span><span>
+</span><span id="line-135"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#ruleToLatexCompact"><span class="hs-identifier hs-type">ruleToLatexCompact</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span><span>
+</span><span id="line-136"></span><span id="ruleToLatexCompact"><span class="annot"><span class="annottext">ruleToLatexCompact :: Rule -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#ruleToLatexCompact"><span class="hs-identifier hs-var hs-var">ruleToLatexCompact</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span><span> </span><span id="local-6989586621679639720"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639720"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639721"><span class="annot"><span class="annottext">Maybe RuleContext
+</span><a href="#local-6989586621679639721"><span class="hs-identifier hs-var">context</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [MetaId]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639722"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639722"><span class="hs-identifier hs-var">pattern</span></a></span></span><span> </span><span id="local-6989586621679639723"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639723"><span class="hs-identifier hs-var">result</span></a></span></span><span> </span><span class="annot"><span class="annottext">Maybe [FreshMetaId]
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679639724"><span class="annot"><span class="annottext">[Condition]
+</span><a href="#local-6989586621679639724"><span class="hs-identifier hs-var">when</span></a></span></span><span> </span><span class="annot"><span class="annottext">[RuleTest]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-137"></span><span>  </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\rrule{&quot;</span></span><span>
+</span><span id="line-138"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-var">LaTeX</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679639720"><span class="hs-identifier hs-var">name</span></a></span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;}: &quot;</span></span><span>
+</span><span id="line-140"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639722"><span class="hs-identifier hs-var">pattern</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-141"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\(\\trans\\)&quot;</span></span><span>
+</span><span id="line-142"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#inMathMode"><span class="hs-identifier hs-var">inMathMode</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679639723"><span class="hs-identifier hs-var">result</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-143"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Condition] -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[Condition]
+</span><a href="#local-6989586621679639724"><span class="hs-identifier hs-var">when</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext -&gt; Bool
+</span><a href="Language.EO.Phi.ToLaTeX.html#isNonEmptyContext"><span class="hs-identifier hs-var">isNonEmptyContext</span></a></span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext
+</span><a href="#local-6989586621679639721"><span class="hs-identifier hs-var">context</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\quad\\text {if }&quot;</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; (RuleContext -&gt; LaTeX) -&gt; Maybe RuleContext -&gt; LaTeX
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+forall a. Monoid a =&gt; a
+</span><span class="hs-identifier hs-var">mempty</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679639725"><span class="annot"><span class="annottext">RuleContext
+</span><a href="#local-6989586621679639725"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">RuleContext -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">RuleContext
+</span><a href="#local-6989586621679639725"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Maybe RuleContext
+</span><a href="#local-6989586621679639721"><span class="hs-identifier hs-var">context</span></a></span><span>
+</span><span id="line-145"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;, &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Condition -&gt; LaTeX) -&gt; [Condition] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Condition -&gt; LaTeX
+forall a. ToLatex a =&gt; a -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#toLatex"><span class="hs-identifier hs-var">toLatex</span></a></span><span> </span><span class="annot"><span class="annottext">[Condition]
+</span><a href="#local-6989586621679639724"><span class="hs-identifier hs-var">when</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-146"></span><span>
+</span><span id="line-147"></span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#rulesToLatexCompact"><span class="hs-identifier hs-type">rulesToLatexCompact</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.ToLaTeX.html#LaTeX"><span class="hs-identifier hs-type">LaTeX</span></a></span><span>
+</span><span id="line-148"></span><span id="rulesToLatexCompact"><span class="annot"><span class="annottext">rulesToLatexCompact :: [Rule] -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#rulesToLatexCompact"><span class="hs-identifier hs-var hs-var">rulesToLatexCompact</span></a></span></span><span> </span><span id="local-6989586621679639727"><span class="annot"><span class="annottext">[Rule]
+</span><a href="#local-6989586621679639727"><span class="hs-identifier hs-var">rules</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-149"></span><span>  </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\begin{figure*}\n  &quot;</span></span><span>
+</span><span id="line-150"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[LaTeX] -&gt; LaTeX
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span><span class="hs-identifier hs-var">fold</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">LaTeX -&gt; [LaTeX] -&gt; [LaTeX]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">intersperse</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\\\\\\vspace*{0.5em}\n  &quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Rule -&gt; LaTeX) -&gt; [Rule] -&gt; [LaTeX]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Rule -&gt; LaTeX
+</span><a href="Language.EO.Phi.ToLaTeX.html#ruleToLatexCompact"><span class="hs-identifier hs-var">ruleToLatexCompact</span></a></span><span> </span><span class="annot"><span class="annottext">[Rule]
+</span><a href="#local-6989586621679639727"><span class="hs-identifier hs-var">rules</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-151"></span><span>    </span><span class="annot"><span class="annottext">LaTeX -&gt; LaTeX -&gt; LaTeX
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">LaTeX
+</span><span class="hs-string">&quot;\n\\end{figure*}&quot;</span></span><span>
+</span><span id="line-152"></span></pre></body></html>

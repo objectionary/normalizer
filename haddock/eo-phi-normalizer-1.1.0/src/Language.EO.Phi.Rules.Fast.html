@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Rules.Fast</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NonEmpty</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html"><span class="hs-identifier">Language.EO.Phi.Rules.Common</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Yaml.html"><span class="hs-identifier">Language.EO.Phi.Rules.Yaml</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Yaml</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- $setup</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- &gt;&gt;&gt; :set -XOverloadedStrings</span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#withBinding"><span class="hs-identifier hs-type">withBinding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span>
+</span><span id="line-15"></span><span id="withBinding"><span class="annot"><span class="annottext">withBinding :: (Context -&gt; Object -&gt; Object) -&gt; Context -&gt; Binding -&gt; Binding
+</span><a href="Language.EO.Phi.Rules.Fast.html#withBinding"><span class="hs-identifier hs-var hs-var">withBinding</span></a></span></span><span> </span><span id="local-6989586621679633153"><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633153"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679633154"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633154"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-16"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Rho"><span class="hs-identifier hs-var">Rho</span></a></span><span> </span><span id="local-6989586621679633157"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633157"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Rho"><span class="hs-identifier hs-var">Rho</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633157"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="hs-comment">-- do not apply f inside &#961;-bindings</span><span>
+</span><span id="line-17"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633158"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633158"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679633159"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633159"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633158"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633153"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633154"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">{</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#currentAttr"><span class="hs-identifier hs-var">currentAttr</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679633158"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">}</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633159"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>  </span><span id="local-6989586621679633161"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633161"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633161"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-type">isLambdaBinding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-21"></span><span id="isLambdaBinding"><span class="annot"><span class="annottext">isLambdaBinding :: Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var hs-var">isLambdaBinding</span></a></span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-type">LambdaBinding</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-22"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#withSubObjects"><span class="hs-identifier hs-type">withSubObjects</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span>
+</span><span id="line-25"></span><span id="withSubObjects"><span class="annot"><span class="annottext">withSubObjects :: (Context -&gt; Object -&gt; Object) -&gt; Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#withSubObjects"><span class="hs-identifier hs-var hs-var">withSubObjects</span></a></span></span><span> </span><span id="local-6989586621679633165"><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633165"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679633166"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633166"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="#local-6989586621679633167"><span class="hs-identifier hs-var">go</span></a></span><span>
+</span><span id="line-26"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>  </span><span id="local-6989586621679633167"><span class="annot"><span class="annottext">go :: Object -&gt; Object
+</span><a href="#local-6989586621679633167"><span class="hs-identifier hs-var hs-var">go</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-28"></span><span>    </span><span id="local-6989586621679633170"><span class="annot"><span class="annottext">root :: Object
+</span><a href="#local-6989586621679633170"><span class="hs-identifier hs-var">root</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633172"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633172"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span>      </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#isEmptyBinding"><span class="hs-identifier hs-var">isEmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633172"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633172"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-30"></span><span>          </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679633177"><span class="annot"><span class="annottext">extendedContext :: Context
+</span><a href="#local-6989586621679633177"><span class="hs-identifier hs-var hs-var">extendedContext</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Context -&gt; Context
+</span><a href="Language.EO.Phi.Rules.Common.html#extendContextWith"><span class="hs-identifier hs-var">extendContextWith</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633170"><span class="hs-identifier hs-var">root</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633166"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span class="hs-special">{</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#insideFormation"><span class="hs-identifier hs-var">insideFormation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">True</span></span><span class="hs-special">}</span><span>
+</span><span id="line-31"></span><span>           </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-32"></span><span>                </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">(Context -&gt; Object -&gt; Object) -&gt; Context -&gt; Binding -&gt; Binding
+</span><a href="Language.EO.Phi.Rules.Fast.html#withBinding"><span class="hs-identifier hs-var">withBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633165"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633177"><span class="hs-identifier hs-var">extendedContext</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633180"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-33"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633180"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633180"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633172"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-34"></span><span>                </span><span class="hs-special">]</span><span>
+</span><span id="line-35"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-type">Application</span></a></span><span> </span><span id="local-6989586621679633182"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633182"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679633183"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633183"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-36"></span><span>      </span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span>
+</span><span id="line-37"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633165"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633166"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633182"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">(Context -&gt; Object -&gt; Object) -&gt; Context -&gt; Binding -&gt; Binding
+</span><a href="Language.EO.Phi.Rules.Fast.html#withBinding"><span class="hs-identifier hs-var">withBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633165"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633166"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633184"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-39"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633184"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633184"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633183"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-40"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-type">ObjectDispatch</span></a></span><span> </span><span id="local-6989586621679633186"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633186"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679633187"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633187"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Attribute -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-var">ObjectDispatch</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="#local-6989586621679633165"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633166"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633186"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633187"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679633188"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633188"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633188"><span class="hs-identifier hs-var">obj</span></a></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- | Normalize an object, following a version of call-by-value strategy:</span><span>
+</span><span id="line-45"></span><span class="hs-comment">--</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- 1. Apply rules in subobjects/subterms before applying a rule at root.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- 2. Do not apply rules under formations with at least one void (empty) binding.</span><span>
+</span><span id="line-48"></span><span class="hs-comment">--</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- &gt; runWithYegorRules applyRulesInsideOut &quot;&#10214; x &#8614; &#10214;&#10215;, y &#8614; &#10214; z &#8614; &#10214; w &#8614; &#958;.&#961;.&#961;.x &#10215; &#10215; &#10215;.y.z.w&quot;</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- &#10214; &#961; &#8614; &#10214; &#961; &#8614; &#10214; &#10215; &#10215; &#10215;</span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#applyRulesInsideOut"><span class="hs-identifier hs-type">applyRulesInsideOut</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span>
+</span><span id="line-52"></span><span id="applyRulesInsideOut"><span class="annot"><span class="annottext">applyRulesInsideOut :: Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#applyRulesInsideOut"><span class="hs-identifier hs-var hs-var">applyRulesInsideOut</span></a></span></span><span> </span><span id="local-6989586621679633190"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633190"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span id="local-6989586621679633191"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633191"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679633192"><span class="annot"><span class="annottext">obj' :: Object
+</span><a href="#local-6989586621679633192"><span class="hs-identifier hs-var hs-var">obj'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Context -&gt; Object -&gt; Object) -&gt; Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#withSubObjects"><span class="hs-identifier hs-var">withSubObjects</span></a></span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#applyRulesInsideOut"><span class="hs-identifier hs-var">applyRulesInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633190"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633191"><span class="hs-identifier hs-var">obj</span></a></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; [(String, Object)]
+</span><a href="Language.EO.Phi.Rules.Common.html#applyOneRuleAtRoot"><span class="hs-identifier hs-var">applyOneRuleAtRoot</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633190"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633192"><span class="hs-identifier hs-var">obj'</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-56"></span><span>      </span><span class="hs-comment">-- trace (&quot;No rule can be applied to object\n   &quot; &lt;&gt; printTree obj') $</span><span>
+</span><span id="line-57"></span><span>      </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633192"><span class="hs-identifier hs-var">obj'</span></a></span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679633194"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679633194"><span class="hs-identifier hs-var">_ruleName</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679633195"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633195"><span class="hs-identifier hs-var">obj''</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[(String, Object)]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-59"></span><span>      </span><span class="hs-comment">-- trace (ruleName &lt;&gt; &quot;: \n   &quot; &lt;&gt; printTree obj' &lt;&gt; &quot;\n &#8594; &quot; &lt;&gt; printTree obj'') $</span><span>
+</span><span id="line-60"></span><span>      </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#applyRulesInsideOut"><span class="hs-identifier hs-var">applyRulesInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633190"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633195"><span class="hs-identifier hs-var">obj''</span></a></span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutAsRule"><span class="hs-identifier hs-type">fastYegorInsideOutAsRule</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#NamedRule"><span class="hs-identifier hs-type">NamedRule</span></a></span><span>
+</span><span id="line-63"></span><span id="fastYegorInsideOutAsRule"><span class="annot"><span class="annottext">fastYegorInsideOutAsRule :: NamedRule
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutAsRule"><span class="hs-identifier hs-var hs-var">fastYegorInsideOutAsRule</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Yegor's rules (hardcoded)&quot;</span></span><span class="hs-special">,</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679633197"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633197"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span id="local-6989586621679633198"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633198"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633197"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633198"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutBinding"><span class="hs-identifier hs-type">fastYegorInsideOutBinding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Binding</span></a></span><span>
+</span><span id="line-66"></span><span id="fastYegorInsideOutBinding"><span class="annot"><span class="annottext">fastYegorInsideOutBinding :: Context -&gt; Binding -&gt; Binding
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutBinding"><span class="hs-identifier hs-var hs-var">fastYegorInsideOutBinding</span></a></span></span><span> </span><span id="local-6989586621679633201"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633201"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633202"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633202"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679633203"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633203"><span class="hs-identifier hs-var">obj</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633202"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633201"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633203"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutBinding"><span class="hs-identifier hs-var">fastYegorInsideOutBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><span class="hs-identifier">_</span></span><span> </span><span id="local-6989586621679633204"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633204"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633204"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="annot"><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-type">fastYegorInsideOut</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span>
+</span><span id="line-70"></span><span id="fastYegorInsideOut"><span class="annot"><span class="annottext">fastYegorInsideOut :: Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var hs-var">fastYegorInsideOut</span></a></span></span><span> </span><span id="local-6989586621679633205"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-71"></span><span>  </span><span id="local-6989586621679633206"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633206"><span class="hs-identifier hs-var">root</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Context -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#insideSubObject"><span class="hs-identifier hs-var">insideSubObject</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633206"><span class="hs-identifier hs-var">root</span></a></span><span> </span><span class="hs-comment">-- this rule is only applied at root</span><span>
+</span><span id="line-72"></span><span>  </span><span id="local-6989586621679633208"><span class="annot"><span class="annottext">root :: Object
+</span><a href="#local-6989586621679633208"><span class="hs-identifier hs-var">root</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#GlobalObject"><span class="hs-identifier hs-var">GlobalObject</span></a></span><span>
+</span><span id="line-73"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#insideFormation"><span class="hs-identifier hs-var">insideFormation</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-74"></span><span>        </span><span class="annot"><span class="annottext">NonEmpty Object -&gt; Object
+forall a. NonEmpty a -&gt; a
+</span><span class="hs-identifier hs-var">NonEmpty.last</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; NonEmpty Object
+</span><a href="Language.EO.Phi.Rules.Common.html#outerFormations"><span class="hs-identifier hs-var">outerFormations</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-75"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633208"><span class="hs-identifier hs-var">root</span></a></span><span>
+</span><span id="line-76"></span><span>  </span><span id="local-6989586621679633212"><span class="annot"><span class="annottext">root :: Object
+</span><a href="#local-6989586621679633212"><span class="hs-identifier hs-var">root</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ThisObject"><span class="hs-identifier hs-var">ThisObject</span></a></span><span>
+</span><span id="line-77"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#insideFormation"><span class="hs-identifier hs-var">insideFormation</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-78"></span><span>        </span><span class="annot"><span class="annottext">NonEmpty Object -&gt; Object
+forall a. NonEmpty a -&gt; a
+</span><span class="hs-identifier hs-var">NonEmpty.head</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; NonEmpty Object
+</span><a href="Language.EO.Phi.Rules.Common.html#outerFormations"><span class="hs-identifier hs-var">outerFormations</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633212"><span class="hs-identifier hs-var">root</span></a></span><span>
+</span><span id="line-80"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-type">ObjectDispatch</span></a></span><span> </span><span id="local-6989586621679633215"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633215"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679633216"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633216"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633215"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-82"></span><span>      </span><span id="local-6989586621679633217"><span class="annot"><span class="annottext">this :: Object
+</span><a href="#local-6989586621679633217"><span class="hs-identifier hs-var">this</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633218"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633218"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-83"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; [Binding] -&gt; Maybe Object
+</span><a href="Language.EO.Phi.Rules.Common.html#lookupBinding"><span class="hs-identifier hs-var">lookupBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633216"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633218"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-84"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679633220"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633220"><span class="hs-identifier hs-var">objA</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Yaml.html#substThis"><span class="hs-identifier hs-var">Yaml.substThis</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633217"><span class="hs-identifier hs-var">this</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633220"><span class="hs-identifier hs-var">objA</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>          </span><span class="annot"><span class="annottext">Maybe Object
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-86"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; [Binding] -&gt; Maybe Object
+</span><a href="Language.EO.Phi.Rules.Common.html#lookupBinding"><span class="hs-identifier hs-var">lookupBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Phi"><span class="hs-identifier hs-var">Phi</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633218"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-87"></span><span>              </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679633223"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633223"><span class="hs-identifier hs-var">objPhi</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Attribute -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-var">ObjectDispatch</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Yaml.html#substThis"><span class="hs-identifier hs-var">Yaml.substThis</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633217"><span class="hs-identifier hs-var">this</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633223"><span class="hs-identifier hs-var">objPhi</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633216"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-88"></span><span>              </span><span class="annot"><span class="annottext">Maybe Object
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-89"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633218"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-90"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Attribute -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-var">ObjectDispatch</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633217"><span class="hs-identifier hs-var">this</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633216"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-91"></span><span>      </span><span id="local-6989586621679633225"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633225"><span class="hs-identifier hs-var">this</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Attribute -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-var">ObjectDispatch</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633225"><span class="hs-identifier hs-var">this</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633216"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-92"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-type">Application</span></a></span><span> </span><span id="local-6989586621679633226"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633226"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679633227"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633227"><span class="hs-identifier hs-var">argBindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633226"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-94"></span><span>      </span><span id="local-6989586621679633228"><span class="annot"><span class="annottext">obj' :: Object
+</span><a href="#local-6989586621679633228"><span class="hs-identifier hs-var">obj'</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633229"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-95"></span><span>        </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679633230"><span class="annot"><span class="annottext">argBindings' :: [Binding]
+</span><a href="#local-6989586621679633230"><span class="hs-identifier hs-var hs-var">argBindings'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Binding) -&gt; [Binding] -&gt; [Binding]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Binding -&gt; Binding
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutBinding"><span class="hs-identifier hs-var">fastYegorInsideOutBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633227"><span class="hs-identifier hs-var">argBindings</span></a></span><span>
+</span><span id="line-96"></span><span>        </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633230"><span class="hs-identifier hs-var">argBindings'</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-97"></span><span>          </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><span class="hs-string">&quot;&#945;0&quot;</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633232"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633232"><span class="hs-identifier hs-var">arg0</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><span class="hs-string">&quot;&#945;1&quot;</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633233"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633233"><span class="hs-identifier hs-var">arg1</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><span class="hs-string">&quot;&#945;2&quot;</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633234"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633234"><span class="hs-identifier hs-var">arg2</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-98"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; [Binding]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#isEmptyBinding"><span class="hs-identifier hs-var">isEmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-99"></span><span>              </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633236"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633236"><span class="hs-identifier hs-var">a0</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633237"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633237"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633238"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633238"><span class="hs-identifier hs-var">a2</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-100"></span><span>                </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-101"></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633236"><span class="hs-identifier hs-var">a0</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633232"><span class="hs-identifier hs-var">arg0</span></a></span><span>
+</span><span id="line-102"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633237"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633233"><span class="hs-identifier hs-var">arg1</span></a></span><span>
+</span><span id="line-103"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633238"><span class="hs-identifier hs-var">a2</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633234"><span class="hs-identifier hs-var">arg2</span></a></span><span>
+</span><span id="line-104"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633239"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-105"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633239"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633239"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-106"></span><span>                        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633239"><span class="hs-identifier hs-var">binding</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-107"></span><span>                            </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633240"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633240"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633240"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; [Attribute] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633236"><span class="hs-identifier hs-var">a0</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633237"><span class="hs-identifier hs-var">a1</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633238"><span class="hs-identifier hs-var">a2</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-108"></span><span>                            </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-109"></span><span>                        </span><span class="hs-special">]</span><span>
+</span><span id="line-110"></span><span>                  </span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span>              </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span>
+</span><span id="line-112"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-113"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633228"><span class="hs-identifier hs-var">obj'</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633230"><span class="hs-identifier hs-var">argBindings'</span></a></span><span>
+</span><span id="line-114"></span><span>          </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><span class="hs-string">&quot;&#945;0&quot;</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633242"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633242"><span class="hs-identifier hs-var">arg0</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><span class="hs-string">&quot;&#945;1&quot;</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633243"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633243"><span class="hs-identifier hs-var">arg1</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-115"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; [Binding]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#isEmptyBinding"><span class="hs-identifier hs-var">isEmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-116"></span><span>              </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633244"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633244"><span class="hs-identifier hs-var">a0</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633245"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633245"><span class="hs-identifier hs-var">a1</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-117"></span><span>                </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-118"></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633244"><span class="hs-identifier hs-var">a0</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633242"><span class="hs-identifier hs-var">arg0</span></a></span><span>
+</span><span id="line-119"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633245"><span class="hs-identifier hs-var">a1</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633243"><span class="hs-identifier hs-var">arg1</span></a></span><span>
+</span><span id="line-120"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633246"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-121"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633246"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633246"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-122"></span><span>                        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633246"><span class="hs-identifier hs-var">binding</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-123"></span><span>                            </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633247"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633247"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633247"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; [Attribute] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633244"><span class="hs-identifier hs-var">a0</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633245"><span class="hs-identifier hs-var">a1</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-124"></span><span>                            </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-125"></span><span>                        </span><span class="hs-special">]</span><span>
+</span><span id="line-126"></span><span>                  </span><span class="hs-special">)</span><span>
+</span><span id="line-127"></span><span>              </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span>
+</span><span id="line-128"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-129"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633228"><span class="hs-identifier hs-var">obj'</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633230"><span class="hs-identifier hs-var">argBindings'</span></a></span><span>
+</span><span id="line-130"></span><span>          </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Alpha</span></a></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><span class="hs-string">&quot;&#945;0&quot;</span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633248"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633248"><span class="hs-identifier hs-var">arg0</span></a></span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-131"></span><span>            </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; [Binding]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#isEmptyBinding"><span class="hs-identifier hs-var">isEmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-132"></span><span>              </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633249"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633249"><span class="hs-identifier hs-var">a0</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-133"></span><span>                </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-134"></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633249"><span class="hs-identifier hs-var">a0</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633248"><span class="hs-identifier hs-var">arg0</span></a></span><span>
+</span><span id="line-135"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633250"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-136"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633250"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633250"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-137"></span><span>                        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633250"><span class="hs-identifier hs-var">binding</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-138"></span><span>                            </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633251"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633251"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633251"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Attribute -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633249"><span class="hs-identifier hs-var">a0</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-139"></span><span>                            </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-140"></span><span>                        </span><span class="hs-special">]</span><span>
+</span><span id="line-141"></span><span>                  </span><span class="hs-special">)</span><span>
+</span><span id="line-142"></span><span>              </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span>
+</span><span id="line-143"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-144"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633228"><span class="hs-identifier hs-var">obj'</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633230"><span class="hs-identifier hs-var">argBindings'</span></a></span><span>
+</span><span id="line-145"></span><span>          </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633252"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633252"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679633253"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633253"><span class="hs-identifier hs-var">argA</span></a></span></span><span class="hs-special">]</span><span>
+</span><span id="line-146"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-var">EmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633252"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-147"></span><span>                </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-148"></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633252"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633253"><span class="hs-identifier hs-var">argA</span></a></span><span>
+</span><span id="line-149"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633254"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-150"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633254"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633254"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-151"></span><span>                        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633254"><span class="hs-identifier hs-var">binding</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-152"></span><span>                            </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">EmptyBinding</span></a></span><span> </span><span id="local-6989586621679633255"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633255"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633255"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Attribute -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633252"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-153"></span><span>                            </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-154"></span><span>                        </span><span class="hs-special">]</span><span>
+</span><span id="line-155"></span><span>                  </span><span class="hs-special">)</span><span>
+</span><span id="line-156"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-157"></span><span>          </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-type">DeltaBinding</span></a></span><span> </span><span id="local-6989586621679633257"><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679633257"><span class="hs-identifier hs-var">bytes</span></a></span></span><span class="hs-special">]</span><span>
+</span><span id="line-158"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaEmptyBinding"><span class="hs-identifier hs-var">DeltaEmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-159"></span><span>                </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-160"></span><span>                  </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-var">DeltaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679633257"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-161"></span><span>                      </span><span class="annot"><span class="annottext">Binding -&gt; [Binding] -&gt; [Binding]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633259"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-162"></span><span>                        </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633259"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633259"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-163"></span><span>                        </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633259"><span class="hs-identifier hs-var">binding</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-164"></span><span>                            </span><span class="annot"><span class="annottext">Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaEmptyBinding"><span class="hs-identifier hs-var">DeltaEmptyBinding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-165"></span><span>                            </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-166"></span><span>                        </span><span class="hs-special">]</span><span>
+</span><span id="line-167"></span><span>                  </span><span class="hs-special">)</span><span>
+</span><span id="line-168"></span><span>            </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633229"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-169"></span><span>          </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633228"><span class="hs-identifier hs-var">obj'</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633230"><span class="hs-identifier hs-var">argBindings'</span></a></span><span>
+</span><span id="line-170"></span><span>      </span><span id="local-6989586621679633260"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633260"><span class="hs-identifier hs-var">obj'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633260"><span class="hs-identifier hs-var">obj'</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Binding -&gt; Binding) -&gt; [Binding] -&gt; [Binding]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Binding -&gt; Binding
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOutBinding"><span class="hs-identifier hs-var">fastYegorInsideOutBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633227"><span class="hs-identifier hs-var">argBindings</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679633261"><span class="annot"><span class="annottext">root :: Object
+</span><a href="#local-6989586621679633261"><span class="hs-identifier hs-var">root</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633262"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633262"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-172"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#isEmptyBinding"><span class="hs-identifier hs-var">isEmptyBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633262"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; (a -&gt; Bool) -&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">any</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Fast.html#isLambdaBinding"><span class="hs-identifier hs-var">isLambdaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633262"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633261"><span class="hs-identifier hs-var">root</span></a></span><span>
+</span><span id="line-173"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-174"></span><span>        </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span>
+</span><span id="line-175"></span><span>          </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633264"><span class="hs-identifier hs-var">binding'</span></a></span><span>
+</span><span id="line-176"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679633265"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633265"><span class="hs-identifier hs-var">binding</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633262"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-177"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679633264"><span class="annot"><span class="annottext">binding' :: Binding
+</span><a href="#local-6989586621679633264"><span class="hs-identifier hs-var hs-var">binding'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-178"></span><span>                  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633265"><span class="hs-identifier hs-var">binding</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-179"></span><span>                    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Rho"><span class="hs-identifier hs-var">Rho</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633265"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-180"></span><span>                    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633266"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633266"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span id="local-6989586621679633267"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633267"><span class="hs-identifier hs-var">objA</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-181"></span><span>                      </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679633268"><span class="annot"><span class="annottext">ctx' :: Context
+</span><a href="#local-6989586621679633268"><span class="hs-identifier hs-var hs-var">ctx'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Context -&gt; Context
+</span><a href="Language.EO.Phi.Rules.Common.html#extendContextWith"><span class="hs-identifier hs-var">extendContextWith</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633261"><span class="hs-identifier hs-var">root</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633205"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span class="hs-special">{</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#insideFormation"><span class="hs-identifier hs-var">insideFormation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">True</span></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#currentAttr"><span class="hs-identifier hs-var">currentAttr</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679633266"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-182"></span><span>                      </span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633266"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Rules.Fast.html#fastYegorInsideOut"><span class="hs-identifier hs-var">fastYegorInsideOut</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633268"><span class="hs-identifier hs-var">ctx'</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633267"><span class="hs-identifier hs-var">objA</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-183"></span><span>                    </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679633265"><span class="hs-identifier hs-var">binding</span></a></span><span>
+</span><span id="line-184"></span><span>          </span><span class="hs-special">]</span><span>
+</span><span id="line-185"></span><span>  </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Termination</span></a></span><span>
+</span><span id="line-186"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaSubstThis"><span class="hs-identifier hs-type">MetaSubstThis</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Object
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;impossible MetaSubstThis!&quot;</span></span><span>
+</span><span id="line-187"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaObject"><span class="hs-identifier hs-type">MetaObject</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Object
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;impossible MetaObject!&quot;</span></span><span>
+</span><span id="line-188"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaTailContext"><span class="hs-identifier hs-type">MetaTailContext</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Object
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;impossible MetaTailContext!&quot;</span></span><span>
+</span><span id="line-189"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaFunction"><span class="hs-identifier hs-type">MetaFunction</span></a></span><span class="hs-special">{</span><span class="hs-special">}</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Object
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;impossible MetaFunction!&quot;</span></span><span>
+</span><span id="line-190"></span></pre></body></html>

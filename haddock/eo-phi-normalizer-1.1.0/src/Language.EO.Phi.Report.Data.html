@@ -1,0 +1,363 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE BlockArguments #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE InstanceSigs #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE OverloadedRecordDot #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-10"></span><span class="hs-pragma">{-# LANGUAGE ParallelListComp #-}</span><span>
+</span><span id="line-11"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-12"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-13"></span><span class="hs-pragma">{-# LANGUAGE TypeApplications #-}</span><span>
+</span><span id="line-14"></span><span class="hs-pragma">{-# LANGUAGE NoImplicitPrelude #-}</span><span>
+</span><span id="line-15"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-partial-fields #-}</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Report.Data</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html"><span class="hs-identifier">Language.EO.Phi.Metrics.Data</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier">BindingMetrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier">Metrics</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier">MetricsCount</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier">ProgramMetrics</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html"><span class="hs-identifier">Language.EO.Phi.Metrics.Data</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Metrics</span></span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html"><span class="hs-identifier">Language.EO.Phi.Pipeline.Config</span></a></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.TH.html"><span class="hs-identifier">Language.EO.Phi.TH</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.TH.html#deriveJSON"><span class="hs-identifier">deriveJSON</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prelude</span></span><span> </span><span class="hs-keyword">hiding</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">div</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">id</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">span</span></span><span class="hs-special">)</span><span>
+</span><span id="line-24"></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">data</span><span> </span><span id="ReportRow"><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-var">ReportRow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ReportRow"><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-var">ReportRow</span></a></span></span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AfileInitial%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileInitial%3AReportRow"><span class="hs-identifier hs-var hs-var">fileInitial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AfileNormalized%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileNormalized%3AReportRow"><span class="hs-identifier hs-var hs-var">fileNormalized</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-28"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AbindingsPathInitial%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathInitial%3AReportRow"><span class="hs-identifier hs-var hs-var">bindingsPathInitial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Metrics.Path</span></a></span><span>
+</span><span id="line-29"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AbindingsPathNormalized%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathNormalized%3AReportRow"><span class="hs-identifier hs-var hs-var">bindingsPathNormalized</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Path"><span class="hs-identifier hs-type">Metrics.Path</span></a></span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AattributeInitial%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeInitial%3AReportRow"><span class="hs-identifier hs-var hs-var">attributeInitial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AattributeNormalized%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeNormalized%3AReportRow"><span class="hs-identifier hs-var hs-var">attributeNormalized</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AmetricsChange%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsChange%3AReportRow"><span class="hs-identifier hs-var hs-var">metricsChange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChangeCategorized"><span class="hs-identifier hs-type">MetricsChangeCategorized</span></a></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AmetricsInitial%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Metrics Int
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsInitial%3AReportRow"><span class="hs-identifier hs-var hs-var">metricsInitial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AmetricsNormalized%3AReportRow"><span class="annot"><span class="annottext">ReportRow -&gt; Metrics Int
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsNormalized%3AReportRow"><span class="hs-identifier hs-var hs-var">metricsNormalized</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="hs-special">$</span><span id="local-6989586621679637318"><span id="local-6989586621679637368"><span id="local-6989586621679637372"><span id="local-6989586621679637411"><span id="local-6989586621679637438"><span id="local-6989586621679637442"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReportRow</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">data</span><span> </span><span id="ProgramReport"><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier hs-var">ProgramReport</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ProgramReport"><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier hs-var">ProgramReport</span></a></span></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AprogramRow%3AProgramReport"><span class="annot"><span class="annottext">ProgramReport -&gt; ReportRow
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AprogramRow%3AProgramReport"><span class="hs-identifier hs-var hs-var">programRow</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AbindingsRows%3AProgramReport"><span class="annot"><span class="annottext">ProgramReport -&gt; [ReportRow]
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsRows%3AProgramReport"><span class="hs-identifier hs-var hs-var">bindingsRows</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-special">$</span><span id="local-6989586621679637517"><span id="local-6989586621679637532"><span id="local-6989586621679637536"><span id="local-6989586621679637545"><span id="local-6989586621679637552"><span id="local-6989586621679637556"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ProgramReport</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-keyword">data</span><span> </span><span id="Report"><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-var">Report</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Report"><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-var">Report</span></a></span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3AtotalRow%3AReport"><span class="annot"><span class="annottext">Report -&gt; ReportRow
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AtotalRow%3AReport"><span class="hs-identifier hs-var hs-var">totalRow</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AprogramReports%3AReport"><span class="annot"><span class="annottext">Report -&gt; [ProgramReport]
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AprogramReports%3AReport"><span class="hs-identifier hs-var hs-var">programReports</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier hs-type">ProgramReport</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-special">$</span><span id="local-6989586621679637574"><span id="local-6989586621679637590"><span id="local-6989586621679637594"><span id="local-6989586621679637604"><span id="local-6989586621679637612"><span id="local-6989586621679637616"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">Report</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- &gt;&gt;&gt; calculateMetricsChange Metrics { dataless = 0.1, applications = 0.2, formations = 0.2, dispatches = 0.2 } Metrics { dataless = 100, applications = 0, formations = 100, dispatches = 100 } Metrics { dataless = 90, applications = 0, formations = 93, dispatches = 60 }</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- Metrics {formations = MetricsChange'Bad {change = 7.00%}, dataless = MetricsChange'Good {change = 10.00%}, applications = MetricsChange'NA, dispatches = MetricsChange'Good {change = 40.00%}}</span><span>
+</span><span id="line-55"></span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#calculateMetricsChange"><span class="hs-identifier hs-type">calculateMetricsChange</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange"><span class="hs-identifier hs-type">MetricsChange</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#MetricsCount"><span class="hs-identifier hs-type">MetricsCount</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChangeCategorized"><span class="hs-identifier hs-type">MetricsChangeCategorized</span></a></span><span>
+</span><span id="line-56"></span><span id="calculateMetricsChange"><span class="annot"><span class="annottext">calculateMetricsChange :: MetricsChange
+-&gt; Metrics Int -&gt; Metrics Int -&gt; MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#calculateMetricsChange"><span class="hs-identifier hs-var hs-var">calculateMetricsChange</span></a></span></span><span> </span><span id="local-6989586621679637631"><span class="annot"><span class="annottext">MetricsChange
+</span><a href="#local-6989586621679637631"><span class="hs-identifier hs-var">expectedMetricsChange</span></a></span></span><span> </span><span id="local-6989586621679637632"><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637632"><span class="hs-identifier hs-var">countInitial</span></a></span></span><span> </span><span id="local-6989586621679637633"><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637633"><span class="hs-identifier hs-var">countNormalized</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-57"></span><span>  </span><span class="annot"><span class="annottext">Percent -&gt; Percent -&gt; MetricsChangeCategory Percent
+</span><a href="#local-6989586621679637634"><span class="hs-identifier hs-var">getMetricsChangeClassified</span></a></span><span> </span><span class="annot"><span class="annottext">(Percent -&gt; Percent -&gt; MetricsChangeCategory Percent)
+-&gt; MetricsChange
+-&gt; Metrics (Percent -&gt; MetricsChangeCategory Percent)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">MetricsChange
+</span><a href="#local-6989586621679637631"><span class="hs-identifier hs-var">expectedMetricsChange</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics (Percent -&gt; MetricsChangeCategory Percent)
+-&gt; MetricsChange -&gt; MetricsChangeCategorized
+forall a b. Metrics (a -&gt; b) -&gt; Metrics a -&gt; Metrics b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">MetricsChange
+</span><a href="#local-6989586621679637635"><span class="hs-identifier hs-var">actualMetricsChange</span></a></span><span>
+</span><span id="line-58"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-59"></span><span>  </span><span id="local-6989586621679637267"><span class="annot"><a href="#local-6989586621679637636"><span class="hs-identifier hs-type">isFinite</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">RealFloat</span></span><span> </span><span class="annot"><a href="#local-6989586621679637267"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679637267"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span></span><span>
+</span><span id="line-60"></span><span>  </span><span id="local-6989586621679637636"><span class="annot"><span class="annottext">isFinite :: forall a. RealFloat a =&gt; a -&gt; Bool
+</span><a href="#local-6989586621679637636"><span class="hs-identifier hs-var hs-var">isFinite</span></a></span></span><span> </span><span id="local-6989586621679637640"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679637640"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><span class="hs-identifier hs-var">isNaN</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679637640"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><span class="hs-identifier hs-var">isInfinite</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679637640"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><a href="#local-6989586621679637634"><span class="hs-identifier hs-type">getMetricsChangeClassified</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChangeCategory"><span class="hs-identifier hs-type">MetricsChangeCategory</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span>
+</span><span id="line-63"></span><span>  </span><span id="local-6989586621679637634"><span class="annot"><span class="annottext">getMetricsChangeClassified :: Percent -&gt; Percent -&gt; MetricsChangeCategory Percent
+</span><a href="#local-6989586621679637634"><span class="hs-identifier hs-var hs-var">getMetricsChangeClassified</span></a></span></span><span> </span><span id="local-6989586621679637645"><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637645"><span class="hs-identifier hs-var">expected</span></a></span></span><span> </span><span id="local-6989586621679637646"><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637646"><span class="hs-identifier hs-var">actual</span></a></span></span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Percent -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><a href="#local-6989586621679637636"><span class="hs-identifier hs-var">isFinite</span></a></span><span> </span><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637645"><span class="hs-identifier hs-var">expected</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">Percent -&gt; Bool
+forall a. RealFloat a =&gt; a -&gt; Bool
+</span><a href="#local-6989586621679637636"><span class="hs-identifier hs-var">isFinite</span></a></span><span> </span><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637646"><span class="hs-identifier hs-var">actual</span></a></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-65"></span><span>        </span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637646"><span class="hs-identifier hs-var">actual</span></a></span><span> </span><span class="annot"><span class="annottext">Percent -&gt; Percent -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637645"><span class="hs-identifier hs-var">expected</span></a></span><span>
+</span><span id="line-66"></span><span>          </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">Percent -&gt; MetricsChangeCategory Percent
+forall a. a -&gt; MetricsChangeCategory a
+</span><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange%27Good"><span class="hs-identifier hs-var">MetricsChange'Good</span></a></span><span> </span><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637646"><span class="hs-identifier hs-var">actual</span></a></span><span>
+</span><span id="line-67"></span><span>          </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">Percent -&gt; MetricsChangeCategory Percent
+forall a. a -&gt; MetricsChangeCategory a
+</span><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange%27Bad"><span class="hs-identifier hs-var">MetricsChange'Bad</span></a></span><span> </span><span class="annot"><span class="annottext">Percent
+</span><a href="#local-6989586621679637646"><span class="hs-identifier hs-var">actual</span></a></span><span>
+</span><span id="line-68"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MetricsChangeCategory Percent
+forall a. MetricsChangeCategory a
+</span><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange%27NA"><span class="hs-identifier hs-var">MetricsChange'NA</span></a></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span>  </span><span class="annot"><a href="#local-6989586621679637635"><span class="hs-identifier hs-type">actualMetricsChange</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange"><span class="hs-identifier hs-type">MetricsChange</span></a></span><span>
+</span><span id="line-71"></span><span>  </span><span id="local-6989586621679637635"><span class="annot"><span class="annottext">actualMetricsChange :: MetricsChange
+</span><a href="#local-6989586621679637635"><span class="hs-identifier hs-var hs-var">actualMetricsChange</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">MetricsChange
+</span><a href="#local-6989586621679637651"><span class="hs-identifier hs-var">initial</span></a></span><span> </span><span class="annot"><span class="annottext">MetricsChange -&gt; MetricsChange -&gt; MetricsChange
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">MetricsChange
+</span><a href="#local-6989586621679637652"><span class="hs-identifier hs-var">normalized</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">MetricsChange -&gt; MetricsChange -&gt; MetricsChange
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">/</span></span><span> </span><span class="annot"><span class="annottext">MetricsChange
+</span><a href="#local-6989586621679637651"><span class="hs-identifier hs-var">initial</span></a></span><span>
+</span><span id="line-72"></span><span>  </span><span id="local-6989586621679637651"><span class="annot"><span class="annottext">initial :: MetricsChange
+</span><a href="#local-6989586621679637651"><span class="hs-identifier hs-var hs-var">initial</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Percent
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Percent) -&gt; Metrics Int -&gt; MetricsChange
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637632"><span class="hs-identifier hs-var">countInitial</span></a></span><span>
+</span><span id="line-73"></span><span>  </span><span id="local-6989586621679637652"><span class="annot"><span class="annottext">normalized :: MetricsChange
+</span><a href="#local-6989586621679637652"><span class="hs-identifier hs-var hs-var">normalized</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Percent
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Percent) -&gt; Metrics Int -&gt; MetricsChange
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637633"><span class="hs-identifier hs-var">countNormalized</span></a></span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#makeProgramReport"><span class="hs-identifier hs-type">makeProgramReport</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#PipelineConfig"><span class="hs-identifier hs-type">PipelineConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetPhi"><span class="hs-identifier hs-type">TestSetPhi</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier hs-type">ProgramMetrics</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#ProgramMetrics"><span class="hs-identifier hs-type">ProgramMetrics</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier hs-type">ProgramReport</span></a></span><span>
+</span><span id="line-76"></span><span id="makeProgramReport"><span class="annot"><span class="annottext">makeProgramReport :: PipelineConfig
+-&gt; TestSetPhi -&gt; ProgramMetrics -&gt; ProgramMetrics -&gt; ProgramReport
+</span><a href="Language.EO.Phi.Report.Data.html#makeProgramReport"><span class="hs-identifier hs-var hs-var">makeProgramReport</span></a></span></span><span> </span><span id="local-6989586621679637662"><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679637662"><span class="hs-identifier hs-var">pipelineConfig</span></a></span></span><span> </span><span id="local-6989586621679637663"><span class="annot"><span class="annottext">TestSetPhi
+</span><a href="#local-6989586621679637663"><span class="hs-identifier hs-var">testSet</span></a></span></span><span> </span><span id="local-6989586621679637664"><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637664"><span class="hs-identifier hs-var">metricsPhi</span></a></span></span><span> </span><span id="local-6989586621679637665"><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637665"><span class="hs-identifier hs-var">metricsPhiNormalized</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier hs-type">ProgramReport</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">[ReportRow]
+ReportRow
+$sel:programRow:ProgramReport :: ReportRow
+$sel:bindingsRows:ProgramReport :: [ReportRow]
+bindingsRows :: [ReportRow]
+programRow :: ReportRow
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AprogramRow%3AProgramReport"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-78"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-79"></span><span>  </span><span id="local-6989586621679637666"><span class="annot"><span class="annottext">bindingsRows :: [ReportRow]
+</span><a href="#local-6989586621679637666"><span class="hs-identifier hs-var hs-var">bindingsRows</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637664"><span class="hs-identifier hs-var">metricsPhi</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsByPathMetrics</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637665"><span class="hs-identifier hs-var">metricsPhiNormalized</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsByPathMetrics</span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-81"></span><span>      </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679637678"><span class="annot"><span class="annottext">BindingsByPathMetrics
+</span><a href="#local-6989586621679637678"><span class="hs-identifier hs-var">bindingsMetricsInitial</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679637679"><span class="annot"><span class="annottext">BindingsByPathMetrics
+</span><a href="#local-6989586621679637679"><span class="hs-identifier hs-var">bindingsMetricsNormalized</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-82"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span>
+</span><span id="line-83"></span><span>          </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:fileInitial:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileInitial%3AReportRow"><span class="hs-identifier hs-var">fileInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">TestSetPhi
+</span><a href="#local-6989586621679637663"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">initial</span><span>
+</span><span id="line-84"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:fileNormalized:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileNormalized%3AReportRow"><span class="hs-identifier hs-var">fileNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">TestSetPhi
+</span><a href="#local-6989586621679637663"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">normalized</span><span>
+</span><span id="line-85"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:bindingsPathInitial:ReportRow :: Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathInitial%3AReportRow"><span class="hs-identifier hs-var">bindingsPathInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Maybe Path
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">BindingsByPathMetrics
+</span><a href="#local-6989586621679637678"><span class="hs-identifier hs-var">bindingsMetricsInitial</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">path</span><span>
+</span><span id="line-86"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:bindingsPathNormalized:ReportRow :: Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathNormalized%3AReportRow"><span class="hs-identifier hs-var">bindingsPathNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Path -&gt; Maybe Path
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">BindingsByPathMetrics
+</span><a href="#local-6989586621679637679"><span class="hs-identifier hs-var">bindingsMetricsNormalized</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">path</span><span>
+</span><span id="line-87"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:attributeInitial:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeInitial%3AReportRow"><span class="hs-identifier hs-var">attributeInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679637680"><span class="hs-identifier hs-var">attributeInitial</span></a></span><span>
+</span><span id="line-88"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:attributeNormalized:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeNormalized%3AReportRow"><span class="hs-identifier hs-var">attributeNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679637681"><span class="hs-identifier hs-var">attributeNormalized</span></a></span><span>
+</span><span id="line-89"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metricsChange:ReportRow :: MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsChange%3AReportRow"><span class="hs-identifier hs-var">metricsChange</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MetricsChange
+-&gt; Metrics Int -&gt; Metrics Int -&gt; MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#calculateMetricsChange"><span class="hs-identifier hs-var">calculateMetricsChange</span></a></span><span> </span><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679637662"><span class="hs-identifier hs-var">pipelineConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">report</span><span class="hs-operator">.</span><span class="hs-identifier">expectedMetricsChange</span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637682"><span class="hs-identifier hs-var">metricsInitial</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637683"><span class="hs-identifier hs-var">metricsNormalized</span></a></span><span>
+</span><span id="line-90"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metricsInitial:ReportRow :: Metrics Int
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsInitial%3AReportRow"><span class="hs-identifier hs-var">metricsInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637682"><span class="hs-identifier hs-var">metricsInitial</span></a></span><span>
+</span><span id="line-91"></span><span>          </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metricsNormalized:ReportRow :: Metrics Int
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsNormalized%3AReportRow"><span class="hs-identifier hs-var">metricsNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637683"><span class="hs-identifier hs-var">metricsNormalized</span></a></span><span>
+</span><span id="line-92"></span><span>          </span><span class="hs-special">}</span><span>
+</span><span id="line-93"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-type">BindingMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">$sel:name:BindingMetrics :: BindingMetrics -&gt; FilePath
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aname%3ABindingMetrics"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679637680"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679637680"><span class="hs-identifier hs-var">attributeInitial</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metrics:BindingMetrics :: BindingMetrics -&gt; Metrics Int
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Ametrics%3ABindingMetrics"><span class="hs-identifier hs-var">metrics</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679637682"><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637682"><span class="hs-identifier hs-var">metricsInitial</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">BindingsByPathMetrics
+</span><a href="#local-6989586621679637678"><span class="hs-identifier hs-var">bindingsMetricsInitial</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsMetrics</span><span>
+</span><span id="line-94"></span><span>        </span><span class="hs-glyph">|</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#BindingMetrics"><span class="hs-identifier hs-type">BindingMetrics</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">$sel:name:BindingMetrics :: BindingMetrics -&gt; FilePath
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Aname%3ABindingMetrics"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679637681"><span class="annot"><span class="annottext">FilePath
+</span><a href="#local-6989586621679637681"><span class="hs-identifier hs-var">attributeNormalized</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metrics:BindingMetrics :: BindingMetrics -&gt; Metrics Int
+</span><a href="Language.EO.Phi.Metrics.Data.html#%24sel%3Ametrics%3ABindingMetrics"><span class="hs-identifier hs-var">metrics</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="local-6989586621679637683"><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637683"><span class="hs-identifier hs-var">metricsNormalized</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">BindingsByPathMetrics
+</span><a href="#local-6989586621679637679"><span class="hs-identifier hs-var">bindingsMetricsNormalized</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">bindingsMetrics</span><span>
+</span><span id="line-95"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-96"></span><span>      </span><span class="annot"><span class="annottext">(Maybe BindingsByPathMetrics, Maybe BindingsByPathMetrics)
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-97"></span><span>  </span><span id="local-6989586621679637667"><span class="annot"><span class="annottext">programRow :: ReportRow
+</span><a href="#local-6989586621679637667"><span class="hs-identifier hs-var hs-var">programRow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-98"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span>
+</span><span id="line-99"></span><span>      </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:fileInitial:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileInitial%3AReportRow"><span class="hs-identifier hs-var">fileInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">TestSetPhi
+</span><a href="#local-6989586621679637663"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">initial</span><span>
+</span><span id="line-100"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:fileNormalized:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileNormalized%3AReportRow"><span class="hs-identifier hs-var">fileNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">FilePath -&gt; Maybe FilePath
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">TestSetPhi
+</span><a href="#local-6989586621679637663"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">normalized</span><span>
+</span><span id="line-101"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:bindingsPathInitial:ReportRow :: Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathInitial%3AReportRow"><span class="hs-identifier hs-var">bindingsPathInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Path
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-102"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:bindingsPathNormalized:ReportRow :: Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathNormalized%3AReportRow"><span class="hs-identifier hs-var">bindingsPathNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Path
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-103"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:attributeInitial:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeInitial%3AReportRow"><span class="hs-identifier hs-var">attributeInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-104"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:attributeNormalized:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeNormalized%3AReportRow"><span class="hs-identifier hs-var">attributeNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-105"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metricsChange:ReportRow :: MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsChange%3AReportRow"><span class="hs-identifier hs-var">metricsChange</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MetricsChange
+-&gt; Metrics Int -&gt; Metrics Int -&gt; MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#calculateMetricsChange"><span class="hs-identifier hs-var">calculateMetricsChange</span></a></span><span> </span><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679637662"><span class="hs-identifier hs-var">pipelineConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">report</span><span class="hs-operator">.</span><span class="hs-identifier">expectedMetricsChange</span><span> </span><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637664"><span class="hs-identifier hs-var">metricsPhi</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programMetrics</span><span> </span><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637665"><span class="hs-identifier hs-var">metricsPhiNormalized</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programMetrics</span><span>
+</span><span id="line-106"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metricsInitial:ReportRow :: Metrics Int
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsInitial%3AReportRow"><span class="hs-identifier hs-var">metricsInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637664"><span class="hs-identifier hs-var">metricsPhi</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programMetrics</span><span>
+</span><span id="line-107"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:metricsNormalized:ReportRow :: Metrics Int
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsNormalized%3AReportRow"><span class="hs-identifier hs-var">metricsNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ProgramMetrics
+</span><a href="#local-6989586621679637665"><span class="hs-identifier hs-var">metricsPhiNormalized</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programMetrics</span><span>
+</span><span id="line-108"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#makeReport"><span class="hs-identifier hs-type">makeReport</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#PipelineConfig"><span class="hs-identifier hs-type">PipelineConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ProgramReport"><span class="hs-identifier hs-type">ProgramReport</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-type">Report</span></a></span><span>
+</span><span id="line-111"></span><span id="makeReport"><span class="annot"><span class="annottext">makeReport :: PipelineConfig -&gt; [ProgramReport] -&gt; Report
+</span><a href="Language.EO.Phi.Report.Data.html#makeReport"><span class="hs-identifier hs-var hs-var">makeReport</span></a></span></span><span> </span><span id="local-6989586621679637696"><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679637696"><span class="hs-identifier hs-var">pipelineConfig</span></a></span></span><span> </span><span id="local-6989586621679637697"><span class="annot"><span class="annottext">[ProgramReport]
+</span><a href="#local-6989586621679637697"><span class="hs-identifier hs-var">programReports</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-112"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#Report"><span class="hs-identifier hs-type">Report</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">[ProgramReport]
+ReportRow
+$sel:totalRow:Report :: ReportRow
+$sel:programReports:Report :: [ProgramReport]
+programReports :: [ProgramReport]
+totalRow :: ReportRow
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AtotalRow%3AReport"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-113"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-114"></span><span>  </span><span id="local-6989586621679637702"><span class="annot"><span class="annottext">programRows :: [ReportRow]
+</span><a href="#local-6989586621679637702"><span class="hs-identifier hs-var hs-var">programRows</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">programRow</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(ProgramReport -&gt; ReportRow) -&gt; [ProgramReport] -&gt; [ReportRow]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[ProgramReport]
+</span><a href="#local-6989586621679637697"><span class="hs-identifier hs-var">programReports</span></a></span><span>
+</span><span id="line-115"></span><span>  </span><span id="local-6989586621679637710"><span class="annot"><span class="annottext">metricsInitial :: Metrics Int
+</span><a href="#local-6989586621679637710"><span class="hs-identifier hs-var hs-var">metricsInitial</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ReportRow -&gt; Metrics Int) -&gt; [ReportRow] -&gt; Metrics Int
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; [a] -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">metricsInitial</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ReportRow]
+</span><a href="#local-6989586621679637702"><span class="hs-identifier hs-var">programRows</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span id="local-6989586621679637716"><span class="annot"><span class="annottext">metricsNormalized :: Metrics Int
+</span><a href="#local-6989586621679637716"><span class="hs-identifier hs-var hs-var">metricsNormalized</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(ReportRow -&gt; Metrics Int) -&gt; [ReportRow] -&gt; Metrics Int
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; [a] -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span><span class="hs-identifier hs-var">foldMap</span></span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">metricsNormalized</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[ReportRow]
+</span><a href="#local-6989586621679637702"><span class="hs-identifier hs-var">programRows</span></a></span><span>
+</span><span id="line-117"></span><span>  </span><span id="local-6989586621679637719"><span class="annot"><span class="annottext">metricsChange :: MetricsChangeCategorized
+</span><a href="#local-6989586621679637719"><span class="hs-identifier hs-var hs-var">metricsChange</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">MetricsChange
+-&gt; Metrics Int -&gt; Metrics Int -&gt; MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#calculateMetricsChange"><span class="hs-identifier hs-var">calculateMetricsChange</span></a></span><span> </span><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679637696"><span class="hs-identifier hs-var">pipelineConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">report</span><span class="hs-operator">.</span><span class="hs-identifier">expectedMetricsChange</span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637710"><span class="hs-identifier hs-var">metricsInitial</span></a></span><span> </span><span class="annot"><span class="annottext">Metrics Int
+</span><a href="#local-6989586621679637716"><span class="hs-identifier hs-var">metricsNormalized</span></a></span><span>
+</span><span id="line-118"></span><span>  </span><span id="local-6989586621679637698"><span class="annot"><span class="annottext">totalRow :: ReportRow
+</span><a href="#local-6989586621679637698"><span class="hs-identifier hs-var hs-var">totalRow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-119"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Report.Data.html#ReportRow"><span class="hs-identifier hs-type">ReportRow</span></a></span><span>
+</span><span id="line-120"></span><span>      </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">$sel:fileInitial:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileInitial%3AReportRow"><span class="hs-identifier hs-var">fileInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-121"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:fileNormalized:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AfileNormalized%3AReportRow"><span class="hs-identifier hs-var">fileNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-122"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:bindingsPathInitial:ReportRow :: Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathInitial%3AReportRow"><span class="hs-identifier hs-var">bindingsPathInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Path
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-123"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:bindingsPathNormalized:ReportRow :: Maybe Path
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AbindingsPathNormalized%3AReportRow"><span class="hs-identifier hs-var">bindingsPathNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe Path
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-124"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:attributeInitial:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeInitial%3AReportRow"><span class="hs-identifier hs-var">attributeInitial</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-125"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:attributeNormalized:ReportRow :: Maybe FilePath
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AattributeNormalized%3AReportRow"><span class="hs-identifier hs-var">attributeNormalized</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe FilePath
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-126"></span><span>      </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Metrics Int
+MetricsChangeCategorized
+$sel:metricsChange:ReportRow :: MetricsChangeCategorized
+$sel:metricsInitial:ReportRow :: Metrics Int
+$sel:metricsNormalized:ReportRow :: Metrics Int
+metricsInitial :: Metrics Int
+metricsNormalized :: Metrics Int
+metricsChange :: MetricsChangeCategorized
+</span><a href="Language.EO.Phi.Report.Data.html#%24sel%3AmetricsChange%3AReportRow"><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var">..</span></a></span><span>
+</span><span id="line-127"></span><span>      </span><span class="hs-special">}</span><span>
+</span><span id="line-128"></span></pre></body></html>

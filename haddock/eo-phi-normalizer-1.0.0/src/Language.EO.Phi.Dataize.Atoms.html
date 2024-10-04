@@ -1,0 +1,777 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Dataize.Atoms</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bits</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">singleton</span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Dataize.html"><span class="hs-identifier">Language.EO.Phi.Dataize</span></a></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html"><span class="hs-identifier">Language.EO.Phi.Rules.Common</span></a></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="annot"><a href="Language.EO.Phi.Dataize.Atoms.html#knownAtomsList"><span class="hs-identifier hs-type">knownAtomsList</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#EvaluationState"><span class="hs-identifier hs-type">EvaluationState</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#DataizeChain"><span class="hs-identifier hs-type">DataizeChain</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#EvaluationState"><span class="hs-identifier hs-type">EvaluationState</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-13"></span><span id="knownAtomsList"><span class="annot"><span class="annottext">knownAtomsList :: [(String,
+  String
+  -&gt; Object
+  -&gt; EvaluationState
+  -&gt; DataizeChain (Object, EvaluationState))]
+</span><a href="Language.EO.Phi.Dataize.Atoms.html#knownAtomsList"><span class="hs-identifier hs-var hs-var">knownAtomsList</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">[</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_int_gt&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Bool)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateIntIntBoolFunChain"><span class="hs-identifier hs-var">evaluateIntIntBoolFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">(&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_int_plus&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateIntIntIntFunChain"><span class="hs-identifier hs-var">evaluateIntIntIntFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(+)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_int_times&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateIntIntIntFunChain"><span class="hs-identifier hs-var">evaluateIntIntIntFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(*)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_int_div&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateIntIntIntFunChain"><span class="hs-identifier hs-var">evaluateIntIntIntFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Integral a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">quot</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_eq&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bytes)
+-&gt; (Bytes -&gt; Int)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Int -&gt; Int -&gt; Bool)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#boolToBytes"><span class="hs-identifier hs-var">boolToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Int
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToInt"><span class="hs-identifier hs-var">bytesToInt</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesAsBool"><span class="hs-identifier hs-var">wrapBytesAsBool</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;b&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">(==)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>  </span><span class="hs-special">,</span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_size&quot;</span></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679634108"><span class="annot"><span class="annottext">f :: String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="#local-6989586621679634108"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Bytes)
+-&gt; (Bytes -&gt; Bytes)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Bytes -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateUnaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateUnaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#intToBytes"><span class="hs-identifier hs-var">intToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Bytes"><span class="hs-identifier hs-type">Bytes</span></a></span><span> </span><span id="local-6989586621679634114"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634114"><span class="hs-identifier hs-var">bytes</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; [String]
+</span><span class="hs-identifier hs-var">words</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Char -&gt; Char) -&gt; String -&gt; String
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char
+</span><a href="#local-6989586621679634117"><span class="hs-identifier hs-var">dashToSpace</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634114"><span class="hs-identifier hs-var">bytes</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-22"></span><span>           </span><span class="hs-keyword">where</span><span>
+</span><span id="line-23"></span><span>            </span><span id="local-6989586621679634117"><span class="annot"><span class="annottext">dashToSpace :: Char -&gt; Char
+</span><a href="#local-6989586621679634117"><span class="hs-identifier hs-var hs-var">dashToSpace</span></a></span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'-'</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span>
+</span><span id="line-24"></span><span>            </span><span class="annot"><a href="#local-6989586621679634117"><span class="hs-identifier hs-var">dashToSpace</span></a></span><span> </span><span id="local-6989586621679634118"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679634118"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679634118"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-25"></span><span>       </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="#local-6989586621679634108"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>  </span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_slice&quot;</span></span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679634119"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634119"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679634120"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634120"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679634121"><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634121"><span class="hs-identifier hs-var">state</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-30"></span><span>        </span><span id="local-6989586621679634122"><span class="annot"><span class="annottext">Either Object Bytes
+</span><a href="#local-6989586621679634122"><span class="hs-identifier hs-var">thisStr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall info a. Chain info a -&gt; Chain info a
+</span><a href="Language.EO.Phi.Rules.Common.html#incLogLevel"><span class="hs-identifier hs-var">incLogLevel</span></a></span><span> </span><span class="annot"><span class="annottext">(Chain (Either Object Bytes) (Either Object Bytes)
+ -&gt; Chain (Either Object Bytes) (Either Object Bytes))
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Object -&gt; Chain (Either Object Bytes) (Either Object Bytes)
+</span><a href="Language.EO.Phi.Dataize.html#dataizeRecursivelyChain"><span class="hs-identifier hs-var">dataizeRecursivelyChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634120"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span>        </span><span id="local-6989586621679634125"><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679634125"><span class="hs-identifier hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either Object Bytes
+</span><a href="#local-6989586621679634122"><span class="hs-identifier hs-var">thisStr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-32"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679634126"><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679634126"><span class="hs-identifier hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Chain (Either Object Bytes) Bytes
+forall a. a -&gt; Chain (Either Object Bytes) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679634126"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-33"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Chain (Either Object Bytes) Bytes
+forall a. String -&gt; Chain (Either Object Bytes) a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span><span class="hs-identifier hs-var">fail</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Couldn't find bytes&quot;</span></span><span>
+</span><span id="line-34"></span><span>        </span><span class="annot"><span class="annottext">(Bytes -&gt; Bytes)
+-&gt; (Bytes -&gt; Int)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Int -&gt; Int -&gt; Bytes)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Int
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToInt"><span class="hs-identifier hs-var">bytesToInt</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;start&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;len&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bytes -&gt; Int -&gt; Int -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#sliceBytes"><span class="hs-identifier hs-var">sliceBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679634125"><span class="hs-identifier hs-var">bytes</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634119"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634120"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634121"><span class="hs-identifier hs-var">state</span></a></span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_and&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBytesBytesBytesFunChain"><span class="hs-identifier hs-var">evaluateBytesBytesBytesFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(.&amp;.)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-37"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_or&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBytesBytesBytesFunChain"><span class="hs-identifier hs-var">evaluateBytesBytesBytesFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(.|.)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_xor&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBytesBytesBytesFunChain"><span class="hs-identifier hs-var">evaluateBytesBytesBytesFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(.^.)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_not&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBytesBytesFunChain"><span class="hs-identifier hs-var">evaluateBytesBytesFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int
+forall a. Bits a =&gt; a -&gt; a
+</span><span class="hs-identifier hs-var">complement</span></span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_right&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Bytes)
+-&gt; (Bytes -&gt; Int)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Int -&gt; Int -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#intToBytes"><span class="hs-identifier hs-var">intToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Int
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToInt"><span class="hs-identifier hs-var">bytesToInt</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;x&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679634134"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634134"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679634135"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634135"><span class="hs-identifier hs-var">i</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span><span class="hs-identifier hs-var">shift</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634134"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">-</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634135"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_bytes_concat&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Bytes -&gt; Bytes)
+-&gt; (Bytes -&gt; Bytes)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Bytes -&gt; Bytes -&gt; Bytes)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;b&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#concatBytes"><span class="hs-identifier hs-var">concatBytes</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- float</span><span>
+</span><span id="line-43"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_gt&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bytes)
+-&gt; (Bytes -&gt; Double)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Double -&gt; Double -&gt; Bool)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#boolToBytes"><span class="hs-identifier hs-var">boolToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Double
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToFloat"><span class="hs-identifier hs-var">bytesToFloat</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;x&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">(&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_times&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateFloatFloatFloatFunChain"><span class="hs-identifier hs-var">evaluateFloatFloatFloatFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(*)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_plus&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateFloatFloatFloatFunChain"><span class="hs-identifier hs-var">evaluateFloatFloatFloatFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(+)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_div&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateFloatFloatFloatFunChain"><span class="hs-identifier hs-var">evaluateFloatFloatFloatFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(/)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_gt&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bytes)
+-&gt; (Bytes -&gt; Double)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Double -&gt; Double -&gt; Bool)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#boolToBytes"><span class="hs-identifier hs-var">boolToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Double
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToFloat"><span class="hs-identifier hs-var">bytesToFloat</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;x&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">(&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_times&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateFloatFloatFloatFunChain"><span class="hs-identifier hs-var">evaluateFloatFloatFloatFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(*)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_plus&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateFloatFloatFloatFunChain"><span class="hs-identifier hs-var">evaluateFloatFloatFloatFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(+)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_float_div&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Double -&gt; Double -&gt; Double)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateFloatFloatFloatFunChain"><span class="hs-identifier hs-var">evaluateFloatFloatFloatFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Fractional a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">(/)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- string</span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_string_length&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Int -&gt; Bytes)
+-&gt; (Bytes -&gt; String)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (String -&gt; Int)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateUnaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateUnaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#intToBytes"><span class="hs-identifier hs-var">intToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; String
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToString"><span class="hs-identifier hs-var">bytesToString</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInInt"><span class="hs-identifier hs-var">wrapBytesInInt</span></a></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span class="hs-special">)</span><span>
+</span><span id="line-53"></span><span>  </span><span class="hs-special">,</span><span>
+</span><span id="line-54"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_string_slice&quot;</span></span><span>
+</span><span id="line-55"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679634143"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634143"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679634144"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634144"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span id="local-6989586621679634145"><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634145"><span class="hs-identifier hs-var">state</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-56"></span><span>        </span><span id="local-6989586621679634146"><span class="annot"><span class="annottext">Either Object Bytes
+</span><a href="#local-6989586621679634146"><span class="hs-identifier hs-var">thisStr</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall info a. Chain info a -&gt; Chain info a
+</span><a href="Language.EO.Phi.Rules.Common.html#incLogLevel"><span class="hs-identifier hs-var">incLogLevel</span></a></span><span> </span><span class="annot"><span class="annottext">(Chain (Either Object Bytes) (Either Object Bytes)
+ -&gt; Chain (Either Object Bytes) (Either Object Bytes))
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Object -&gt; Chain (Either Object Bytes) (Either Object Bytes)
+</span><a href="Language.EO.Phi.Dataize.html#dataizeRecursivelyChain"><span class="hs-identifier hs-var">dataizeRecursivelyChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractRho"><span class="hs-identifier hs-var">extractRho</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634144"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span>        </span><span id="local-6989586621679634147"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634147"><span class="hs-identifier hs-var">string</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Either Object Bytes
+</span><a href="#local-6989586621679634146"><span class="hs-identifier hs-var">thisStr</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-58"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679634148"><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679634148"><span class="hs-identifier hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Chain (Either Object Bytes) String
+forall a. a -&gt; Chain (Either Object Bytes) a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Chain (Either Object Bytes) String)
+-&gt; String -&gt; Chain (Either Object Bytes) String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; String
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToString"><span class="hs-identifier hs-var">bytesToString</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679634148"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-59"></span><span>          </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Chain (Either Object Bytes) String
+forall a. String -&gt; Chain (Either Object Bytes) a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span><span class="hs-identifier hs-var">fail</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Couldn't find bytes&quot;</span></span><span>
+</span><span id="line-60"></span><span>        </span><span class="annot"><span class="annottext">(String -&gt; Bytes)
+-&gt; (Bytes -&gt; Int)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Int -&gt; Int -&gt; String)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBinaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateBinaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#stringToBytes"><span class="hs-identifier hs-var">stringToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Int
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToInt"><span class="hs-identifier hs-var">bytesToInt</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInString"><span class="hs-identifier hs-var">wrapBytesInString</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;start&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;len&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679634151"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634151"><span class="hs-identifier hs-var">start</span></a></span></span><span> </span><span id="local-6989586621679634152"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634152"><span class="hs-identifier hs-var">len</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Int -&gt; String -&gt; String
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">take</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634152"><span class="hs-identifier hs-var">len</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; String -&gt; String
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679634151"><span class="hs-identifier hs-var">start</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634147"><span class="hs-identifier hs-var">string</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634143"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634144"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634145"><span class="hs-identifier hs-var">state</span></a></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-comment">-- others</span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_dataized&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(Bytes -&gt; Bytes)
+-&gt; (Bytes -&gt; Bytes)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (Bytes -&gt; Bytes)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateUnaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateUnaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;target&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Bytes
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Lorg_eolang_error&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Bytes)
+-&gt; (Bytes -&gt; String)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (String -&gt; String)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+forall res a.
+(res -&gt; Bytes)
+-&gt; (Bytes -&gt; a)
+-&gt; (Bytes -&gt; Object)
+-&gt; (Object -&gt; Object)
+-&gt; (a -&gt; res)
+-&gt; String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateUnaryDataizationFunChain"><span class="hs-identifier hs-var">evaluateUnaryDataizationFunChain</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; Bytes
+</span><a href="Language.EO.Phi.Rules.Common.html#stringToBytes"><span class="hs-identifier hs-var">stringToBytes</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; String
+</span><a href="Language.EO.Phi.Rules.Common.html#bytesToString"><span class="hs-identifier hs-var">bytesToString</span></a></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#wrapBytesInBytes"><span class="hs-identifier hs-var">wrapBytesInBytes</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Object -&gt; Object
+</span><a href="Language.EO.Phi.Dataize.html#extractLabel"><span class="hs-identifier hs-var">extractLabel</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;message&quot;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-special">,</span><span>
+</span><span id="line-66"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Package&quot;</span></span><span>
+</span><span id="line-67"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-keyword">let</span><span>
+</span><span id="line-68"></span><span>        </span><span id="local-6989586621679634164"><span class="annot"><span class="annottext">f :: String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="#local-6989586621679634164"><span class="hs-identifier hs-var hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679634165"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634165"><span class="hs-identifier hs-var">_name</span></a></span></span><span> </span><span id="local-6989586621679634166"><span class="annot"><span class="annottext">obj :: Object
+</span><a href="#local-6989586621679634166"><span class="hs-identifier hs-var">obj</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679634168"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634168"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-69"></span><span>          </span><span class="hs-glyph">\</span><span id="local-6989586621679634169"><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634169"><span class="hs-identifier hs-var">state</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-70"></span><span>            </span><span class="annot"><span class="annottext">Chain (Either Object Bytes) Context
+forall a. Chain a Context
+</span><a href="Language.EO.Phi.Rules.Common.html#getContext"><span class="hs-identifier hs-var">getContext</span></a></span><span>
+</span><span id="line-71"></span><span>              </span><span class="annot"><span class="annottext">Chain (Either Object Bytes) Context
+-&gt; (Context -&gt; DataizeChain (Object, EvaluationState))
+-&gt; DataizeChain (Object, EvaluationState)
+forall a b.
+Chain (Either Object Bytes) a
+-&gt; (a -&gt; Chain (Either Object Bytes) b)
+-&gt; Chain (Either Object Bytes) b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-special">(</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-72"></span><span>                      </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-73"></span><span>                        </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679634171"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634171"><span class="hs-identifier hs-var">packageBindings</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679634172"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634172"><span class="hs-identifier hs-var">restBindings</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; ([Binding], [Binding])
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><span class="hs-identifier hs-var">span</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="#local-6989586621679634174"><span class="hs-identifier hs-var">isPackage</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634168"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-74"></span><span>                        </span><span id="local-6989586621679634175"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634175"><span class="hs-identifier hs-var">bs</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Chain (Either Object Bytes) Binding)
+-&gt; [Binding] -&gt; Chain (Either Object Bytes) [Binding]
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+(a -&gt; m b) -&gt; t a -&gt; m (t b)
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; [a] -&gt; m [b]
+</span><span class="hs-identifier hs-var">mapM</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Chain (Either Object Bytes) Binding
+</span><a href="#local-6989586621679634177"><span class="hs-identifier hs-var">dataizeBindingChain</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634172"><span class="hs-identifier hs-var">restBindings</span></a></span><span>
+</span><span id="line-75"></span><span>                        </span><span class="annot"><span class="annottext">String
+-&gt; Either Object Bytes
+-&gt; Chain (Either Object Bytes) EvaluationState
+forall info. String -&gt; info -&gt; Chain info EvaluationState
+</span><a href="Language.EO.Phi.Rules.Common.html#logStep"><span class="hs-identifier hs-var">logStep</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Dataized 'Package' siblings&quot;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Either Object Bytes
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">(Object -&gt; Either Object Bytes) -&gt; Object -&gt; Either Object Bytes
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634175"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; [Binding]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634171"><span class="hs-identifier hs-var">packageBindings</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-76"></span><span>                        </span><span class="annot"><span class="annottext">(Object, EvaluationState) -&gt; DataizeChain (Object, EvaluationState)
+forall a. a -&gt; Chain (Either Object Bytes) a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634175"><span class="hs-identifier hs-var">bs</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding] -&gt; [Binding] -&gt; [Binding]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634171"><span class="hs-identifier hs-var">packageBindings</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634169"><span class="hs-identifier hs-var">state</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>                      </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-78"></span><span>                        </span><span class="annot"><span class="annottext">(Object, EvaluationState) -&gt; DataizeChain (Object, EvaluationState)
+forall a. a -&gt; Chain (Either Object Bytes) a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679634168"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">EvaluationState
+</span><a href="#local-6989586621679634169"><span class="hs-identifier hs-var">state</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-79"></span><span>                  </span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>                </span><span class="annot"><span class="annottext">(Bool -&gt; DataizeChain (Object, EvaluationState))
+-&gt; (Context -&gt; Bool)
+-&gt; Context
+-&gt; DataizeChain (Object, EvaluationState)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Context -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#dataizePackage"><span class="hs-identifier hs-var">dataizePackage</span></a></span><span>
+</span><span id="line-81"></span><span>         </span><span class="hs-keyword">where</span><span>
+</span><span id="line-82"></span><span>          </span><span id="local-6989586621679634174"><span class="annot"><span class="annottext">isPackage :: Binding -&gt; Bool
+</span><a href="#local-6989586621679634174"><span class="hs-identifier hs-var hs-var">isPackage</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-type">LambdaBinding</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Function"><span class="hs-identifier hs-type">Function</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Package&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-83"></span><span>          </span><span class="annot"><a href="#local-6989586621679634174"><span class="hs-identifier hs-var">isPackage</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-84"></span><span>          </span><span id="local-6989586621679634177"><span class="annot"><span class="annottext">dataizeBindingChain :: Binding -&gt; Chain (Either Object Bytes) Binding
+</span><a href="#local-6989586621679634177"><span class="hs-identifier hs-var hs-var">dataizeBindingChain</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679634195"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679634195"><span class="hs-identifier hs-var">attr</span></a></span></span><span> </span><span id="local-6989586621679634196"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634196"><span class="hs-identifier hs-var">o</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-85"></span><span>            </span><span id="local-6989586621679634197"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679634197"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Chain (Either Object Bytes) Context
+forall a. Chain a Context
+</span><a href="Language.EO.Phi.Rules.Common.html#getContext"><span class="hs-identifier hs-var">getContext</span></a></span><span>
+</span><span id="line-86"></span><span>            </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679634198"><span class="annot"><span class="annottext">extendedContext :: Context
+</span><a href="#local-6989586621679634198"><span class="hs-identifier hs-var hs-var">extendedContext</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Context -&gt; Context
+</span><a href="Language.EO.Phi.Rules.Common.html#extendContextWith"><span class="hs-identifier hs-var">extendContextWith</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634166"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679634197"><span class="hs-identifier hs-var">ctx</span></a></span><span class="hs-special">)</span><span class="hs-special">{</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#currentAttr"><span class="hs-identifier hs-var">currentAttr</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="#local-6989586621679634195"><span class="hs-identifier hs-type">attr</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-87"></span><span>            </span><span id="local-6989586621679634201"><span class="annot"><span class="annottext">Either Object Bytes
+</span><a href="#local-6989586621679634201"><span class="hs-identifier hs-var">dataizationResult</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall info a. Chain info a -&gt; Chain info a
+</span><a href="Language.EO.Phi.Rules.Common.html#incLogLevel"><span class="hs-identifier hs-var">incLogLevel</span></a></span><span> </span><span class="annot"><span class="annottext">(Chain (Either Object Bytes) (Either Object Bytes)
+ -&gt; Chain (Either Object Bytes) (Either Object Bytes))
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Context
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall log a. Context -&gt; Chain log a -&gt; Chain log a
+</span><a href="Language.EO.Phi.Rules.Common.html#withContext"><span class="hs-identifier hs-var">withContext</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679634198"><span class="hs-identifier hs-var">extendedContext</span></a></span><span> </span><span class="annot"><span class="annottext">(Chain (Either Object Bytes) (Either Object Bytes)
+ -&gt; Chain (Either Object Bytes) (Either Object Bytes))
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+-&gt; Chain (Either Object Bytes) (Either Object Bytes)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Object -&gt; Chain (Either Object Bytes) (Either Object Bytes)
+</span><a href="Language.EO.Phi.Dataize.html#dataizeRecursivelyChain"><span class="hs-identifier hs-var">dataizeRecursivelyChain</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634196"><span class="hs-identifier hs-var">o</span></a></span><span>
+</span><span id="line-88"></span><span>            </span><span class="annot"><span class="annottext">Binding -&gt; Chain (Either Object Bytes) Binding
+forall a. a -&gt; Chain (Either Object Bytes) a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679634195"><span class="hs-identifier hs-var">attr</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Object -&gt; Object)
+-&gt; (Bytes -&gt; Object) -&gt; Either Object Bytes -&gt; Object
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">([Binding] -&gt; Object) -&gt; (Bytes -&gt; [Binding]) -&gt; Bytes -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; [Binding]
+forall a. a -&gt; [a]
+</span><span class="hs-identifier hs-var">singleton</span></span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; [Binding]) -&gt; (Bytes -&gt; Binding) -&gt; Bytes -&gt; [Binding]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-var">DeltaBinding</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Either Object Bytes
+</span><a href="#local-6989586621679634201"><span class="hs-identifier hs-var">dataizationResult</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-89"></span><span>          </span><span class="annot"><a href="#local-6989586621679634177"><span class="hs-identifier hs-var">dataizeBindingChain</span></a></span><span> </span><span id="local-6989586621679634205"><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679634205"><span class="hs-identifier hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Chain (Either Object Bytes) Binding
+forall a. a -&gt; Chain (Either Object Bytes) a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><a href="#local-6989586621679634205"><span class="hs-identifier hs-var">b</span></a></span><span>
+</span><span id="line-90"></span><span>        </span><span class="annot"><a href="#local-6989586621679634164"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span id="local-6989586621679634206"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634206"><span class="hs-identifier hs-var">name</span></a></span></span><span> </span><span id="local-6989586621679634207"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634207"><span class="hs-identifier hs-var">_otherwise</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="Language.EO.Phi.Dataize.html#evaluateBuiltinFunChainUnknown"><span class="hs-identifier hs-var">evaluateBuiltinFunChainUnknown</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634206"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634207"><span class="hs-identifier hs-var">_otherwise</span></a></span><span>
+</span><span id="line-91"></span><span>       </span><span class="hs-keyword">in</span><span>
+</span><span id="line-92"></span><span>        </span><span class="annot"><span class="annottext">String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><a href="#local-6989586621679634164"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-93"></span><span>    </span><span class="hs-special">)</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-special">]</span><span>
+</span><span id="line-95"></span></pre></body></html>

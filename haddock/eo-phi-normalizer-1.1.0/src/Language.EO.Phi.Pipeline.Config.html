@@ -1,0 +1,774 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE DeriveAnyClass #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE DeriveGeneric #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE DerivingStrategies #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE DuplicateRecordFields #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE GeneralizedNewtypeDeriving #-}</span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE InstanceSigs #-}</span><span>
+</span><span id="line-7"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-8"></span><span class="hs-pragma">{-# LANGUAGE TemplateHaskell #-}</span><span>
+</span><span id="line-9"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-partial-fields #-}</span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Pipeline.Config</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ToJSON</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Aeson.Types</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">FromJSON</span></span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Generics</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Generic</span></span><span class="hs-special">)</span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html"><span class="hs-identifier">Language.EO.Phi.Metrics.Data</span></a></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.TH.html"><span class="hs-identifier">Language.EO.Phi.TH</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.TH.html#deriveJSON"><span class="hs-identifier">deriveJSON</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Printf</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">printf</span></span><span class="hs-special">)</span><span>
+</span><span id="line-19"></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">data</span><span> </span><span id="TestSetPhi"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetPhi"><span class="hs-identifier hs-var">TestSetPhi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="TestSetPhi"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetPhi"><span class="hs-identifier hs-var">TestSetPhi</span></a></span></span><span>
+</span><span id="line-21"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Ainitial%3ATestSetPhi"><span class="annot"><span class="annottext">TestSetPhi -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ainitial%3ATestSetPhi"><span class="hs-identifier hs-var hs-var">initial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-22"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Anormalized%3ATestSetPhi"><span class="annot"><span class="annottext">TestSetPhi -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Anormalized%3ATestSetPhi"><span class="hs-identifier hs-var hs-var">normalized</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-23"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AbindingsPathInitial%3ATestSetPhi"><span class="annot"><span class="annottext">TestSetPhi -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3AbindingsPathInitial%3ATestSetPhi"><span class="hs-identifier hs-var hs-var">bindingsPathInitial</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-24"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AbindingsPathNormalized%3ATestSetPhi"><span class="annot"><span class="annottext">TestSetPhi -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3AbindingsPathNormalized%3ATestSetPhi"><span class="hs-identifier hs-var hs-var">bindingsPathNormalized</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-25"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-26"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679635910"><span id="local-6989586621679635921"><span id="local-6989586621679635925"><span class="annot"><span class="annottext">Int -&gt; TestSetPhi -&gt; ShowS
+[TestSetPhi] -&gt; ShowS
+TestSetPhi -&gt; String
+(Int -&gt; TestSetPhi -&gt; ShowS)
+-&gt; (TestSetPhi -&gt; String)
+-&gt; ([TestSetPhi] -&gt; ShowS)
+-&gt; Show TestSetPhi
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; TestSetPhi -&gt; ShowS
+showsPrec :: Int -&gt; TestSetPhi -&gt; ShowS
+$cshow :: TestSetPhi -&gt; String
+show :: TestSetPhi -&gt; String
+$cshowList :: [TestSetPhi] -&gt; ShowS
+showList :: [TestSetPhi] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679635930"><span id="local-6989586621679635932"><span class="annot"><span class="annottext">(forall x. TestSetPhi -&gt; Rep TestSetPhi x)
+-&gt; (forall x. Rep TestSetPhi x -&gt; TestSetPhi) -&gt; Generic TestSetPhi
+forall x. Rep TestSetPhi x -&gt; TestSetPhi
+forall x. TestSetPhi -&gt; Rep TestSetPhi x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. TestSetPhi -&gt; Rep TestSetPhi x
+from :: forall x. TestSetPhi -&gt; Rep TestSetPhi x
+$cto :: forall x. Rep TestSetPhi x -&gt; TestSetPhi
+to :: forall x. Rep TestSetPhi x -&gt; TestSetPhi
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-special">$</span><span id="local-6989586621679635936"><span id="local-6989586621679635964"><span id="local-6989586621679635968"><span id="local-6989586621679635989"><span id="local-6989586621679636003"><span id="local-6989586621679636007"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TestSetPhi</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">data</span><span> </span><span id="MetricsChangeCategory"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChangeCategory"><span class="hs-identifier hs-var">MetricsChangeCategory</span></a></span></span><span> </span><span id="local-6989586621679635838"><span class="annot"><a href="#local-6989586621679635838"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-31"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="MetricsChange%27Good"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange%27Good"><span class="hs-identifier hs-var">MetricsChange'Good</span></a></span></span><span> </span><span class="hs-special">{</span><span id="%24sel%3Achange%3AMetricsChange%27Good"><span class="annot"><span class="annottext">forall a. MetricsChangeCategory a -&gt; a
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Achange%3AMetricsChange%27Good"><span class="hs-identifier hs-var hs-var">change</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679635838"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="MetricsChange%27Bad"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange%27Bad"><span class="hs-identifier hs-var">MetricsChange'Bad</span></a></span></span><span> </span><span class="hs-special">{</span><span id="%24sel%3Achange%3AMetricsChange%27Good"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Achange%3AMetricsChange%27Good"><span class="hs-identifier hs-var">change</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679635838"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="MetricsChange%27NA"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange%27NA"><span class="hs-identifier hs-var">MetricsChange'NA</span></a></span></span><span>
+</span><span id="line-34"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679636055"><span id="local-6989586621679636061"><span id="local-6989586621679636065"><span class="annot"><span class="annottext">Int -&gt; MetricsChangeCategory a -&gt; ShowS
+[MetricsChangeCategory a] -&gt; ShowS
+MetricsChangeCategory a -&gt; String
+(Int -&gt; MetricsChangeCategory a -&gt; ShowS)
+-&gt; (MetricsChangeCategory a -&gt; String)
+-&gt; ([MetricsChangeCategory a] -&gt; ShowS)
+-&gt; Show (MetricsChangeCategory a)
+forall a. Show a =&gt; Int -&gt; MetricsChangeCategory a -&gt; ShowS
+forall a. Show a =&gt; [MetricsChangeCategory a] -&gt; ShowS
+forall a. Show a =&gt; MetricsChangeCategory a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; MetricsChangeCategory a -&gt; ShowS
+showsPrec :: Int -&gt; MetricsChangeCategory a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; MetricsChangeCategory a -&gt; String
+show :: MetricsChangeCategory a -&gt; String
+$cshowList :: forall a. Show a =&gt; [MetricsChangeCategory a] -&gt; ShowS
+showList :: [MetricsChangeCategory a] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636068"><span id="local-6989586621679636070"><span class="annot"><span class="annottext">(forall x.
+ MetricsChangeCategory a -&gt; Rep (MetricsChangeCategory a) x)
+-&gt; (forall x.
+    Rep (MetricsChangeCategory a) x -&gt; MetricsChangeCategory a)
+-&gt; Generic (MetricsChangeCategory a)
+forall x.
+Rep (MetricsChangeCategory a) x -&gt; MetricsChangeCategory a
+forall x.
+MetricsChangeCategory a -&gt; Rep (MetricsChangeCategory a) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall a x.
+Rep (MetricsChangeCategory a) x -&gt; MetricsChangeCategory a
+forall a x.
+MetricsChangeCategory a -&gt; Rep (MetricsChangeCategory a) x
+$cfrom :: forall a x.
+MetricsChangeCategory a -&gt; Rep (MetricsChangeCategory a) x
+from :: forall x.
+MetricsChangeCategory a -&gt; Rep (MetricsChangeCategory a) x
+$cto :: forall a x.
+Rep (MetricsChangeCategory a) x -&gt; MetricsChangeCategory a
+to :: forall x.
+Rep (MetricsChangeCategory a) x -&gt; MetricsChangeCategory a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636074"><span id="local-6989586621679636078"><span class="annot"><span class="annottext">MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool
+(MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool)
+-&gt; (MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool)
+-&gt; Eq (MetricsChangeCategory a)
+forall a.
+Eq a =&gt;
+MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a.
+Eq a =&gt;
+MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool
+== :: MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool
+$c/= :: forall a.
+Eq a =&gt;
+MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool
+/= :: MetricsChangeCategory a -&gt; MetricsChangeCategory a -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-special">$</span><span id="local-6989586621679635838"><span id="local-6989586621679636084"><span id="local-6989586621679636109"><span id="local-6989586621679636114"><span id="local-6989586621679636129"><span id="local-6989586621679636139"><span id="local-6989586621679636143"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">MetricsChangeCategory</span><span class="hs-special">)</span></span></span></span></span></span></span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">type</span><span> </span><span id="MetricsChange"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange"><span class="hs-identifier hs-var">MetricsChange</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span>
+</span><span id="line-39"></span><span>
+</span><span id="line-40"></span><span class="hs-keyword">newtype</span><span> </span><span id="Percent"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-var">Percent</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Percent"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-var">Percent</span></a></span></span><span> </span><span class="hs-special">{</span><span id="%24sel%3Apercent%3APercent"><span class="annot"><span class="annottext">Percent -&gt; Double
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Apercent%3APercent"><span class="hs-identifier hs-var hs-var">percent</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span class="hs-special">}</span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">newtype</span></span><span>
+</span><span id="line-42"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679636169"><span id="local-6989586621679636174"><span class="annot"><span class="annottext">Value -&gt; Parser [Percent]
+Value -&gt; Parser Percent
+(Value -&gt; Parser Percent)
+-&gt; (Value -&gt; Parser [Percent]) -&gt; FromJSON Percent
+forall a.
+(Value -&gt; Parser a) -&gt; (Value -&gt; Parser [a]) -&gt; FromJSON a
+$cparseJSON :: Value -&gt; Parser Percent
+parseJSON :: Value -&gt; Parser Percent
+$cparseJSONList :: Value -&gt; Parser [Percent]
+parseJSONList :: Value -&gt; Parser [Percent]
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">FromJSON</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636179"><span id="local-6989586621679636184"><span id="local-6989586621679636188"><span id="local-6989586621679636192"><span class="annot"><span class="annottext">[Percent] -&gt; Value
+[Percent] -&gt; Encoding
+Percent -&gt; Value
+Percent -&gt; Encoding
+(Percent -&gt; Value)
+-&gt; (Percent -&gt; Encoding)
+-&gt; ([Percent] -&gt; Value)
+-&gt; ([Percent] -&gt; Encoding)
+-&gt; ToJSON Percent
+forall a.
+(a -&gt; Value)
+-&gt; (a -&gt; Encoding)
+-&gt; ([a] -&gt; Value)
+-&gt; ([a] -&gt; Encoding)
+-&gt; ToJSON a
+$ctoJSON :: Percent -&gt; Value
+toJSON :: Percent -&gt; Value
+$ctoEncoding :: Percent -&gt; Encoding
+toEncoding :: Percent -&gt; Encoding
+$ctoJSONList :: [Percent] -&gt; Value
+toJSONList :: [Percent] -&gt; Value
+$ctoEncodingList :: [Percent] -&gt; Encoding
+toEncodingList :: [Percent] -&gt; Encoding
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">ToJSON</span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636197"><span id="local-6989586621679636202"><span id="local-6989586621679636206"><span id="local-6989586621679636210"><span id="local-6989586621679636214"><span id="local-6989586621679636218"><span id="local-6989586621679636222"><span class="annot"><span class="annottext">Integer -&gt; Percent
+Percent -&gt; Percent
+Percent -&gt; Percent -&gt; Percent
+(Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Integer -&gt; Percent)
+-&gt; Num Percent
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Integer -&gt; a)
+-&gt; Num a
+$c+ :: Percent -&gt; Percent -&gt; Percent
++ :: Percent -&gt; Percent -&gt; Percent
+$c- :: Percent -&gt; Percent -&gt; Percent
+- :: Percent -&gt; Percent -&gt; Percent
+$c* :: Percent -&gt; Percent -&gt; Percent
+* :: Percent -&gt; Percent -&gt; Percent
+$cnegate :: Percent -&gt; Percent
+negate :: Percent -&gt; Percent
+$cabs :: Percent -&gt; Percent
+abs :: Percent -&gt; Percent
+$csignum :: Percent -&gt; Percent
+signum :: Percent -&gt; Percent
+$cfromInteger :: Integer -&gt; Percent
+fromInteger :: Integer -&gt; Percent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Num</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636230"><span id="local-6989586621679636235"><span id="local-6989586621679636239"><span class="annot"><span class="annottext">Num Percent
+Num Percent =&gt;
+(Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Rational -&gt; Percent)
+-&gt; Fractional Percent
+Rational -&gt; Percent
+Percent -&gt; Percent
+Percent -&gt; Percent -&gt; Percent
+forall a.
+Num a =&gt;
+(a -&gt; a -&gt; a) -&gt; (a -&gt; a) -&gt; (Rational -&gt; a) -&gt; Fractional a
+$c/ :: Percent -&gt; Percent -&gt; Percent
+/ :: Percent -&gt; Percent -&gt; Percent
+$crecip :: Percent -&gt; Percent
+recip :: Percent -&gt; Percent
+$cfromRational :: Rational -&gt; Percent
+fromRational :: Rational -&gt; Percent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Fractional</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636247"><span id="local-6989586621679636252"><span id="local-6989586621679636256"><span id="local-6989586621679636260"><span id="local-6989586621679636264"><span id="local-6989586621679636268"><span id="local-6989586621679636272"><span id="local-6989586621679636276"><span id="local-6989586621679636280"><span id="local-6989586621679636284"><span id="local-6989586621679636288"><span id="local-6989586621679636292"><span id="local-6989586621679636296"><span id="local-6989586621679636300"><span id="local-6989586621679636304"><span id="local-6989586621679636308"><span id="local-6989586621679636312"><span id="local-6989586621679636316"><span id="local-6989586621679636320"><span id="local-6989586621679636324"><span id="local-6989586621679636328"><span id="local-6989586621679636332"><span class="annot"><span class="annottext">Fractional Percent
+Percent
+Fractional Percent =&gt;
+Percent
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent)
+-&gt; Floating Percent
+Percent -&gt; Percent
+Percent -&gt; Percent -&gt; Percent
+forall a.
+Fractional a =&gt;
+a
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; Floating a
+$cpi :: Percent
+pi :: Percent
+$cexp :: Percent -&gt; Percent
+exp :: Percent -&gt; Percent
+$clog :: Percent -&gt; Percent
+log :: Percent -&gt; Percent
+$csqrt :: Percent -&gt; Percent
+sqrt :: Percent -&gt; Percent
+$c** :: Percent -&gt; Percent -&gt; Percent
+** :: Percent -&gt; Percent -&gt; Percent
+$clogBase :: Percent -&gt; Percent -&gt; Percent
+logBase :: Percent -&gt; Percent -&gt; Percent
+$csin :: Percent -&gt; Percent
+sin :: Percent -&gt; Percent
+$ccos :: Percent -&gt; Percent
+cos :: Percent -&gt; Percent
+$ctan :: Percent -&gt; Percent
+tan :: Percent -&gt; Percent
+$casin :: Percent -&gt; Percent
+asin :: Percent -&gt; Percent
+$cacos :: Percent -&gt; Percent
+acos :: Percent -&gt; Percent
+$catan :: Percent -&gt; Percent
+atan :: Percent -&gt; Percent
+$csinh :: Percent -&gt; Percent
+sinh :: Percent -&gt; Percent
+$ccosh :: Percent -&gt; Percent
+cosh :: Percent -&gt; Percent
+$ctanh :: Percent -&gt; Percent
+tanh :: Percent -&gt; Percent
+$casinh :: Percent -&gt; Percent
+asinh :: Percent -&gt; Percent
+$cacosh :: Percent -&gt; Percent
+acosh :: Percent -&gt; Percent
+$catanh :: Percent -&gt; Percent
+atanh :: Percent -&gt; Percent
+$clog1p :: Percent -&gt; Percent
+log1p :: Percent -&gt; Percent
+$cexpm1 :: Percent -&gt; Percent
+expm1 :: Percent -&gt; Percent
+$clog1pexp :: Percent -&gt; Percent
+log1pexp :: Percent -&gt; Percent
+$clog1mexp :: Percent -&gt; Percent
+log1mexp :: Percent -&gt; Percent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Floating</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636338"><span id="local-6989586621679636343"><span class="annot"><span class="annottext">Percent -&gt; Percent -&gt; Bool
+(Percent -&gt; Percent -&gt; Bool)
+-&gt; (Percent -&gt; Percent -&gt; Bool) -&gt; Eq Percent
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Percent -&gt; Percent -&gt; Bool
+== :: Percent -&gt; Percent -&gt; Bool
+$c/= :: Percent -&gt; Percent -&gt; Bool
+/= :: Percent -&gt; Percent -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636350"><span id="local-6989586621679636355"><span id="local-6989586621679636359"><span id="local-6989586621679636363"><span id="local-6989586621679636367"><span id="local-6989586621679636371"><span id="local-6989586621679636375"><span class="annot"><span class="annottext">Eq Percent
+Eq Percent =&gt;
+(Percent -&gt; Percent -&gt; Ordering)
+-&gt; (Percent -&gt; Percent -&gt; Bool)
+-&gt; (Percent -&gt; Percent -&gt; Bool)
+-&gt; (Percent -&gt; Percent -&gt; Bool)
+-&gt; (Percent -&gt; Percent -&gt; Bool)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; Ord Percent
+Percent -&gt; Percent -&gt; Bool
+Percent -&gt; Percent -&gt; Ordering
+Percent -&gt; Percent -&gt; Percent
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: Percent -&gt; Percent -&gt; Ordering
+compare :: Percent -&gt; Percent -&gt; Ordering
+$c&lt; :: Percent -&gt; Percent -&gt; Bool
+&lt; :: Percent -&gt; Percent -&gt; Bool
+$c&lt;= :: Percent -&gt; Percent -&gt; Bool
+&lt;= :: Percent -&gt; Percent -&gt; Bool
+$c&gt; :: Percent -&gt; Percent -&gt; Bool
+&gt; :: Percent -&gt; Percent -&gt; Bool
+$c&gt;= :: Percent -&gt; Percent -&gt; Bool
+&gt;= :: Percent -&gt; Percent -&gt; Bool
+$cmax :: Percent -&gt; Percent -&gt; Percent
+max :: Percent -&gt; Percent -&gt; Percent
+$cmin :: Percent -&gt; Percent -&gt; Percent
+min :: Percent -&gt; Percent -&gt; Percent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Ord</span></span></span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636385"><span class="annot"><span class="annottext">Num Percent
+Ord Percent
+(Num Percent, Ord Percent) =&gt; (Percent -&gt; Rational) -&gt; Real Percent
+Percent -&gt; Rational
+forall a. (Num a, Ord a) =&gt; (a -&gt; Rational) -&gt; Real a
+$ctoRational :: Percent -&gt; Rational
+toRational :: Percent -&gt; Rational
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Real</span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636398"><span id="local-6989586621679636407"><span id="local-6989586621679636415"><span id="local-6989586621679636423"><span id="local-6989586621679636431"><span class="annot"><span class="annottext">Fractional Percent
+Real Percent
+(Real Percent, Fractional Percent) =&gt;
+(forall b. Integral b =&gt; Percent -&gt; (b, Percent))
+-&gt; (forall b. Integral b =&gt; Percent -&gt; b)
+-&gt; (forall b. Integral b =&gt; Percent -&gt; b)
+-&gt; (forall b. Integral b =&gt; Percent -&gt; b)
+-&gt; (forall b. Integral b =&gt; Percent -&gt; b)
+-&gt; RealFrac Percent
+forall b. Integral b =&gt; Percent -&gt; b
+forall b. Integral b =&gt; Percent -&gt; (b, Percent)
+forall a.
+(Real a, Fractional a) =&gt;
+(forall b. Integral b =&gt; a -&gt; (b, a))
+-&gt; (forall b. Integral b =&gt; a -&gt; b)
+-&gt; (forall b. Integral b =&gt; a -&gt; b)
+-&gt; (forall b. Integral b =&gt; a -&gt; b)
+-&gt; (forall b. Integral b =&gt; a -&gt; b)
+-&gt; RealFrac a
+$cproperFraction :: forall b. Integral b =&gt; Percent -&gt; (b, Percent)
+properFraction :: forall b. Integral b =&gt; Percent -&gt; (b, Percent)
+$ctruncate :: forall b. Integral b =&gt; Percent -&gt; b
+truncate :: forall b. Integral b =&gt; Percent -&gt; b
+$cround :: forall b. Integral b =&gt; Percent -&gt; b
+round :: forall b. Integral b =&gt; Percent -&gt; b
+$cceiling :: forall b. Integral b =&gt; Percent -&gt; b
+ceiling :: forall b. Integral b =&gt; Percent -&gt; b
+$cfloor :: forall b. Integral b =&gt; Percent -&gt; b
+floor :: forall b. Integral b =&gt; Percent -&gt; b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">RealFrac</span></span></span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636443"><span id="local-6989586621679636448"><span id="local-6989586621679636452"><span id="local-6989586621679636456"><span id="local-6989586621679636460"><span id="local-6989586621679636464"><span id="local-6989586621679636468"><span id="local-6989586621679636472"><span id="local-6989586621679636476"><span id="local-6989586621679636480"><span id="local-6989586621679636484"><span id="local-6989586621679636488"><span id="local-6989586621679636492"><span id="local-6989586621679636496"><span class="annot"><span class="annottext">Floating Percent
+RealFrac Percent
+(RealFrac Percent, Floating Percent) =&gt;
+(Percent -&gt; Integer)
+-&gt; (Percent -&gt; Int)
+-&gt; (Percent -&gt; (Int, Int))
+-&gt; (Percent -&gt; (Integer, Int))
+-&gt; (Integer -&gt; Int -&gt; Percent)
+-&gt; (Percent -&gt; Int)
+-&gt; (Percent -&gt; Percent)
+-&gt; (Int -&gt; Percent -&gt; Percent)
+-&gt; (Percent -&gt; Bool)
+-&gt; (Percent -&gt; Bool)
+-&gt; (Percent -&gt; Bool)
+-&gt; (Percent -&gt; Bool)
+-&gt; (Percent -&gt; Bool)
+-&gt; (Percent -&gt; Percent -&gt; Percent)
+-&gt; RealFloat Percent
+Int -&gt; Percent -&gt; Percent
+Integer -&gt; Int -&gt; Percent
+Percent -&gt; Bool
+Percent -&gt; Int
+Percent -&gt; Integer
+Percent -&gt; (Int, Int)
+Percent -&gt; (Integer, Int)
+Percent -&gt; Percent
+Percent -&gt; Percent -&gt; Percent
+forall a.
+(RealFrac a, Floating a) =&gt;
+(a -&gt; Integer)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; (Int, Int))
+-&gt; (a -&gt; (Integer, Int))
+-&gt; (Integer -&gt; Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a -&gt; a)
+-&gt; (a -&gt; Bool)
+-&gt; (a -&gt; Bool)
+-&gt; (a -&gt; Bool)
+-&gt; (a -&gt; Bool)
+-&gt; (a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; RealFloat a
+$cfloatRadix :: Percent -&gt; Integer
+floatRadix :: Percent -&gt; Integer
+$cfloatDigits :: Percent -&gt; Int
+floatDigits :: Percent -&gt; Int
+$cfloatRange :: Percent -&gt; (Int, Int)
+floatRange :: Percent -&gt; (Int, Int)
+$cdecodeFloat :: Percent -&gt; (Integer, Int)
+decodeFloat :: Percent -&gt; (Integer, Int)
+$cencodeFloat :: Integer -&gt; Int -&gt; Percent
+encodeFloat :: Integer -&gt; Int -&gt; Percent
+$cexponent :: Percent -&gt; Int
+exponent :: Percent -&gt; Int
+$csignificand :: Percent -&gt; Percent
+significand :: Percent -&gt; Percent
+$cscaleFloat :: Int -&gt; Percent -&gt; Percent
+scaleFloat :: Int -&gt; Percent -&gt; Percent
+$cisNaN :: Percent -&gt; Bool
+isNaN :: Percent -&gt; Bool
+$cisInfinite :: Percent -&gt; Bool
+isInfinite :: Percent -&gt; Bool
+$cisDenormalized :: Percent -&gt; Bool
+isDenormalized :: Percent -&gt; Bool
+$cisNegativeZero :: Percent -&gt; Bool
+isNegativeZero :: Percent -&gt; Bool
+$cisIEEE :: Percent -&gt; Bool
+isIEEE :: Percent -&gt; Bool
+$catan2 :: Percent -&gt; Percent -&gt; Percent
+atan2 :: Percent -&gt; Percent -&gt; Percent
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">RealFloat</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#roundToStr"><span class="hs-identifier hs-type">roundToStr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Double</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-45"></span><span id="roundToStr"><span class="annot"><span class="annottext">roundToStr :: Int -&gt; Double -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#roundToStr"><span class="hs-identifier hs-var hs-var">roundToStr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Int -&gt; Double -&gt; String
+forall r. PrintfType r =&gt; String -&gt; r
+</span><span class="hs-identifier hs-var">printf</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;%0.*f%%&quot;</span></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679636503"><span id="local-6989586621679636508"><span class="annot"><span class="hs-identifier hs-type">Show</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-48"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">show</span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-49"></span><span>  </span><span id="local-6989586621679636512"><span class="annot"><span class="annottext">show :: Percent -&gt; String
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">show</span></span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span class="hs-special">{</span><span id="local-6989586621679636513"><span class="annot"><span class="annottext">Double
+$sel:percent:Percent :: Percent -&gt; Double
+percent :: Double
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Apercent%3APercent"><span class="hs-glyph hs-var hs-var">..</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Double -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#roundToStr"><span class="hs-identifier hs-var">roundToStr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679636513"><span class="hs-identifier hs-var">percent</span></a></span><span> </span><span class="annot"><span class="annottext">Double -&gt; Double -&gt; Double
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">*</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><span class="hs-number">100</span></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="hs-keyword">type</span><span> </span><span id="MetricsChangeCategorized"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChangeCategorized"><span class="hs-identifier hs-var">MetricsChangeCategorized</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Language.EO.Phi.Metrics.Data.html#Metrics"><span class="hs-identifier hs-type">Metrics</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChangeCategory"><span class="hs-identifier hs-type">MetricsChangeCategory</span></a></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">data</span><span> </span><span id="ReportInput"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportInput"><span class="hs-identifier hs-var">ReportInput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ReportInput"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportInput"><span class="hs-identifier hs-var">ReportInput</span></a></span></span><span>
+</span><span id="line-54"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Ajs%3AReportInput"><span class="annot"><span class="annottext">ReportInput -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ajs%3AReportInput"><span class="hs-identifier hs-var hs-var">js</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Acss%3AReportInput"><span class="annot"><span class="annottext">ReportInput -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Acss%3AReportInput"><span class="hs-identifier hs-var hs-var">css</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679636520"><span id="local-6989586621679636526"><span id="local-6989586621679636530"><span class="annot"><span class="annottext">Int -&gt; ReportInput -&gt; ShowS
+[ReportInput] -&gt; ShowS
+ReportInput -&gt; String
+(Int -&gt; ReportInput -&gt; ShowS)
+-&gt; (ReportInput -&gt; String)
+-&gt; ([ReportInput] -&gt; ShowS)
+-&gt; Show ReportInput
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ReportInput -&gt; ShowS
+showsPrec :: Int -&gt; ReportInput -&gt; ShowS
+$cshow :: ReportInput -&gt; String
+show :: ReportInput -&gt; String
+$cshowList :: [ReportInput] -&gt; ShowS
+showList :: [ReportInput] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636534"><span id="local-6989586621679636536"><span class="annot"><span class="annottext">(forall x. ReportInput -&gt; Rep ReportInput x)
+-&gt; (forall x. Rep ReportInput x -&gt; ReportInput)
+-&gt; Generic ReportInput
+forall x. Rep ReportInput x -&gt; ReportInput
+forall x. ReportInput -&gt; Rep ReportInput x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ReportInput -&gt; Rep ReportInput x
+from :: forall x. ReportInput -&gt; Rep ReportInput x
+$cto :: forall x. Rep ReportInput x -&gt; ReportInput
+to :: forall x. Rep ReportInput x -&gt; ReportInput
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-special">$</span><span id="local-6989586621679636539"><span id="local-6989586621679636553"><span id="local-6989586621679636557"><span id="local-6989586621679636567"><span id="local-6989586621679636575"><span id="local-6989586621679636579"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReportInput</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span class="hs-keyword">data</span><span> </span><span id="ReportOutput"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportOutput"><span class="hs-identifier hs-var">ReportOutput</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ReportOutput"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportOutput"><span class="hs-identifier hs-var">ReportOutput</span></a></span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Ahtml%3AReportOutput"><span class="annot"><span class="annottext">ReportOutput -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ahtml%3AReportOutput"><span class="hs-identifier hs-var hs-var">html</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-63"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Ajson%3AReportOutput"><span class="annot"><span class="annottext">ReportOutput -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ajson%3AReportOutput"><span class="hs-identifier hs-var hs-var">json</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-64"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Amarkdown%3AReportOutput"><span class="annot"><span class="annottext">ReportOutput -&gt; Maybe String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Amarkdown%3AReportOutput"><span class="hs-identifier hs-var hs-var">markdown</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-65"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-66"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679636601"><span id="local-6989586621679636608"><span id="local-6989586621679636612"><span class="annot"><span class="annottext">Int -&gt; ReportOutput -&gt; ShowS
+[ReportOutput] -&gt; ShowS
+ReportOutput -&gt; String
+(Int -&gt; ReportOutput -&gt; ShowS)
+-&gt; (ReportOutput -&gt; String)
+-&gt; ([ReportOutput] -&gt; ShowS)
+-&gt; Show ReportOutput
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ReportOutput -&gt; ShowS
+showsPrec :: Int -&gt; ReportOutput -&gt; ShowS
+$cshow :: ReportOutput -&gt; String
+show :: ReportOutput -&gt; String
+$cshowList :: [ReportOutput] -&gt; ShowS
+showList :: [ReportOutput] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636616"><span id="local-6989586621679636618"><span class="annot"><span class="annottext">(forall x. ReportOutput -&gt; Rep ReportOutput x)
+-&gt; (forall x. Rep ReportOutput x -&gt; ReportOutput)
+-&gt; Generic ReportOutput
+forall x. Rep ReportOutput x -&gt; ReportOutput
+forall x. ReportOutput -&gt; Rep ReportOutput x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ReportOutput -&gt; Rep ReportOutput x
+from :: forall x. ReportOutput -&gt; Rep ReportOutput x
+$cto :: forall x. Rep ReportOutput x -&gt; ReportOutput
+to :: forall x. Rep ReportOutput x -&gt; ReportOutput
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-special">$</span><span id="local-6989586621679636621"><span id="local-6989586621679636638"><span id="local-6989586621679636642"><span id="local-6989586621679636655"><span id="local-6989586621679636665"><span id="local-6989586621679636669"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReportOutput</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="hs-keyword">data</span><span> </span><span id="ReportConfig"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportConfig"><span class="hs-identifier hs-var">ReportConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="ReportConfig"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportConfig"><span class="hs-identifier hs-var">ReportConfig</span></a></span></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Ainput%3AReportConfig"><span class="annot"><span class="annottext">ReportConfig -&gt; Maybe ReportInput
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ainput%3AReportConfig"><span class="hs-identifier hs-var hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportInput"><span class="hs-identifier hs-type">ReportInput</span></a></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aoutput%3AReportConfig"><span class="annot"><span class="annottext">ReportConfig -&gt; ReportOutput
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aoutput%3AReportConfig"><span class="hs-identifier hs-var hs-var">output</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportOutput"><span class="hs-identifier hs-type">ReportOutput</span></a></span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AexpectedMetricsChange%3AReportConfig"><span class="annot"><span class="annottext">ReportConfig -&gt; MetricsChange
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3AexpectedMetricsChange%3AReportConfig"><span class="hs-identifier hs-var hs-var">expectedMetricsChange</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#MetricsChange"><span class="hs-identifier hs-type">MetricsChange</span></a></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AexpectedImprovedProgramsPercentage%3AReportConfig"><span class="annot"><span class="annottext">ReportConfig -&gt; Percent
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3AexpectedImprovedProgramsPercentage%3AReportConfig"><span class="hs-identifier hs-var hs-var">expectedImprovedProgramsPercentage</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#Percent"><span class="hs-identifier hs-type">Percent</span></a></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679636695"><span id="local-6989586621679636705"><span id="local-6989586621679636709"><span class="annot"><span class="annottext">Int -&gt; ReportConfig -&gt; ShowS
+[ReportConfig] -&gt; ShowS
+ReportConfig -&gt; String
+(Int -&gt; ReportConfig -&gt; ShowS)
+-&gt; (ReportConfig -&gt; String)
+-&gt; ([ReportConfig] -&gt; ShowS)
+-&gt; Show ReportConfig
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ReportConfig -&gt; ShowS
+showsPrec :: Int -&gt; ReportConfig -&gt; ShowS
+$cshow :: ReportConfig -&gt; String
+show :: ReportConfig -&gt; String
+$cshowList :: [ReportConfig] -&gt; ShowS
+showList :: [ReportConfig] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636712"><span id="local-6989586621679636714"><span class="annot"><span class="annottext">(forall x. ReportConfig -&gt; Rep ReportConfig x)
+-&gt; (forall x. Rep ReportConfig x -&gt; ReportConfig)
+-&gt; Generic ReportConfig
+forall x. Rep ReportConfig x -&gt; ReportConfig
+forall x. ReportConfig -&gt; Rep ReportConfig x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. ReportConfig -&gt; Rep ReportConfig x
+from :: forall x. ReportConfig -&gt; Rep ReportConfig x
+$cto :: forall x. Rep ReportConfig x -&gt; ReportConfig
+to :: forall x. Rep ReportConfig x -&gt; ReportConfig
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-77"></span><span>
+</span><span id="line-78"></span><span class="hs-special">$</span><span id="local-6989586621679636717"><span id="local-6989586621679636739"><span id="local-6989586621679636743"><span id="local-6989586621679636761"><span id="local-6989586621679636774"><span id="local-6989586621679636778"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">ReportConfig</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="hs-keyword">data</span><span> </span><span id="TestSetEO"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetEO"><span class="hs-identifier hs-var">TestSetEO</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="TestSetEO"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetEO"><span class="hs-identifier hs-var">TestSetEO</span></a></span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Aoriginal%3ATestSetEO"><span class="annot"><span class="annottext">TestSetEO -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aoriginal%3ATestSetEO"><span class="hs-identifier hs-var hs-var">original</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-82"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Ayaml%3ATestSetEO"><span class="annot"><span class="annottext">TestSetEO -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ayaml%3ATestSetEO"><span class="hs-identifier hs-var hs-var">yaml</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-83"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Afiltered%3ATestSetEO"><span class="annot"><span class="annottext">TestSetEO -&gt; String
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Afiltered%3ATestSetEO"><span class="hs-identifier hs-var hs-var">filtered</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span>
+</span><span id="line-84"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Ainclude%3ATestSetEO"><span class="annot"><span class="annottext">TestSetEO -&gt; Maybe [String]
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Ainclude%3ATestSetEO"><span class="hs-identifier hs-var hs-var">include</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-85"></span><span>  </span><span class="hs-comment">-- ^</span><span>
+</span><span id="line-86"></span><span>  </span><span class="hs-comment">-- Program names to include.</span><span>
+</span><span id="line-87"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-88"></span><span>  </span><span class="hs-comment">-- `Nothing` is equivalent to all programs.</span><span>
+</span><span id="line-89"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aexclude%3ATestSetEO"><span class="annot"><span class="annottext">TestSetEO -&gt; Maybe [String]
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aexclude%3ATestSetEO"><span class="hs-identifier hs-var hs-var">exclude</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-90"></span><span>  </span><span class="hs-comment">-- ^</span><span>
+</span><span id="line-91"></span><span>  </span><span class="hs-comment">-- Program names to exclude</span><span>
+</span><span id="line-92"></span><span>  </span><span class="hs-comment">--</span><span>
+</span><span id="line-93"></span><span>  </span><span class="hs-comment">-- `Nothing` is equivalent to no programs.</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-95"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679636805"><span id="local-6989586621679636815"><span id="local-6989586621679636819"><span class="annot"><span class="annottext">Int -&gt; TestSetEO -&gt; ShowS
+[TestSetEO] -&gt; ShowS
+TestSetEO -&gt; String
+(Int -&gt; TestSetEO -&gt; ShowS)
+-&gt; (TestSetEO -&gt; String)
+-&gt; ([TestSetEO] -&gt; ShowS)
+-&gt; Show TestSetEO
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; TestSetEO -&gt; ShowS
+showsPrec :: Int -&gt; TestSetEO -&gt; ShowS
+$cshow :: TestSetEO -&gt; String
+show :: TestSetEO -&gt; String
+$cshowList :: [TestSetEO] -&gt; ShowS
+showList :: [TestSetEO] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636822"><span id="local-6989586621679636824"><span class="annot"><span class="annottext">(forall x. TestSetEO -&gt; Rep TestSetEO x)
+-&gt; (forall x. Rep TestSetEO x -&gt; TestSetEO) -&gt; Generic TestSetEO
+forall x. Rep TestSetEO x -&gt; TestSetEO
+forall x. TestSetEO -&gt; Rep TestSetEO x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. TestSetEO -&gt; Rep TestSetEO x
+from :: forall x. TestSetEO -&gt; Rep TestSetEO x
+$cto :: forall x. Rep TestSetEO x -&gt; TestSetEO
+to :: forall x. Rep TestSetEO x -&gt; TestSetEO
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-96"></span><span>
+</span><span id="line-97"></span><span class="hs-special">$</span><span id="local-6989586621679636827"><span id="local-6989586621679636851"><span id="local-6989586621679636855"><span id="local-6989586621679636875"><span id="local-6989586621679636890"><span id="local-6989586621679636894"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TestSetEO</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-98"></span><span>
+</span><span id="line-99"></span><span class="hs-keyword">data</span><span> </span><span id="AtomsSet"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#AtomsSet"><span class="hs-identifier hs-var">AtomsSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="AtomsSet"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#AtomsSet"><span class="hs-identifier hs-var">AtomsSet</span></a></span></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Aenable%3AAtomsSet"><span class="annot"><span class="annottext">AtomsSet -&gt; Maybe [String]
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aenable%3AAtomsSet"><span class="hs-identifier hs-var hs-var">enable</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Adisable%3AAtomsSet"><span class="annot"><span class="annottext">AtomsSet -&gt; Maybe [String]
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Adisable%3AAtomsSet"><span class="hs-identifier hs-var hs-var">disable</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679636921"><span id="local-6989586621679636927"><span id="local-6989586621679636931"><span class="annot"><span class="annottext">Int -&gt; AtomsSet -&gt; ShowS
+[AtomsSet] -&gt; ShowS
+AtomsSet -&gt; String
+(Int -&gt; AtomsSet -&gt; ShowS)
+-&gt; (AtomsSet -&gt; String) -&gt; ([AtomsSet] -&gt; ShowS) -&gt; Show AtomsSet
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; AtomsSet -&gt; ShowS
+showsPrec :: Int -&gt; AtomsSet -&gt; ShowS
+$cshow :: AtomsSet -&gt; String
+show :: AtomsSet -&gt; String
+$cshowList :: [AtomsSet] -&gt; ShowS
+showList :: [AtomsSet] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679636936"><span id="local-6989586621679636938"><span class="annot"><span class="annottext">(forall x. AtomsSet -&gt; Rep AtomsSet x)
+-&gt; (forall x. Rep AtomsSet x -&gt; AtomsSet) -&gt; Generic AtomsSet
+forall x. Rep AtomsSet x -&gt; AtomsSet
+forall x. AtomsSet -&gt; Rep AtomsSet x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. AtomsSet -&gt; Rep AtomsSet x
+from :: forall x. AtomsSet -&gt; Rep AtomsSet x
+$cto :: forall x. Rep AtomsSet x -&gt; AtomsSet
+to :: forall x. Rep AtomsSet x -&gt; AtomsSet
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span class="hs-special">$</span><span id="local-6989586621679636941"><span id="local-6989586621679636955"><span id="local-6989586621679636959"><span id="local-6989586621679636969"><span id="local-6989586621679636977"><span id="local-6989586621679636981"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">AtomsSet</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span class="hs-keyword">data</span><span> </span><span id="TestSet"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSet"><span class="hs-identifier hs-var">TestSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="TestSet"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSet"><span class="hs-identifier hs-var">TestSet</span></a></span></span><span>
+</span><span id="line-108"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Aeo%3ATestSet"><span class="annot"><span class="annottext">TestSet -&gt; TestSetEO
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aeo%3ATestSet"><span class="hs-identifier hs-var hs-var">eo</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetEO"><span class="hs-identifier hs-type">TestSetEO</span></a></span><span>
+</span><span id="line-109"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aphi%3ATestSet"><span class="annot"><span class="annottext">TestSet -&gt; TestSetPhi
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aphi%3ATestSet"><span class="hs-identifier hs-var hs-var">phi</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSetPhi"><span class="hs-identifier hs-type">TestSetPhi</span></a></span><span>
+</span><span id="line-110"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aatoms%3ATestSet"><span class="annot"><span class="annottext">TestSet -&gt; Maybe AtomsSet
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aatoms%3ATestSet"><span class="hs-identifier hs-var hs-var">atoms</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#AtomsSet"><span class="hs-identifier hs-type">AtomsSet</span></a></span><span>
+</span><span id="line-111"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3Aenable%3ATestSet"><span class="annot"><span class="annottext">TestSet -&gt; Maybe Bool
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Aenable%3ATestSet"><span class="hs-identifier hs-var hs-var">enable</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-comment">-- ^</span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-comment">-- Whether to enable this test set.</span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679637007"><span id="local-6989586621679637016"><span id="local-6989586621679637020"><span class="annot"><span class="annottext">Int -&gt; TestSet -&gt; ShowS
+[TestSet] -&gt; ShowS
+TestSet -&gt; String
+(Int -&gt; TestSet -&gt; ShowS)
+-&gt; (TestSet -&gt; String) -&gt; ([TestSet] -&gt; ShowS) -&gt; Show TestSet
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; TestSet -&gt; ShowS
+showsPrec :: Int -&gt; TestSet -&gt; ShowS
+$cshow :: TestSet -&gt; String
+show :: TestSet -&gt; String
+$cshowList :: [TestSet] -&gt; ShowS
+showList :: [TestSet] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679637024"><span id="local-6989586621679637026"><span class="annot"><span class="annottext">(forall x. TestSet -&gt; Rep TestSet x)
+-&gt; (forall x. Rep TestSet x -&gt; TestSet) -&gt; Generic TestSet
+forall x. Rep TestSet x -&gt; TestSet
+forall x. TestSet -&gt; Rep TestSet x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. TestSet -&gt; Rep TestSet x
+from :: forall x. TestSet -&gt; Rep TestSet x
+$cto :: forall x. Rep TestSet x -&gt; TestSet
+to :: forall x. Rep TestSet x -&gt; TestSet
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span class="hs-special">$</span><span id="local-6989586621679637029"><span id="local-6989586621679637050"><span id="local-6989586621679637054"><span id="local-6989586621679637071"><span id="local-6989586621679637084"><span id="local-6989586621679637088"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">TestSet</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="hs-keyword">data</span><span> </span><span id="PipelineConfig"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#PipelineConfig"><span class="hs-identifier hs-var">PipelineConfig</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="PipelineConfig"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#PipelineConfig"><span class="hs-identifier hs-var">PipelineConfig</span></a></span></span><span>
+</span><span id="line-120"></span><span>  </span><span class="hs-special">{</span><span> </span><span id="%24sel%3Areport%3APipelineConfig"><span class="annot"><span class="annottext">PipelineConfig -&gt; ReportConfig
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3Areport%3APipelineConfig"><span class="hs-identifier hs-var hs-var">report</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportConfig"><span class="hs-identifier hs-type">ReportConfig</span></a></span><span>
+</span><span id="line-121"></span><span>  </span><span class="hs-special">,</span><span> </span><span id="%24sel%3AtestSets%3APipelineConfig"><span class="annot"><span class="annottext">PipelineConfig -&gt; [TestSet]
+</span><a href="Language.EO.Phi.Pipeline.Config.html#%24sel%3AtestSets%3APipelineConfig"><span class="hs-identifier hs-var hs-var">testSets</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#TestSet"><span class="hs-identifier hs-type">TestSet</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-122"></span><span>  </span><span class="hs-special">}</span><span>
+</span><span id="line-123"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679637114"><span id="local-6989586621679637120"><span id="local-6989586621679637124"><span class="annot"><span class="annottext">Int -&gt; PipelineConfig -&gt; ShowS
+[PipelineConfig] -&gt; ShowS
+PipelineConfig -&gt; String
+(Int -&gt; PipelineConfig -&gt; ShowS)
+-&gt; (PipelineConfig -&gt; String)
+-&gt; ([PipelineConfig] -&gt; ShowS)
+-&gt; Show PipelineConfig
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; PipelineConfig -&gt; ShowS
+showsPrec :: Int -&gt; PipelineConfig -&gt; ShowS
+$cshow :: PipelineConfig -&gt; String
+show :: PipelineConfig -&gt; String
+$cshowList :: [PipelineConfig] -&gt; ShowS
+showList :: [PipelineConfig] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679637127"><span id="local-6989586621679637129"><span class="annot"><span class="annottext">(forall x. PipelineConfig -&gt; Rep PipelineConfig x)
+-&gt; (forall x. Rep PipelineConfig x -&gt; PipelineConfig)
+-&gt; Generic PipelineConfig
+forall x. Rep PipelineConfig x -&gt; PipelineConfig
+forall x. PipelineConfig -&gt; Rep PipelineConfig x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. PipelineConfig -&gt; Rep PipelineConfig x
+from :: forall x. PipelineConfig -&gt; Rep PipelineConfig x
+$cto :: forall x. Rep PipelineConfig x -&gt; PipelineConfig
+to :: forall x. Rep PipelineConfig x -&gt; PipelineConfig
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Generic</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-124"></span><span>
+</span><span id="line-125"></span><span class="hs-special">$</span><span id="local-6989586621679637132"><span id="local-6989586621679637146"><span id="local-6989586621679637150"><span id="local-6989586621679637160"><span id="local-6989586621679637168"><span id="local-6989586621679637172"><span class="hs-special">(</span><span class="hs-identifier">deriveJSON</span><span> </span><span class="hs-special">''</span><span class="hs-identifier">PipelineConfig</span><span class="hs-special">)</span></span></span></span></span></span></span><span>
+</span><span id="line-126"></span><span>
+</span><span id="line-127"></span><span class="hs-keyword">data</span><span> </span><span id="ReportFormat"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportFormat"><span class="hs-identifier hs-var">ReportFormat</span></a></span></span><span>
+</span><span id="line-128"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="ReportFormat%27Html"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportFormat%27Html"><span class="hs-identifier hs-var">ReportFormat'Html</span></a></span></span><span>
+</span><span id="line-129"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | GitHub Flavored Markdown</span></span><span>
+</span><span id="line-130"></span><span>    </span><span id="ReportFormat%27Markdown"><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#ReportFormat%27Markdown"><span class="hs-identifier hs-var">ReportFormat'Markdown</span></a></span></span><span>
+</span><span id="line-131"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="annot"><span class="hs-keyword">stock</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679637189"><span id="local-6989586621679637191"><span class="annot"><span class="annottext">ReportFormat -&gt; ReportFormat -&gt; Bool
+(ReportFormat -&gt; ReportFormat -&gt; Bool)
+-&gt; (ReportFormat -&gt; ReportFormat -&gt; Bool) -&gt; Eq ReportFormat
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ReportFormat -&gt; ReportFormat -&gt; Bool
+== :: ReportFormat -&gt; ReportFormat -&gt; Bool
+$c/= :: ReportFormat -&gt; ReportFormat -&gt; Bool
+/= :: ReportFormat -&gt; ReportFormat -&gt; Bool
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var">Eq</span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-132"></span></pre></body></html>

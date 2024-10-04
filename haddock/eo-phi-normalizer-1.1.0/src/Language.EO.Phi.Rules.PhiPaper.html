@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Rules.PhiPaper</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">guard</span></span><span class="hs-special">)</span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.html"><span class="hs-identifier">Language.EO.Phi</span></a></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html"><span class="hs-identifier">Language.EO.Phi.Rules.Common</span></a></span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="annot"><span class="hs-comment">-- * Yegor's Rules</span></span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="annot"><span class="hs-comment">-- | Rule 6.</span></span><span>
+</span><span id="line-10"></span><span class="annot"><a href="Language.EO.Phi.Rules.PhiPaper.html#rule6"><span class="hs-identifier hs-type">rule6</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Rule"><span class="hs-identifier hs-type">Rule</span></a></span><span>
+</span><span id="line-11"></span><span id="rule6"><span class="annot"><span class="annottext">rule6 :: Rule
+</span><a href="Language.EO.Phi.Rules.PhiPaper.html#rule6"><span class="hs-identifier hs-var hs-var">rule6</span></a></span></span><span> </span><span id="local-6989586621679633295"><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633295"><span class="hs-identifier hs-var">ctx</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-type">ObjectDispatch</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Formation</span></a></span><span> </span><span id="local-6989586621679633298"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633298"><span class="hs-identifier hs-var">bindings</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679633299"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633299"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679633300"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633300"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; [Binding] -&gt; Maybe Object
+</span><a href="Language.EO.Phi.Rules.Common.html#lookupBinding"><span class="hs-identifier hs-var">lookupBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633299"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633298"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-13"></span><span>      </span><span class="annot"><span class="annottext">Bool -&gt; [()]
+forall (f :: * -&gt; *). Alternative f =&gt; Bool -&gt; f ()
+</span><span class="hs-identifier hs-var">guard</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Context -&gt; Object -&gt; Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#isNF"><span class="hs-identifier hs-var">isNF</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><a href="#local-6989586621679633295"><span class="hs-identifier hs-var">ctx</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633300"><span class="hs-identifier hs-var">obj</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span>      </span><span class="annot"><span class="annottext">Object -&gt; [Object]
+forall a. a -&gt; [a]
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; [Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-var">Application</span></a></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679633300"><span class="hs-identifier hs-var">obj</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Attribute -&gt; Object -&gt; Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-var">AlphaBinding</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Rho"><span class="hs-identifier hs-var">Rho</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633306"><span class="hs-identifier hs-var">bindings'</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-15"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-16"></span><span>  </span><span id="local-6989586621679633306"><span class="annot"><span class="annottext">bindings' :: [Binding]
+</span><a href="#local-6989586621679633306"><span class="hs-identifier hs-var hs-var">bindings'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Bool) -&gt; [Binding] -&gt; [Binding]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">(Bool -&gt; Bool) -&gt; (Binding -&gt; Bool) -&gt; Binding -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Bool
+</span><a href="#local-6989586621679633309"><span class="hs-identifier hs-var">isDispatched</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679633298"><span class="hs-identifier hs-var">bindings</span></a></span><span>
+</span><span id="line-17"></span><span>  </span><span id="local-6989586621679633309"><span class="annot"><span class="annottext">isDispatched :: Binding -&gt; Bool
+</span><a href="#local-6989586621679633309"><span class="hs-identifier hs-var hs-var">isDispatched</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">AlphaBinding</span></a></span><span> </span><span id="local-6989586621679633312"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633312"><span class="hs-identifier hs-var">a'</span></a></span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633299"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Attribute -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679633312"><span class="hs-identifier hs-var">a'</span></a></span><span>
+</span><span id="line-18"></span><span>  </span><span class="annot"><a href="#local-6989586621679633309"><span class="hs-identifier hs-var">isDispatched</span></a></span><span> </span><span class="annot"><span class="annottext">Binding
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="Language.EO.Phi.Rules.PhiPaper.html#rule6"><span class="hs-identifier hs-var">rule6</span></a></span><span> </span><span class="annot"><span class="annottext">Context
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-20"></span></pre></body></html>

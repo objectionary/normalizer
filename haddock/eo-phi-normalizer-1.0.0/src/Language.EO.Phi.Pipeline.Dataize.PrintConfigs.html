@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE OverloadedRecordDot #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE QuasiQuotes #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-4"></span><span>
+</span><span id="line-5"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Pipeline.Dataize.PrintConfigs</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&lt;&amp;&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">stripPrefix</span></span><span class="hs-special">)</span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html"><span class="hs-identifier">Language.EO.Phi.Pipeline.Config</span></a></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">PyF</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fmt</span></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.Dataize.PrintConfigs.html#printDataizeConfigs"><span class="hs-identifier hs-type">printDataizeConfigs</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#PipelineConfig"><span class="hs-identifier hs-type">PipelineConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span id="printDataizeConfigs"><span class="annot"><span class="annottext">printDataizeConfigs :: PipelineConfig -&gt; [String] -&gt; Bool -&gt; IO ()
+</span><a href="Language.EO.Phi.Pipeline.Dataize.PrintConfigs.html#printDataizeConfigs"><span class="hs-identifier hs-var hs-var">printDataizeConfigs</span></a></span></span><span> </span><span id="local-6989586621679638702"><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679638702"><span class="hs-identifier hs-var">pipelineConfig</span></a></span></span><span> </span><span id="local-6989586621679638703"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679638703"><span class="hs-identifier hs-var">phiPrefixes</span></a></span></span><span> </span><span id="local-6989586621679638704"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679638704"><span class="hs-identifier hs-var">singleLine</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-15"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679638735"><span class="annot"><span class="annottext">args :: [String]
+</span><a href="#local-6989586621679638735"><span class="hs-identifier hs-var hs-var">args</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-16"></span><span>        </span><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679638702"><span class="hs-identifier hs-var">pipelineConfig</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">testSets</span><span> </span><span class="annot"><span class="annottext">[TestSet] -&gt; (TestSet -&gt; String) -&gt; [String]
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;&amp;&gt;</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679638736"><span class="annot"><span class="annottext">TestSet
+</span><a href="#local-6989586621679638736"><span class="hs-identifier hs-var">testSet</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-17"></span><span>          </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679638739"><span class="annot"><span class="annottext">phiInitial :: String
+</span><a href="#local-6989586621679638739"><span class="hs-identifier hs-var hs-var">phiInitial</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TestSet
+</span><a href="#local-6989586621679638736"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">phi</span><span class="hs-operator">.</span><span class="hs-identifier">initial</span><span>
+</span><span id="line-18"></span><span>              </span><span id="local-6989586621679638742"><span class="annot"><span class="annottext">phi :: String
+</span><a href="#local-6989586621679638742"><span class="hs-identifier hs-var hs-var">phi</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-19"></span><span>                </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Maybe String] -&gt; [String]
+forall a. [Maybe a] -&gt; [a]
+</span><span class="hs-identifier hs-var">catMaybes</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; String -&gt; Maybe String
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Maybe [a]
+</span><span class="hs-identifier hs-var">stripPrefix</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638744"><span class="hs-identifier hs-var">prefix</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638739"><span class="hs-identifier hs-var">phiInitial</span></a></span><span> </span><span class="hs-glyph">|</span><span> </span><span id="local-6989586621679638744"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638744"><span class="hs-identifier hs-var">prefix</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679638703"><span class="hs-identifier hs-var">phiPrefixes</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-20"></span><span>                  </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638739"><span class="hs-identifier hs-var">phiInitial</span></a></span><span>
+</span><span id="line-21"></span><span>                  </span><span id="local-6989586621679638745"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638745"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638745"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-22"></span><span>              </span><span id="local-6989586621679638747"><span class="annot"><span class="annottext">atoms :: String
+</span><a href="#local-6989586621679638747"><span class="hs-identifier hs-var hs-var">atoms</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TestSet
+</span><a href="#local-6989586621679638736"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">atoms</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-23"></span><span>                </span><span class="annot"><span class="annottext">Maybe AtomsSet
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span>
+</span><span id="line-24"></span><span>                </span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#AtomsSet"><span class="hs-identifier hs-type">AtomsSet</span></a></span><span class="hs-special">{</span><span id="local-6989586621679638749"><span id="local-6989586621679638750"><span class="annot"><span class="annottext">Maybe [String]
+enable :: Maybe [String]
+disable :: Maybe [String]
+$sel:enable:AtomsSet :: AtomsSet -&gt; Maybe [String]
+$sel:disable:AtomsSet :: AtomsSet -&gt; Maybe [String]
+</span><a href="#local-6989586621679638749"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span></span></span><span class="hs-special">}</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-25"></span><span>                  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679638763"><span class="annot"><span class="annottext">enable' :: Maybe String
+</span><a href="#local-6989586621679638763"><span class="hs-identifier hs-var hs-var">enable'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><span class="hs-identifier hs-var">unwords</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String)
+-&gt; ([String] -&gt; [String]) -&gt; [String] -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679638766"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638766"><span class="hs-identifier hs-var">atom</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="">[fmt|--enable-atom {atom}|]</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; [String]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; Maybe [String] -&gt; Maybe String
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe [String]
+</span><a href="#local-6989586621679638749"><span class="hs-identifier hs-var">enable</span></a></span><span>
+</span><span id="line-26"></span><span>                      </span><span id="local-6989586621679638780"><span class="annot"><span class="annottext">disable' :: Maybe String
+</span><a href="#local-6989586621679638780"><span class="hs-identifier hs-var hs-var">disable'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><span class="hs-identifier hs-var">unwords</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String)
+-&gt; ([String] -&gt; [String]) -&gt; [String] -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679638781"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679638781"><span class="hs-identifier hs-var">atom</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="">[fmt|--disable-atom {atom}|]</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(String -&gt; String) -&gt; [String] -&gt; [String]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; Maybe [String] -&gt; Maybe String
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Maybe [String]
+</span><a href="#local-6989586621679638750"><span class="hs-identifier hs-var">disable</span></a></span><span>
+</span><span id="line-27"></span><span>                   </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><span class="hs-identifier hs-var">unwords</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Maybe String] -&gt; [String]
+forall a. [Maybe a] -&gt; [a]
+</span><span class="hs-identifier hs-var">catMaybes</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679638763"><span class="hs-identifier hs-var">enable'</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><a href="#local-6989586621679638780"><span class="hs-identifier hs-var">disable'</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span>
+</span><span id="line-28"></span><span>              </span><span id="local-6989586621679638783"><span class="annot"><span class="annottext">enableTestSet :: String
+</span><a href="#local-6989586621679638783"><span class="hs-identifier hs-var hs-var">enableTestSet</span></a></span></span><span>
+</span><span id="line-29"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Maybe Bool -&gt; Bool
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">TestSet
+</span><a href="#local-6989586621679638736"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">enable</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;true&quot;</span></span><span>
+</span><span id="line-30"></span><span>                </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;false&quot;</span></span><span>
+</span><span id="line-31"></span><span>           </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="">[fmt|'{{&quot;atoms&quot;: &quot;{atoms}&quot;, &quot;phi&quot;: &quot;{phi}&quot;, &quot;enable&quot;: &quot;{enableTestSet}&quot;}}'|]</span></span><span>
+</span><span id="line-32"></span><span>  </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-keyword">if</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679638704"><span class="hs-identifier hs-var">singleLine</span></a></span><span> </span><span class="hs-keyword">then</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><span class="hs-identifier hs-var">unwords</span></span><span> </span><span class="hs-keyword">else</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+</span><span class="hs-identifier hs-var">unlines</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679638735"><span class="hs-identifier hs-var">args</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span></pre></body></html>

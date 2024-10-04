@@ -1,0 +1,376 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE NamedFieldPuns #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE OverloadedRecordDot #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE RecordWildCards #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Pipeline.EOTests.PrepareTests</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-8"></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Function</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&amp;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-operator">(&lt;&amp;&gt;)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">fromMaybe</span></span><span class="hs-special">)</span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Yaml</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">encodeFile</span></span><span class="hs-special">)</span><span>
+</span><span id="line-14"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html"><span class="hs-identifier">Language.EO.Phi.Pipeline.Config</span></a></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html"><span class="hs-identifier">Language.EO.Phi.Pipeline.EOTests.Data</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Directory</span></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.FilePath.Posix</span></span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#prepareTests"><span class="hs-identifier hs-type">prepareTests</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.Config.html#PipelineConfig"><span class="hs-identifier hs-type">PipelineConfig</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-20"></span><span id="prepareTests"><span class="annot"><span class="annottext">prepareTests :: PipelineConfig -&gt; IO ()
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#prepareTests"><span class="hs-identifier hs-var hs-var">prepareTests</span></a></span></span><span> </span><span id="local-6989586621679638556"><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679638556"><span class="hs-identifier hs-var">config</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-21"></span><span>  </span><span class="annot"><span class="annottext">[TestSet] -&gt; (TestSet -&gt; IO ()) -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m ()
+</span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(TestSet -&gt; Bool) -&gt; [TestSet] -&gt; [TestSet]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; Maybe Bool -&gt; Bool
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">(Maybe Bool -&gt; Bool) -&gt; (TestSet -&gt; Maybe Bool) -&gt; TestSet -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">enable</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">PipelineConfig
+</span><a href="#local-6989586621679638556"><span class="hs-identifier hs-var">config</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">testSets</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((TestSet -&gt; IO ()) -&gt; IO ()) -&gt; (TestSet -&gt; IO ()) -&gt; IO ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">eo</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span id="local-6989586621679638559"><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-22"></span><span>    </span><span id="local-6989586621679638560"><span class="annot"><span class="annottext">test :: Test
+</span><a href="#local-6989586621679638560"><span class="hs-identifier hs-var">test</span></a></span></span><span class="hs-glyph">@</span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span class="hs-special">{</span><span id="local-6989586621679638562"><span class="annot"><span class="annottext">[Char]
+source :: [Char]
+$sel:source:Test :: Test -&gt; [Char]
+</span><a href="#local-6989586621679638562"><span class="hs-identifier hs-var hs-var">source</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638564"><span class="annot"><span class="annottext">[Char]
+meta :: [Char]
+$sel:meta:Test :: Test -&gt; [Char]
+</span><a href="#local-6989586621679638564"><span class="hs-identifier hs-var hs-var">meta</span></a></span></span><span class="hs-special">}</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; IO Test
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseTest"><span class="hs-identifier hs-var">parseTest</span></a></span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">original</span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679638568"><span class="annot"><span class="annottext">exclude :: [[Char]]
+</span><a href="#local-6989586621679638568"><span class="hs-identifier hs-var hs-var">exclude</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; Maybe [[Char]] -&gt; [[Char]]
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">exclude</span><span>
+</span><span id="line-24"></span><span>        </span><span id="local-6989586621679638576"><span class="annot"><span class="annottext">include :: [[Char]]
+</span><a href="#local-6989586621679638576"><span class="hs-identifier hs-var hs-var">include</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; Maybe [[Char]] -&gt; [[Char]]
+forall a. a -&gt; Maybe a -&gt; a
+</span><span class="hs-identifier hs-var">fromMaybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Test
+</span><a href="#local-6989586621679638560"><span class="hs-identifier hs-var">test</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programs</span><span> </span><span class="annot"><span class="annottext">[Program] -&gt; (Program -&gt; [Char]) -&gt; [[Char]]
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;&amp;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-operator">.</span><span class="hs-identifier">name</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">include</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; ([[Char]] -&gt; [[Char]]) -&gt; [[Char]]
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Bool) -&gt; [[Char]] -&gt; [[Char]]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`notElem`</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638568"><span class="hs-identifier hs-var">exclude</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-25"></span><span>        </span><span id="local-6989586621679638583"><span class="annot"><span class="annottext">programs :: [Program]
+</span><a href="#local-6989586621679638583"><span class="hs-identifier hs-var hs-var">programs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Program -&gt; Bool) -&gt; [Program] -&gt; [Program]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">filter</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679638584"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679638584"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679638584"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">name</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; [a] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`elem`</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638576"><span class="hs-identifier hs-var">include</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Test
+</span><a href="#local-6989586621679638560"><span class="hs-identifier hs-var">test</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">programs</span><span>
+</span><span id="line-26"></span><span>        </span><span id="local-6989586621679638586"><span class="annot"><span class="annottext">testContent :: TestContent
+</span><a href="#local-6989586621679638586"><span class="hs-identifier hs-var hs-var">testContent</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#TestContent"><span class="hs-identifier hs-type">TestContent</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">[Char]
+[Program]
+source :: [Char]
+meta :: [Char]
+programs :: [Program]
+$sel:source:TestContent :: [Char]
+$sel:meta:TestContent :: [Char]
+$sel:programs:TestContent :: [Program]
+</span><a href="#local-6989586621679638562"><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-comment">-- write yaml</span><span>
+</span><span id="line-29"></span><span>    </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679638592"><span class="annot"><span class="annottext">target :: [Char]
+</span><a href="#local-6989586621679638592"><span class="hs-identifier hs-var hs-var">target</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">yaml</span><span>
+</span><span id="line-30"></span><span>        </span><span id="local-6989586621679638593"><span class="annot"><span class="annottext">targetTmp :: [Char]
+</span><a href="#local-6989586621679638593"><span class="hs-identifier hs-var hs-var">targetTmp</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638592"><span class="hs-identifier hs-var">target</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; [Char]
+</span><span class="hs-operator hs-var">&lt;.&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;.tmp&quot;</span></span><span>
+</span><span id="line-31"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; [Char] -&gt; IO ()
+</span><span class="hs-identifier hs-var">createDirectoryIfMissing</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; [Char]
+</span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638592"><span class="hs-identifier hs-var">target</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; TestContent -&gt; IO ()
+forall a. ToJSON a =&gt; [Char] -&gt; a -&gt; IO ()
+</span><span class="hs-identifier hs-var">encodeFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638593"><span class="hs-identifier hs-var">targetTmp</span></a></span><span> </span><span class="annot"><span class="annottext">TestContent
+</span><a href="#local-6989586621679638586"><span class="hs-identifier hs-var">testContent</span></a></span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; IO [Char]
+</span><span class="hs-identifier hs-var">readFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638593"><span class="hs-identifier hs-var">targetTmp</span></a></span><span> </span><span class="annot"><span class="annottext">IO [Char] -&gt; ([Char] -&gt; IO ()) -&gt; IO ()
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; IO ()
+</span><span class="hs-identifier hs-var">appendFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638592"><span class="hs-identifier hs-var">target</span></a></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; IO ()
+</span><span class="hs-identifier hs-var">removeFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638593"><span class="hs-identifier hs-var">targetTmp</span></a></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span>    </span><span class="hs-comment">-- write eo</span><span>
+</span><span id="line-37"></span><span>    </span><span class="annot"><span class="annottext">Bool -&gt; [Char] -&gt; IO ()
+</span><span class="hs-identifier hs-var">createDirectoryIfMissing</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; [Char]
+</span><span class="hs-identifier hs-var">takeDirectory</span></span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">filtered</span><span class="hs-special">)</span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; IO ()
+</span><span class="hs-identifier hs-var">writeFile</span></span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">filtered</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638564"><span class="hs-identifier hs-var">meta</span></a></span><span>
+</span><span id="line-39"></span><span>    </span><span class="annot"><span class="annottext">[Program] -&gt; (Program -&gt; IO ()) -&gt; IO ()
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Foldable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m ()
+</span><span class="hs-identifier hs-var">forM_</span></span><span> </span><span class="annot"><span class="annottext">[Program]
+</span><a href="#local-6989586621679638583"><span class="hs-identifier hs-var">programs</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679638601"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679638601"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; IO ()
+</span><span class="hs-identifier hs-var">appendFile</span></span><span> </span><span class="annot"><span class="annottext">TestSetEO
+</span><a href="#local-6989586621679638559"><span class="hs-identifier hs-var">testSet</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">filtered</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679638601"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-operator">.</span><span class="hs-identifier">text</span><span class="hs-special">)</span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-type">parseProgramsRaw</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">]</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">]</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Int</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">)</span><span class="hs-special">]</span><span>
+</span><span id="line-42"></span><span id="parseProgramsRaw"><span class="annot"><span class="annottext">parseProgramsRaw :: ([(Int, [[Char]])], (Int, [[Char]]), Int)
+-&gt; [[Char]] -&gt; [(Int, [Char])]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var hs-var">parseProgramsRaw</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679638603"><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638603"><span class="hs-identifier hs-var">programs'</span></a></span></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679638604"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638604"><span class="hs-identifier hs-var">programStart</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638605"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638605"><span class="hs-identifier hs-var">program</span></a></span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638606"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638606"><span class="hs-identifier hs-var">curLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679638607"><span class="annot"><span class="annottext">line' :: [Char]
+</span><a href="#local-6989586621679638607"><span class="hs-identifier hs-var">line'</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span id="local-6989586621679638608"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679638608"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679638609"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638609"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638605"><span class="hs-identifier hs-var">program</span></a></span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; [[Char]] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; [Char]
+forall a. HasCallStack =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">head</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638605"><span class="hs-identifier hs-var">program</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [Char] -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; Bool
+forall a. [a] -&gt; Bool
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Bool
+</span><span class="hs-identifier hs-var">null</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638605"><span class="hs-identifier hs-var">program</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">&amp;&amp;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679638608"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'['</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679638608"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">==</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'#'</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([(Int, [[Char]])], (Int, [[Char]]), Int)
+-&gt; [[Char]] -&gt; [(Int, [Char])]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var">parseProgramsRaw</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638604"><span class="hs-identifier hs-var">programStart</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638605"><span class="hs-identifier hs-var">program</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(Int, [[Char]]) -&gt; [(Int, [[Char]])] -&gt; [(Int, [[Char]])]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638603"><span class="hs-identifier hs-var">programs'</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638606"><span class="hs-identifier hs-var">curLine</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638607"><span class="hs-identifier hs-var">line'</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638606"><span class="hs-identifier hs-var">curLine</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638609"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-44"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([(Int, [[Char]])], (Int, [[Char]]), Int)
+-&gt; [[Char]] -&gt; [(Int, [Char])]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var">parseProgramsRaw</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638603"><span class="hs-identifier hs-var">programs'</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638604"><span class="hs-identifier hs-var">programStart</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638607"><span class="hs-identifier hs-var">line'</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]] -&gt; [[Char]]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638605"><span class="hs-identifier hs-var">program</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638606"><span class="hs-identifier hs-var">curLine</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638609"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-45"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var">parseProgramsRaw</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679638616"><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638616"><span class="hs-identifier hs-var">programs'</span></a></span></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679638617"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638617"><span class="hs-identifier hs-var">programStart</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638618"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638618"><span class="hs-identifier hs-var">program</span></a></span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638619"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638619"><span class="hs-identifier hs-var">curLine</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span id="local-6989586621679638620"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638620"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([(Int, [[Char]])], (Int, [[Char]]), Int)
+-&gt; [[Char]] -&gt; [(Int, [Char])]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var">parseProgramsRaw</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638616"><span class="hs-identifier hs-var">programs'</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638617"><span class="hs-identifier hs-var">programStart</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]] -&gt; [[Char]]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638618"><span class="hs-identifier hs-var">program</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638619"><span class="hs-identifier hs-var">curLine</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638620"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-46"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var">parseProgramsRaw</span></a></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679638621"><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638621"><span class="hs-identifier hs-var">programs'</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638622"><span class="annot"><span class="annottext">(Int, [[Char]])
+</span><a href="#local-6989586621679638622"><span class="hs-identifier hs-var">program</span></a></span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Char]] -&gt; [Char]
+</span><span class="hs-identifier hs-var">unlines</span></span><span> </span><span class="annot"><span class="annottext">([[Char]] -&gt; [Char]) -&gt; (Int, [[Char]]) -&gt; (Int, [Char])
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Int, [[Char]]) -&gt; (Int, [Char]))
+-&gt; [(Int, [[Char]])] -&gt; [(Int, [Char])]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [(Int, [[Char]])] -&gt; [(Int, [[Char]])]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[(Int, [[Char]])] -&gt; [(Int, [[Char]])]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="annottext">[[Char]] -&gt; [[Char]]
+forall a. [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">reverse</span></span><span> </span><span class="annot"><span class="annottext">([[Char]] -&gt; [[Char]]) -&gt; (Int, [[Char]]) -&gt; (Int, [[Char]])
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((Int, [[Char]]) -&gt; (Int, [[Char]]))
+-&gt; [(Int, [[Char]])] -&gt; [(Int, [[Char]])]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Int, [[Char]])
+</span><a href="#local-6989586621679638622"><span class="hs-identifier hs-var">program</span></a></span><span> </span><span class="annot"><span class="annottext">(Int, [[Char]]) -&gt; [(Int, [[Char]])] -&gt; [(Int, [[Char]])]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span> </span><span class="annot"><span class="annottext">[(Int, [[Char]])]
+</span><a href="#local-6989586621679638621"><span class="hs-identifier hs-var">programs'</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseTest%27"><span class="hs-identifier hs-type">parseTest'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span>
+</span><span id="line-49"></span><span id="parseTest%27"><span class="annot"><span class="annottext">parseTest' :: [Char] -&gt; [[Char]] -&gt; Test
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseTest%27"><span class="hs-identifier hs-var hs-var">parseTest'</span></a></span></span><span> </span><span id="local-6989586621679638629"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638629"><span class="hs-identifier hs-var">source</span></a></span></span><span> </span><span id="local-6989586621679638630"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638630"><span class="hs-identifier hs-var">eoCode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-keyword">let</span><span>
+</span><span id="line-51"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679638631"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638631"><span class="hs-identifier hs-var">license</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638632"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638632"><span class="hs-identifier hs-var">k'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Bool) -&gt; [[Char]] -&gt; ([[Char]], [[Char]])
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><span class="hs-identifier hs-var">span</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'#'</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638630"><span class="hs-identifier hs-var">eoCode</span></a></span><span>
+</span><span id="line-52"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679638634"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638634"><span class="hs-identifier hs-var">meta</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638635"><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638635"><span class="hs-identifier hs-var">k''</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([Char] -&gt; Bool) -&gt; [[Char]] -&gt; ([[Char]], [[Char]])
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+</span><span class="hs-identifier hs-var">span</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'+'</span></span><span> </span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">;</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638632"><span class="hs-identifier hs-var">k'</span></a></span><span>
+</span><span id="line-53"></span><span>    </span><span id="local-6989586621679638641"><span class="annot"><span class="annottext">programsStart :: Int
+</span><a href="#local-6989586621679638641"><span class="hs-identifier hs-var hs-var">programsStart</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638631"><span class="hs-identifier hs-var">license</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; Int
+forall a. [a] -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span><span class="hs-identifier hs-var">length</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638634"><span class="hs-identifier hs-var">meta</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">+</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-54"></span><span>    </span><span id="local-6989586621679638643"><span class="annot"><span class="annottext">programsRaw :: [(Int, [Char])]
+</span><a href="#local-6989586621679638643"><span class="hs-identifier hs-var hs-var">programsRaw</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([(Int, [[Char]])], (Int, [[Char]]), Int)
+-&gt; [[Char]] -&gt; [(Int, [Char])]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseProgramsRaw"><span class="hs-identifier hs-var">parseProgramsRaw</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">,</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638641"><span class="hs-identifier hs-var">programsStart</span></a></span><span class="hs-special">,</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638641"><span class="hs-identifier hs-var">programsStart</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638635"><span class="hs-identifier hs-var">k''</span></a></span><span>
+</span><span id="line-55"></span><span>    </span><span id="local-6989586621679638647"><span class="annot"><span class="annottext">programs :: [Program]
+</span><a href="#local-6989586621679638647"><span class="hs-identifier hs-var hs-var">programs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(Int, [Char])]
+</span><a href="#local-6989586621679638643"><span class="hs-identifier hs-var">programsRaw</span></a></span><span> </span><span class="annot"><span class="annottext">[(Int, [Char])] -&gt; ((Int, [Char]) -&gt; Program) -&gt; [Program]
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;&amp;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679638648"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679638648"><span class="hs-identifier hs-var">line</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679638649"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638649"><span class="hs-identifier hs-var">text</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#Program"><span class="hs-identifier hs-type">Program</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">$sel:source:Program :: Pos
+</span><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#%24sel%3Asource%3AProgram"><span class="hs-identifier hs-var">source</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#Pos"><span class="hs-identifier hs-type">Pos</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">$sel:file:Pos :: [Char]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#%24sel%3Afile%3APos"><span class="hs-identifier hs-var">file</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638629"><span class="hs-identifier hs-var">source</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int
+line :: Int
+$sel:line:Pos :: Int
+</span><a href="#local-6989586621679638648"><span class="hs-glyph hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:name:Program :: [Char]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#%24sel%3Aname%3AProgram"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638649"><span class="hs-identifier hs-var">text</span></a></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ([Char] -&gt; [Char]) -&gt; [Char]
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; [Char] -&gt; [Char]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">dropWhile</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'['</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ([Char] -&gt; [Char]) -&gt; [Char]
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">Int -&gt; [Char] -&gt; [Char]
+forall a. Int -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">drop</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">5</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; ([Char] -&gt; [Char]) -&gt; [Char]
+forall a b. a -&gt; (a -&gt; b) -&gt; b
+</span><span class="hs-operator hs-var">&amp;</span></span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; [Char] -&gt; [Char]
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">takeWhile</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Char -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">/=</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\n'</span></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+text :: [Char]
+$sel:text:Program :: [Char]
+</span><a href="#local-6989586621679638649"><span class="hs-glyph hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span class="hs-special">)</span><span>
+</span><span id="line-56"></span><span>   </span><span class="hs-keyword">in</span><span>
+</span><span id="line-57"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span class="hs-special">{</span><span class="annot"><span class="annottext">$sel:license:Test :: [Char]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#%24sel%3Alicense%3ATest"><span class="hs-identifier hs-var">license</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; [Char]
+</span><span class="hs-identifier hs-var">unlines</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638631"><span class="hs-identifier hs-var">license</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">$sel:meta:Test :: [Char]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#%24sel%3Ameta%3ATest"><span class="hs-identifier hs-var">meta</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[[Char]] -&gt; [Char]
+</span><span class="hs-identifier hs-var">unlines</span></span><span> </span><span class="annot"><span class="annottext">[[Char]]
+</span><a href="#local-6989586621679638634"><span class="hs-identifier hs-var">meta</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">[Char]
+[Program]
+$sel:source:Test :: [Char]
+source :: [Char]
+programs :: [Program]
+$sel:programs:Test :: [Program]
+</span><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#%24sel%3Asource%3ATest"><span class="hs-glyph hs-var hs-var hs-var hs-var">..</span></a></span><span class="hs-special">}</span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseTest"><span class="hs-identifier hs-type">parseTest</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Pipeline.EOTests.Data.html#Test"><span class="hs-identifier hs-type">Test</span></a></span><span>
+</span><span id="line-60"></span><span id="parseTest"><span class="annot"><span class="annottext">parseTest :: [Char] -&gt; IO Test
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseTest"><span class="hs-identifier hs-var hs-var">parseTest</span></a></span></span><span> </span><span id="local-6989586621679638661"><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638661"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; IO [Char]
+</span><span class="hs-identifier hs-var">readFile</span></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638661"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">IO [Char] -&gt; ([Char] -&gt; Test) -&gt; IO Test
+forall (f :: * -&gt; *) a b. Functor f =&gt; f a -&gt; (a -&gt; b) -&gt; f b
+</span><span class="hs-operator hs-var">&lt;&amp;&gt;</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]] -&gt; Test
+</span><a href="Language.EO.Phi.Pipeline.EOTests.PrepareTests.html#parseTest%27"><span class="hs-identifier hs-var">parseTest'</span></a></span><span> </span><span class="annot"><span class="annottext">[Char]
+</span><a href="#local-6989586621679638661"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">([[Char]] -&gt; Test) -&gt; ([Char] -&gt; [[Char]]) -&gt; [Char] -&gt; Test
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">[Char] -&gt; [[Char]]
+</span><span class="hs-identifier hs-var">lines</span></span><span class="hs-special">)</span><span>
+</span><span id="line-61"></span></pre></body></html>

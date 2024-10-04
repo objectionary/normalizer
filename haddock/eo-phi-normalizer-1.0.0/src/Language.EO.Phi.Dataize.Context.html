@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Dataize.Context</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-2"></span><span>
+</span><span id="line-3"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.HashMap.Strict</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">HashMap</span></span><span>
+</span><span id="line-4"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.HashSet</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">HashSet</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">difference</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">fromList</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">intersection</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">member</span></span><span class="hs-special">)</span><span>
+</span><span id="line-5"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List.NonEmpty</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">NonEmpty</span></span><span>
+</span><span id="line-6"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Dataize.Atoms.html"><span class="hs-identifier">Language.EO.Phi.Dataize.Atoms</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Atoms</span></span><span>
+</span><span id="line-7"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html"><span class="hs-identifier">Language.EO.Phi.Rules.Common</span></a></span><span>
+</span><span id="line-8"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="annot"><a href="Language.EO.Phi.Dataize.Context.html#knownAtomsMap"><span class="hs-identifier hs-type">knownAtomsMap</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Atoms"><span class="hs-identifier hs-type">Atoms</span></a></span><span>
+</span><span id="line-11"></span><span id="knownAtomsMap"><span class="annot"><span class="annottext">knownAtomsMap :: Atoms
+</span><a href="Language.EO.Phi.Dataize.Context.html#knownAtomsMap"><span class="hs-identifier hs-var hs-var">knownAtomsMap</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[(String,
+  String
+  -&gt; Object
+  -&gt; EvaluationState
+  -&gt; DataizeChain (Object, EvaluationState))]
+-&gt; Atoms
+forall k v. (Eq k, Hashable k) =&gt; [(k, v)] -&gt; HashMap k v
+</span><span class="hs-identifier hs-var">HashMap.fromList</span></span><span> </span><span class="annot"><span class="annottext">[(String,
+  String
+  -&gt; Object
+  -&gt; EvaluationState
+  -&gt; DataizeChain (Object, EvaluationState))]
+</span><a href="Language.EO.Phi.Dataize.Atoms.html#knownAtomsList"><span class="hs-identifier hs-var">knownAtomsList</span></a></span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="annot"><a href="Language.EO.Phi.Dataize.Context.html#defaultContext"><span class="hs-identifier hs-type">defaultContext</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#NamedRule"><span class="hs-identifier hs-type">NamedRule</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Object</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span>
+</span><span id="line-14"></span><span id="defaultContext"><span class="annot"><span class="annottext">defaultContext :: [NamedRule] -&gt; Object -&gt; Context
+</span><a href="Language.EO.Phi.Dataize.Context.html#defaultContext"><span class="hs-identifier hs-var hs-var">defaultContext</span></a></span></span><span> </span><span id="local-6989586621679634249"><span class="annot"><span class="annottext">[NamedRule]
+</span><a href="#local-6989586621679634249"><span class="hs-identifier hs-var">rules</span></a></span></span><span> </span><span id="local-6989586621679634250"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634250"><span class="hs-identifier hs-var">obj</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-15"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Context"><span class="hs-identifier hs-type">Context</span></a></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">{</span><span> </span><span class="annot"><span class="annottext">builtinRules :: Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#builtinRules"><span class="hs-identifier hs-var">builtinRules</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">allRules :: [NamedRule]
+</span><a href="Language.EO.Phi.Rules.Common.html#allRules"><span class="hs-identifier hs-var">allRules</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[NamedRule]
+</span><a href="#local-6989586621679634249"><span class="hs-identifier hs-var">rules</span></a></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">enabledAtoms :: Atoms
+</span><a href="Language.EO.Phi.Rules.Common.html#enabledAtoms"><span class="hs-identifier hs-var">enabledAtoms</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; [String] -&gt; Atoms
+</span><a href="Language.EO.Phi.Dataize.Context.html#mkEnabledAtoms"><span class="hs-identifier hs-var">mkEnabledAtoms</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">knownAtoms :: Atoms
+</span><a href="Language.EO.Phi.Rules.Common.html#knownAtoms"><span class="hs-identifier hs-var">knownAtoms</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Atoms
+</span><a href="Language.EO.Phi.Dataize.Context.html#knownAtomsMap"><span class="hs-identifier hs-var">knownAtomsMap</span></a></span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">outerFormations :: NonEmpty Object
+</span><a href="Language.EO.Phi.Rules.Common.html#outerFormations"><span class="hs-identifier hs-var">outerFormations</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Object -&gt; NonEmpty Object
+forall a. a -&gt; NonEmpty a
+</span><span class="hs-identifier hs-var">NonEmpty.singleton</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679634250"><span class="hs-identifier hs-var">obj</span></a></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">currentAttr :: Attribute
+</span><a href="Language.EO.Phi.Rules.Common.html#currentAttr"><span class="hs-identifier hs-var">currentAttr</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Phi"><span class="hs-identifier hs-var">Phi</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">insideFormation :: Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#insideFormation"><span class="hs-identifier hs-var">insideFormation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-23"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">insideAbstractFormation :: Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#insideAbstractFormation"><span class="hs-identifier hs-var">insideAbstractFormation</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-24"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">dataizePackage :: Bool
+</span><a href="Language.EO.Phi.Rules.Common.html#dataizePackage"><span class="hs-identifier hs-var">dataizePackage</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">minimizeTerms :: Bool
+</span><a href="#local-6989586621679634264"><span class="hs-identifier hs-var">minimizeTerms</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">insideSubObject :: Bool
+</span><a href="#local-6989586621679634265"><span class="hs-identifier hs-var">insideSubObject</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-special">}</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="annot"><a href="Language.EO.Phi.Dataize.Context.html#mkEnabledAtoms"><span class="hs-identifier hs-type">mkEnabledAtoms</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Rules.Common.html#Atoms"><span class="hs-identifier hs-type">Atoms</span></a></span><span>
+</span><span id="line-30"></span><span id="mkEnabledAtoms"><span class="annot"><span class="annottext">mkEnabledAtoms :: [String] -&gt; [String] -&gt; Atoms
+</span><a href="Language.EO.Phi.Dataize.Context.html#mkEnabledAtoms"><span class="hs-identifier hs-var hs-var">mkEnabledAtoms</span></a></span></span><span> </span><span id="local-6989586621679634266"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679634266"><span class="hs-identifier hs-var">enabled</span></a></span></span><span> </span><span id="local-6989586621679634267"><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679634267"><span class="hs-identifier hs-var">disabled</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Atoms
+</span><a href="#local-6989586621679634268"><span class="hs-identifier hs-var">enabledAtoms'</span></a></span><span>
+</span><span id="line-31"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-32"></span><span>  </span><span id="local-6989586621679634273"><span class="annot"><span class="annottext">knownAtomsSet :: HashSet String
+</span><a href="#local-6989586621679634273"><span class="hs-identifier hs-var hs-var">knownAtomsSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+forall a. (Eq a, Hashable a) =&gt; [a] -&gt; HashSet a
+</span><span class="hs-identifier hs-var">HashSet.fromList</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Atoms -&gt; [String]
+forall k v. HashMap k v -&gt; [k]
+</span><span class="hs-identifier hs-var">HashMap.keys</span></span><span> </span><span class="annot"><span class="annottext">Atoms
+</span><a href="Language.EO.Phi.Dataize.Context.html#knownAtomsMap"><span class="hs-identifier hs-var">knownAtomsMap</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>  </span><span id="local-6989586621679634279"><span class="annot"><span class="annottext">disabledSet :: HashSet String
+</span><a href="#local-6989586621679634279"><span class="hs-identifier hs-var hs-var">disabledSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+forall a. (Eq a, Hashable a) =&gt; [a] -&gt; HashSet a
+</span><span class="hs-identifier hs-var">HashSet.fromList</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679634267"><span class="hs-identifier hs-var">disabled</span></a></span><span>
+</span><span id="line-34"></span><span>  </span><span id="local-6989586621679634284"><span class="annot"><span class="annottext">enabledSet :: HashSet String
+</span><a href="#local-6989586621679634284"><span class="hs-identifier hs-var hs-var">enabledSet</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-35"></span><span>    </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679634266"><span class="hs-identifier hs-var">enabled</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-36"></span><span>      </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">HashSet String
+</span><a href="#local-6989586621679634273"><span class="hs-identifier hs-var">knownAtomsSet</span></a></span><span>
+</span><span id="line-37"></span><span>      </span><span class="annot"><span class="annottext">[String]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; HashSet String
+forall a. (Eq a, Hashable a) =&gt; [a] -&gt; HashSet a
+</span><span class="hs-identifier hs-var">HashSet.fromList</span></span><span> </span><span class="annot"><span class="annottext">[String]
+</span><a href="#local-6989586621679634266"><span class="hs-identifier hs-var">enabled</span></a></span><span>
+</span><span id="line-38"></span><span>  </span><span id="local-6989586621679634290"><span class="annot"><span class="annottext">enabled' :: HashSet String
+</span><a href="#local-6989586621679634290"><span class="hs-identifier hs-var hs-var">enabled'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">HashSet String -&gt; HashSet String -&gt; HashSet String
+forall a. Eq a =&gt; HashSet a -&gt; HashSet a -&gt; HashSet a
+</span><span class="hs-identifier hs-var">HashSet.intersection</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">HashSet String -&gt; HashSet String -&gt; HashSet String
+forall a. (Eq a, Hashable a) =&gt; HashSet a -&gt; HashSet a -&gt; HashSet a
+</span><span class="hs-identifier hs-var">HashSet.difference</span></span><span> </span><span class="annot"><span class="annottext">HashSet String
+</span><a href="#local-6989586621679634284"><span class="hs-identifier hs-var">enabledSet</span></a></span><span> </span><span class="annot"><span class="annottext">HashSet String
+</span><a href="#local-6989586621679634279"><span class="hs-identifier hs-var">disabledSet</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">HashSet String
+</span><a href="#local-6989586621679634273"><span class="hs-identifier hs-var">knownAtomsSet</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span id="local-6989586621679634268"><span class="annot"><span class="annottext">enabledAtoms' :: Atoms
+</span><a href="#local-6989586621679634268"><span class="hs-identifier hs-var hs-var">enabledAtoms'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String
+ -&gt; (String
+     -&gt; Object
+     -&gt; EvaluationState
+     -&gt; DataizeChain (Object, EvaluationState))
+ -&gt; Bool)
+-&gt; Atoms -&gt; Atoms
+forall k v. (k -&gt; v -&gt; Bool) -&gt; HashMap k v -&gt; HashMap k v
+</span><span class="hs-identifier hs-var">HashMap.filterWithKey</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679634296"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634296"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="annot"><span class="annottext">String
+-&gt; Object
+-&gt; EvaluationState
+-&gt; DataizeChain (Object, EvaluationState)
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679634296"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; HashSet String -&gt; Bool
+forall a. (Eq a, Hashable a) =&gt; a -&gt; HashSet a -&gt; Bool
+</span><span class="hs-operator hs-var">`HashSet.member`</span></span><span> </span><span class="annot"><span class="annottext">HashSet String
+</span><a href="#local-6989586621679634290"><span class="hs-identifier hs-var">enabled'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Atoms
+</span><a href="Language.EO.Phi.Dataize.Context.html#knownAtomsMap"><span class="hs-identifier hs-var">knownAtomsMap</span></a></span><span>
+</span><span id="line-40"></span></pre></body></html>

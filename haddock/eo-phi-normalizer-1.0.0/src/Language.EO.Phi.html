@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-2"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#defaultMain"><span class="hs-identifier">defaultMain</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-3"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Normalize.html#normalize"><span class="hs-identifier">normalize</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-4"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier">parseProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-5"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseObject"><span class="hs-identifier">unsafeParseObject</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-6"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseProgram"><span class="hs-identifier">unsafeParseProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-7"></span><span>  </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.html"><span class="hs-identifier">Language.EO.Phi.Syntax</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-8"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-9"></span><span>
+</span><span id="line-10"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Exit</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">exitFailure</span></span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Phi</span></span><span>
+</span><span id="line-13"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Par.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Par</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Phi</span></span><span>
+</span><span id="line-14"></span><span>
+</span><span id="line-15"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Normalize.html"><span class="hs-identifier">Language.EO.Phi.Normalize</span></a></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.html"><span class="hs-identifier">Language.EO.Phi.Syntax</span></a></span><span>
+</span><span id="line-17"></span><span>
+</span><span id="line-18"></span><span class="annot"><span class="hs-comment">-- | Parse a 'Program' or return a parsing error.</span></span><span>
+</span><span id="line-19"></span><span class="annot"><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-type">parseProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Phi.Program</span></a></span><span>
+</span><span id="line-20"></span><span id="parseProgram"><span class="annot"><span class="annottext">parseProgram :: String -&gt; Either String Program
+</span><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-var hs-var">parseProgram</span></a></span></span><span> </span><span id="local-6989586621679630716"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630716"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Token] -&gt; Either String Program
+</span><a href="Language.EO.Phi.Syntax.Par.html#pProgram"><span class="hs-identifier hs-var">Phi.pProgram</span></a></span><span> </span><span class="annot"><span class="annottext">[Token]
+</span><a href="#local-6989586621679630718"><span class="hs-identifier hs-var">tokens</span></a></span><span>
+</span><span id="line-21"></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-22"></span><span>  </span><span id="local-6989586621679630718"><span class="annot"><span class="annottext">tokens :: [Token]
+</span><a href="#local-6989586621679630718"><span class="hs-identifier hs-var hs-var">tokens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; [Token]
+</span><a href="Language.EO.Phi.Syntax.Par.html#myLexer"><span class="hs-identifier hs-var">Phi.myLexer</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630716"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span class="annot"><span class="hs-comment">-- | Parse an 'Object' or return a parsing error.</span></span><span>
+</span><span id="line-25"></span><span class="annot"><a href="Language.EO.Phi.html#parseObject"><span class="hs-identifier hs-type">parseObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Phi.Object</span></a></span><span>
+</span><span id="line-26"></span><span id="parseObject"><span class="annot"><span class="annottext">parseObject :: String -&gt; Either String Object
+</span><a href="Language.EO.Phi.html#parseObject"><span class="hs-identifier hs-var hs-var">parseObject</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Token] -&gt; Either String Object
+</span><a href="Language.EO.Phi.Syntax.Par.html#pObject"><span class="hs-identifier hs-var">Phi.pObject</span></a></span><span> </span><span class="annot"><span class="annottext">([Token] -&gt; Either String Object)
+-&gt; (String -&gt; [Token]) -&gt; String -&gt; Either String Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; [Token]
+</span><a href="Language.EO.Phi.Syntax.Par.html#myLexer"><span class="hs-identifier hs-var">Phi.myLexer</span></a></span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- | Parse a 'Program' from a 'String'.</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- May throw an 'error` if input has a syntactical or lexical errors.</span><span>
+</span><span id="line-30"></span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseProgram"><span class="hs-identifier hs-type">unsafeParseProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Phi.Program</span></a></span><span>
+</span><span id="line-31"></span><span id="unsafeParseProgram"><span class="annot"><span class="annottext">unsafeParseProgram :: String -&gt; Program
+</span><a href="Language.EO.Phi.html#unsafeParseProgram"><span class="hs-identifier hs-var hs-var">unsafeParseProgram</span></a></span></span><span> </span><span id="local-6989586621679630723"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630723"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-32"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Program
+</span><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-var">parseProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630723"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-33"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679630724"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630724"><span class="hs-identifier hs-var">parseError</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Program
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630724"><span class="hs-identifier hs-var">parseError</span></a></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679630726"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679630726"><span class="hs-identifier hs-var">program</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679630726"><span class="hs-identifier hs-var">program</span></a></span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- | Parse an 'Object' from a 'String'.</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- May throw an 'error` if input has a syntactical or lexical errors.</span><span>
+</span><span id="line-38"></span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseObject"><span class="hs-identifier hs-type">unsafeParseObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Phi.Object</span></a></span><span>
+</span><span id="line-39"></span><span id="unsafeParseObject"><span class="annot"><span class="annottext">unsafeParseObject :: String -&gt; Object
+</span><a href="Language.EO.Phi.html#unsafeParseObject"><span class="hs-identifier hs-var hs-var">unsafeParseObject</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Object)
+-&gt; (Object -&gt; Object) -&gt; Either String Object -&gt; Object
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Object
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">(Either String Object -&gt; Object)
+-&gt; (String -&gt; Either String Object) -&gt; String -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Object
+</span><a href="Language.EO.Phi.html#parseObject"><span class="hs-identifier hs-var">parseObject</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- | Default entry point.</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- Parses a &#120593;-program from standard input, normalizes,</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- then pretty-prints the result to standard output.</span><span>
+</span><span id="line-44"></span><span class="annot"><a href="Language.EO.Phi.html#defaultMain"><span class="hs-identifier hs-type">defaultMain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span id="defaultMain"><span class="annot"><span class="annottext">defaultMain :: IO ()
+</span><a href="Language.EO.Phi.html#defaultMain"><span class="hs-identifier hs-var hs-var">defaultMain</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-46"></span><span>  </span><span id="local-6989586621679630729"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630729"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">IO String
+</span><span class="hs-identifier hs-var">getContents</span></span><span> </span><span class="hs-comment">-- read entire standard input</span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679630731"><span class="annot"><span class="annottext">tokens :: [Token]
+</span><a href="#local-6989586621679630731"><span class="hs-identifier hs-var hs-var">tokens</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; [Token]
+</span><a href="Language.EO.Phi.Syntax.Par.html#myLexer"><span class="hs-identifier hs-var">Phi.myLexer</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630729"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-48"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Token] -&gt; Either String Program
+</span><a href="Language.EO.Phi.Syntax.Par.html#pProgram"><span class="hs-identifier hs-var">Phi.pProgram</span></a></span><span> </span><span class="annot"><span class="annottext">[Token]
+</span><a href="#local-6989586621679630731"><span class="hs-identifier hs-var">tokens</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-49"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679630732"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630732"><span class="hs-identifier hs-var">parseError</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-50"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679630732"><span class="hs-identifier hs-var">parseError</span></a></span><span>
+</span><span id="line-51"></span><span>      </span><span class="annot"><span class="annottext">IO ()
+forall a. IO a
+</span><span class="hs-identifier hs-var">exitFailure</span></span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679630734"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679630734"><span class="hs-identifier hs-var">program</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-53"></span><span>      </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Program -&gt; String
+forall a. Print a =&gt; a -&gt; String
+</span><a href="Language.EO.Phi.Syntax.html#printTree"><span class="hs-identifier hs-var">printTree</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Program -&gt; Program
+</span><a href="Language.EO.Phi.Normalize.html#normalize"><span class="hs-identifier hs-var">normalize</span></a></span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679630734"><span class="hs-identifier hs-var">program</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span></pre></body></html>
