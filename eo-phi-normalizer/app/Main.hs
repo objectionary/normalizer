@@ -38,6 +38,7 @@ import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
+import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
@@ -59,6 +60,7 @@ import Language.EO.Phi.ToLaTeX
 import Main.Utf8
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
+import Paths_eo_phi_normalizer (version)
 import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
@@ -375,10 +377,10 @@ cli =
         <> command commandNames.printRules commandParserInfo.printRules
     )
 
-cliOpts :: ParserInfo CLI
-cliOpts =
+cliOpts :: String -> ParserInfo CLI
+cliOpts version' =
   info
-    (cli <**> helper)
+    (cli <**> helper <**> simpleVersioner version')
     (fullDesc <> progDesc "Work with PHI expressions.")
 
 data StructuredJSON = StructuredJSON
@@ -520,7 +522,7 @@ wrapRawBytesIn = \case
 
 main :: IO ()
 main = withUtf8 do
-  opts <- customExecParser pprefs cliOpts
+  opts <- customExecParser pprefs (cliOpts (showVersion version))
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'
         x -> printTree x

@@ -53,6 +53,7 @@ Usage: normalizer COMMAND
 
 Available options:
   -h,--help                Show this help text
+  --version                Show version information
 
 Available commands:
   transform                Transform a PHI program.
@@ -75,6 +76,7 @@ Usage: normalizer COMMAND
 
 Available options:
   -h,--help                Show this help text
+  --version                Show version information
 
 Available commands:
   transform                Transform a PHI program.
