@@ -4,7 +4,7 @@
 
 | author(s)             | date-accepted                         | pr-url                                          | implemented                                              |
 | ------------------ | ------------------------------------- | ----------------------------------------------- | -------------------------------------------------------- |
-| [Full author names] | [Date when the proposal was accepted] | [URL of a PR where this proposal was discussed] | [normalizer version where this proposal was implemented] |
+| [Full author names] | [Date when the proposal was accepted] | [URL of a PR where this proposal was discussed] | [eo-phi-normalizer version where this proposal was implemented] |
 
 ## Motivation
 
@@ -25,7 +25,7 @@ Strive for a complete definition.
 Your specification may include,
 
 - LBNF grammar and semantics of any new syntactic constructs (see [LBNF reference](https://bnfc.readthedocs.io/en/latest/lbnf.html)).
-- how the proposed change interacts with existing normalizer features, in case that is otherwise ambiguous
+- how the proposed change interacts with existing eo-phi-normalizer features, in case that is otherwise ambiguous
 
 Strive for _precision_.
 

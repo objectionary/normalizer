@@ -1,4 +1,4 @@
-# `normalizer metrics`
+# `eo-phi-normalizer metrics`
 
 ## Metrics
 
@@ -13,11 +13,11 @@ See [Metrics](../metrics.md) for the specification of metrics collected by this 
 ### `--help`
 
 ```$ as console
-normalizer metrics --help
+eo-phi-normalizer metrics --help
 ```
 
 ```console
-Usage: normalizer metrics [FILE] [-o|--output-file FILE]
+Usage: eo-phi-normalizer metrics [FILE] [-o|--output-file FILE]
                           [-b|--bindings-path PATH]
 
   Collect metrics for a PHI program.
@@ -37,7 +37,7 @@ Available options:
 ### `FILE`
 
 ```$ as json
-normalizer metrics celsius.phi
+eo-phi-normalizer metrics celsius.phi
 ```
 
 ```json
@@ -55,7 +55,7 @@ normalizer metrics celsius.phi
 ### `FILE` not specified (read from stdin)
 
 ```$ as json
-cat celsius.phi | normalizer metrics
+cat celsius.phi | eo-phi-normalizer metrics
 ```
 
 ```json
@@ -73,7 +73,7 @@ cat celsius.phi | normalizer metrics
 ### `--bindings-path`
 
 ```$ as console
-normalizer metrics --bindings-path org.eolang celsius.phi
+eo-phi-normalizer metrics --bindings-path org.eolang celsius.phi
 ```
 
 ```console

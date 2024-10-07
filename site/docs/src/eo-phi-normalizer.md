@@ -1,13 +1,13 @@
-# Normalizer
+# `eo-phi-normalizer`
 
-See commands supported by the `normalizer` executable.
+See commands supported by the `eo-phi-normalizer` executable.
 
 ```$ as console
-normalizer --help
+eo-phi-normalizer --help
 ```
 
 ```console
-Usage: normalizer COMMAND
+Usage: eo-phi-normalizer COMMAND
 
   Work with PHI expressions.
 

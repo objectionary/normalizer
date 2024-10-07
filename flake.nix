@@ -203,13 +203,13 @@
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
-                      "normalizer.md"
+                      "eo-phi-normalizer.md"
                       "pipeline.md"
                       "quick-start.md"
-                      "normalizer/dataize.md"
-                      "normalizer/metrics.md"
-                      "normalizer/transform.md"
-                      "normalizer/print-rules.md"
+                      "eo-phi-normalizer/dataize.md"
+                      "eo-phi-normalizer/metrics.md"
+                      "eo-phi-normalizer/transform.md"
+                      "eo-phi-normalizer/print-rules.md"
                       "contributing.md"
                     ]}
 
@@ -277,7 +277,7 @@
                   prefix = "nix run .#";
                   packages = {
                     inherit (self'.packages) pipeline update-markdown site-dev site-build;
-                    normalizer = self'.packages.default;
+                    eo-phi-normalizer = self'.packages.default;
                   };
                 }
               ];

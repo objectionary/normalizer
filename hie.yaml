@@ -4,13 +4,7 @@ cradle:
       component: "eo-phi-normalizer:lib"
 
     - path: "eo-phi-normalizer/app/Main.hs"
-      component: "eo-phi-normalizer:exe:normalizer"
-
-    - path: "eo-phi-normalizer/app/Paths_eo_phi_normalizer.hs"
-      component: "eo-phi-normalizer:exe:normalize-phi"
-
-    - path: "eo-phi-normalizer/app/Paths_eo_phi_normalizer.hs"
-      component: "eo-phi-normalizer:exe:normalize-phi"
+      component: "eo-phi-normalizer:exe:eo-phi-normalizer"
 
     - path: "eo-phi-normalizer/test"
       component: "eo-phi-normalizer:test:spec"

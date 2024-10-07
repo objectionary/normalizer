@@ -40,14 +40,14 @@ stack test
 
 ## Run
 
-Run the `normalizer` executable via `stack run`.
+Run the `eo-phi-normalizer` executable via `stack run`.
 
 ```$ as console
-stack run normalizer -- --help
+stack run eo-phi-normalizer -- --help
 ```
 
 ```console
-Usage: normalizer COMMAND
+Usage: eo-phi-normalizer COMMAND
 
   Work with PHI expressions.
 
@@ -69,7 +69,7 @@ stack run -- --help
 ```
 
 ```console
-Usage: normalizer COMMAND
+Usage: eo-phi-normalizer COMMAND
 
   Work with PHI expressions.
 

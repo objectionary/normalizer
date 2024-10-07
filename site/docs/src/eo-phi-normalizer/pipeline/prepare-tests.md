@@ -1,4 +1,4 @@
-# `normalizer pipeline prepare-tests`
+# `eo-phi-normalizer pipeline prepare-tests`
 
 ## `--config`
 
@@ -6,5 +6,5 @@ This command reads the [pipeline configuration](../pipeline.md#pipeline-configur
 
 ```sh
 source scripts/lib.sh
-normalizer pipeline prepare-tests --config "$PIPELINE_CONFIG_FILE"
+eo-phi-normalizer pipeline prepare-tests --config "$PIPELINE_CONFIG_FILE"
 ```

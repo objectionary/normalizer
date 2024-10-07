@@ -1,15 +1,15 @@
-# `normalizer print-rules`
+# `eo-phi-normalizer print-rules`
 
 ## CLI
 
 ### `--help`
 
 ```$ as console
-normalizer print-rules --help
+eo-phi-normalizer print-rules --help
 ```
 
 ```console
-Usage: normalizer print-rules [-r|--rules FILE] [--tex] [-c|--compact]
+Usage: eo-phi-normalizer print-rules [-r|--rules FILE] [--tex] [-c|--compact]
 
   Print rules in LaTeX format.
 
@@ -24,7 +24,7 @@ Available options:
 ### Default version
 
 ```$ as tex
-normalizer print-rules --tex
+eo-phi-normalizer print-rules --tex
 ```
 
 ```tex
@@ -80,7 +80,7 @@ The command above prints to the console rules from `yegor.yaml`, listing each co
 The compact version prints rules listing all conditions on a single line:
 
 ```$ as tex
-normalizer print-rules --tex --compact
+eo-phi-normalizer print-rules --tex --compact
 ```
 
 ```tex

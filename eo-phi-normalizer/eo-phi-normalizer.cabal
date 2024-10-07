@@ -204,7 +204,7 @@ library
     , yaml
   default-language: Haskell2010
 
-executable normalizer
+executable eo-phi-normalizer
   main-is: Main.hs
   other-modules:
       Paths_eo_phi_normalizer

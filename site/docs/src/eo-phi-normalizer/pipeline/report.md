@@ -1,8 +1,8 @@
-# `normalizer pipeline report`
+# `eo-phi-normalizer pipeline report`
 
 ## Reports
 
-The `normalizer pipeline report` command generates reports about initial and normalized `PHI` programs.
+The `eo-phi-normalizer pipeline report` command generates reports about initial and normalized `PHI` programs.
 
 The reports contain detailed information about metrics collected for these programs.
 
@@ -31,11 +31,11 @@ The report configuration is stored in the `report` object in the [pipeline confi
 ### `--help`
 
 ```$ as console
-normalizer pipeline report --help
+eo-phi-normalizer pipeline report --help
 ```
 
 ```console
-Usage: normalizer pipeline report (-c|--config FILE)
+Usage: eo-phi-normalizer pipeline report (-c|--config FILE)
 
   Generate reports about initial and normalized PHI programs.
 
@@ -47,5 +47,5 @@ Available options:
 ### `--config`
 
 ```$ as console
-normalizer pipeline report --config pipeline/config.yaml
+eo-phi-normalizer pipeline report --config pipeline/config.yaml
 ```

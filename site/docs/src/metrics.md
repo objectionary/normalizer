@@ -50,4 +50,4 @@ The following table demonstrates objects with their \\( \Delta \\)-depths:
 
 ## CLI command
 
-See [normalizer metrics](./normalizer/metrics.md).
+See [eo-phi-normalizer metrics](./eo-phi-normalizer/metrics.md).

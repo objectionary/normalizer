@@ -89,7 +89,7 @@ library:
         - Language.EO.Phi.Rules.Syntax.Skel
 
 executables:
-  normalizer:
+  eo-phi-normalizer:
     main: Main.hs
     source-dirs: app
     ghc-options:

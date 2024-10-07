@@ -1,6 +1,6 @@
 # Proposals
 
-A proposal is a document describing a proposed change to the normalizer.
+A proposal is a document describing a proposed change to the Normalizer.
 
 ## Proposal format
 
@@ -15,8 +15,8 @@ A proposal is a document describing a proposed change to the normalizer.
 ## Proposal process
 
 1. [No label] An author submits a proposal for discussion as a pull request against the `normalizer` repository ([link](https://github.com/objectionary/normalizer)).
-1. [[proposal under review](https://github.com/objectionary/normalizer/labels/proposal%20under%20review)] The `normalizer` team discusses the proposal in the commit section of the pull request, while the author refines the proposal. This phase lasts as long as necessary.
-1. Eventually, the normalizer team does one of these actions:
+1. [[proposal under review](https://github.com/objectionary/normalizer/labels/proposal%20under%20review)] The Normalizer team discusses the proposal in the commit section of the pull request, while the author refines the proposal. This phase lasts as long as necessary.
+1. Eventually, the Normalizer team does one of these actions:
    1. Rejects the proposal [[proposal rejected](https://github.com/objectionary/normalizer/labels/proposal%20rejected)].
    1. Passes the proposal back to the author(s) for review [[proposal needs revision](https://github.com/objectionary/normalizer/labels/Proposal%20needs%20revision)].
    1. Accepts the proposal.
@@ -25,4 +25,4 @@ A proposal is a document describing a proposed change to the normalizer.
         - [[proposal priority: high](https://github.com/objectionary/normalizer/labels/proposal%20priority%3A%20high)]
         - [[proposal priority: medium](https://github.com/objectionary/normalizer/labels/proposal%20priority%3A%20medium)]
         - [[proposal priority: low](https://github.com/objectionary/normalizer/labels/proposal%20priority%3A%20low)]
-1. [[proposal implemented](https://github.com/objectionary/normalizer/labels/proposal%20implemented)] Once a proposal is accepted, it still has to be implemented. The author(s) may do that, or someone else. We mark the proposal implemented once it hits normalizer master branch (and we are happy to be nudged to do so by email, GitHub issue, or a comment on the relevant pull request), and the corresponding documentation on the site is updated.
+1. [[proposal implemented](https://github.com/objectionary/normalizer/labels/proposal%20implemented)] Once a proposal is accepted, it still has to be implemented. The author(s) may do that, or someone else. We mark the proposal implemented once it hits the `normalizer` master branch (and we are happy to be nudged to do so by email, GitHub issue, or a comment on the relevant pull request), and the corresponding documentation on the site is updated.

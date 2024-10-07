@@ -1,4 +1,4 @@
-# `normalizer transform`
+# `eo-phi-normalizer transform`
 
 ## `MetaPHI`
 
@@ -8,7 +8,7 @@ See the `MetaPHI` [Labelled BNF](https://bnfc.readthedocs.io/en/latest/lbnf.html
 
 ## phi-paper rules
 
-Currently, the `PHI` normalizer supports rules defined in an unpublished paper by Yegor Bugayenko.
+Currently, the `eo-phi-normalizer` supports rules defined in an unpublished paper by Yegor Bugayenko.
 
 ![Rules](../media/rules.jpg)
 
@@ -62,14 +62,14 @@ The commands in the following sections access files that are available in the pr
 ### `--help`
 
 ```$ as console
-normalizer transform --help
+eo-phi-normalizer transform --help
 ```
 
 ```console
-Usage: normalizer transform [-r|--rules FILE] [-c|--chain] [-j|--json] [--tex]
-                            [-o|--output-file FILE] [-s|--single]
-                            [--max-depth INT] [--max-growth-factor INT] [FILE]
-                            [-d|--dependency-file FILE]
+Usage: eo-phi-normalizer transform [-r|--rules FILE] [-c|--chain] [-j|--json]
+                                   [--tex] [-o|--output-file FILE] [-s|--single]
+                                   [--max-depth INT] [--max-growth-factor INT]
+                                   [FILE] [-d|--dependency-file FILE]
 
   Transform a PHI program.
 
@@ -101,7 +101,7 @@ The output may contain multiple numbered results that correspond to different po
 (even if the final result is the same).
 
 ```$ as console
-normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -139,7 +139,7 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```$ as console
-normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -175,7 +175,7 @@ Result 1 out of 1:
 ### `--json`
 
 ```$ as json
-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```json
@@ -195,7 +195,7 @@ normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rule
 ### `--single`
 
 ```$ as console
-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -215,7 +215,7 @@ normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yego
 ### `--single` `--json`
 
 ```$ as console
-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -234,7 +234,7 @@ Can be used multiple times to inject multiple dependencies.
 ### `FILE` not specified (read from stdin)
 
 ```$ as console
-cat celsius.phi | normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | eo-phi-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 ```
 
 ```console

@@ -1,6 +1,6 @@
 # Atoms
 
-The `normalizer` uses atoms implemented in Haskell.
+The `eo-phi-normalizer` uses atoms implemented in Haskell.
 The sections below explain how to update them.
 
 ## Enter the repository

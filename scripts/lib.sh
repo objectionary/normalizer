@@ -11,8 +11,8 @@ PIPELINE_EO_FILTERED_DIR="$PIPELINE_DIR/eo-filtered"
 PIPELINE_EO_INITIAL_DIR="$PIPELINE_DIR/eo-initial"
 PIPELINE_EO_NORMALIZED_DIR="$PIPELINE_DIR/eo-normalized"
 PIPELINE_PHI_NORMALIZED_DIR="$PIPELINE_DIR/phi-normalized"
-PIPELINE_NORMALIZER_DIR="$PWD/eo-phi-normalizer"
-PIPELINE_NORMALIZER_DATA_DIR="$PIPELINE_NORMALIZER_DIR/data"
+PIPELINE_EO_PHI_NORMALIZER_DIR="$PWD/eo-phi-normalizer"
+PIPELINE_EO_PHI_NORMALIZER_DATA_DIR="$PIPELINE_EO_PHI_NORMALIZER_DIR/data"
 PIPELINE_REPORT_DIR="$PWD/report"
 PIPELINE_EO_YAML_DIR="$PIPELINE_DIR/eo-yaml"
 
@@ -30,13 +30,13 @@ PIPELINE_LOCK_FILE_NEW="$PIPELINE_DIR/$PIPELINE_LOCK_FILE_NEW_NAME"
 PIPELINE_LOCK_FILE_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NAME"
 PIPELINE_LOCK_FILE_NEW_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NEW_NAME"
 
-NORMALIZER_INSTALLED="${NORMALIZER_INSTALLED:-false}"
+EO_PHI_NORMALIZER_INSTALLED="${EO_PHI_NORMALIZER_INSTALLED:-false}"
 
 PIPELINE_LOGS_DIR="$PIPELINE_DIR/logs"
 PIPELINE_TEST_EO_INITIAL_LOGS="$PIPELINE_LOGS_DIR/test-initial-logs.txt"
 PIPELINE_TEST_EO_NORMALIZED_LOGS="$PIPELINE_LOGS_DIR/test-normalized-logs.txt"
 
-SYNTAX_DIR="$PIPELINE_NORMALIZER_DIR/src/Language/EO/Phi/Syntax"
+SYNTAX_DIR="$PIPELINE_EO_PHI_NORMALIZER_DIR/src/Language/EO/Phi/Syntax"
 
 function init_logs {
     mkdir -p "$PIPELINE_LOGS_DIR"
@@ -165,24 +165,24 @@ function eo {
 
 export -f eo
 
-function install_normalizer {
+function install_eo_phi_normalizer {
     set_installation_path
     add_installation_path_to_path
 
     print_message "Install the Normalizer"
 
-    if [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
+    if [[ "$EO_PHI_NORMALIZER_INSTALLED" = "true" ]]; then
         if [[ "$IS_WINDOWS" = "true" ]]; then
-            mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
+            mv "$INSTALLATION_PATH/eo-phi-normalizer.exe" "$INSTALLATION_PATH/eo-phi-normalizer"
         fi
     else
-        stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
+        stack install eo-phi-normalizer:exe:eo-phi-normalizer --ghc-options -O2
     fi
 
     print_message "The Normalizer is installed"
 }
 
-export -f install_normalizer
+export -f install_eo_phi_normalizer
 
 function run_pipeline {
     bash "$PIPELINE_SCRIPT"
@@ -240,9 +240,9 @@ export -f check_syntax_files_exist
 function write_dependencies_markdown_for_eo_version {
     local eo_version=$1
 
-    export PIPELINE_NORMALIZER_DATA_DIR
+    export PIPELINE_EO_PHI_NORMALIZER_DATA_DIR
 
-    local version_data_dir="$PIPELINE_NORMALIZER_DATA_DIR/$eo_version"
+    local version_data_dir="$PIPELINE_EO_PHI_NORMALIZER_DATA_DIR/$eo_version"
     export version_data_dir
 
     function print_program {
@@ -274,10 +274,10 @@ function write_dependencies_markdown_for_eo_version {
 export -f write_dependencies_markdown_for_eo_version
 
 function write_dependencies_markdown {
-    export PIPELINE_NORMALIZER_DATA_DIR
+    export PIPELINE_EO_PHI_NORMALIZER_DATA_DIR
 
     # shellcheck disable=SC2038
-    find "$PIPELINE_NORMALIZER_DATA_DIR" -mindepth 1 -maxdepth 1 -type d \
+    find "$PIPELINE_EO_PHI_NORMALIZER_DATA_DIR" -mindepth 1 -maxdepth 1 -type d \
         | xargs -I {} basename {} \
         | xargs -I {} bash -c "write_dependencies_markdown_for_eo_version {}"
 }

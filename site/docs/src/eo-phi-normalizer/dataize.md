@@ -1,10 +1,10 @@
-# `normalizer dataize`
+# `eo-phi-normalizer dataize`
 
 Dataization is the process through which data is extracted from a given program/object.
 
 ## Dataization process
 
-To dataize a given program written in \\( \varphi \\)-calculus, the first step is to normalize it according to the process outlined in [normalizer transform](./transform.md) docs.
+To dataize a given program written in \\( \varphi \\)-calculus, the first step is to normalize it according to the process outlined in [eo-phi-normalizer transform](./transform.md) docs.
 Then, a single step of dataization is performed according to the following rules in order of priority:
 
 1. If the object is a formation that contains a \\( \Delta \\)-binding and no empty bindings, the bytes attached to it are returned
@@ -28,15 +28,17 @@ Note that dataization assumes that the given set of normalization rules are alre
 ### `--help`
 
 ```$ as console
-normalizer dataize --help
+eo-phi-normalizer dataize --help
 ```
 
 ```console
-Usage: normalizer dataize [-r|--rules FILE] [FILE] [-d|--dependency-file FILE]
-                          [-o|--output-file FILE] [--recursive] [--chain]
-                          [--wrap-raw-bytes] [--tex] [--as-package]
-                          [--minimize-stuck-terms] [--disable-atom ATOM_NAME]
-                          [--enable-atom ATOM_NAME]
+Usage: eo-phi-normalizer dataize [-r|--rules FILE] [FILE]
+                                 [-d|--dependency-file FILE]
+                                 [-o|--output-file FILE] [--recursive] [--chain]
+                                 [--wrap-raw-bytes] [--tex] [--as-package]
+                                 [--minimize-stuck-terms]
+                                 [--disable-atom ATOM_NAME]
+                                 [--enable-atom ATOM_NAME]
 
   Dataize a PHI program.
 
@@ -74,7 +76,7 @@ Similar to `--rules` for the `transform` subcommand, this argument accepts the p
 If the `--chain` argument is passed, all the intermediate steps of normalization + dataization are printed to the console (or the output file if chosen).
 
 ```$ as console
-normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -599,7 +601,7 @@ Can be used multiple times to inject multiple dependencies.
 Applies the normalization+dataization process recursively until it reaches bytes or no longer modifies the object (stalls).
 
 ```$ as console
-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -667,7 +669,7 @@ Can be combined with `--chain` to print all the intermediate steps of both norma
 Enable an atom by name.
 
 ```$ as console
-normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -689,7 +691,7 @@ normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg_eolang
 Disable an atom by name.
 
 ```$ as console
-normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -711,7 +713,7 @@ normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lorg_eolan
 If no argument is given for the input file, `stdin` is consumed until `EOF`.
 
 ```$ as console
-cat celsius.phi | normalizer dataize --recursive --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 ```
 
 ```console
