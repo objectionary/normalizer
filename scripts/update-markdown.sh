@@ -10,6 +10,7 @@ mdsh -i site/docs/src/normalizer/dataize.md --work_dir .
 mdsh -i site/docs/src/normalizer/metrics.md --work_dir .
 mdsh -i site/docs/src/normalizer/transform.md --work_dir .
 mdsh -i site/docs/src/normalizer/print-rules.md --work_dir .
+mdsh -i site/docs/src/normalizer/test.md --work_dir .
 mdsh -i site/docs/src/contributing.md --work_dir .
 
 rm celsius.phi

@@ -49,6 +49,8 @@ dependencies:
   - PyF
   - lens
   - generic-lens
+  - hspec
+  - hspec-core
   - text
   - template-haskell
   - blaze-html

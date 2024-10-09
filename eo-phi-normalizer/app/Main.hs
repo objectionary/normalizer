@@ -56,6 +56,7 @@ import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
+import Language.EO.Test.YamlSpec (spec)
 import Main.Utf8
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
@@ -63,6 +64,7 @@ import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
+import Test.Hspec.Core.Runner
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
@@ -131,12 +133,16 @@ data CLI'Pipeline
   | CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs
   deriving stock (Show)
 
+newtype CLI'Test = CLI'Test {rulePaths :: [FilePath]}
+  deriving stock (Show)
+
 data CLI
   = CLI'TransformPhi' CLI'TransformPhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
   | CLI'PrintRules' CLI'PrintRules
   | CLI'Pipeline' CLI'Pipeline
+  | CLI'Test' CLI'Test
   deriving stock (Show)
 
 data MetavarName = MetavarName
@@ -236,6 +242,7 @@ data CommandParser = CommandParser
   , pipeline :: Parser CLI'Pipeline
   , pipeline' :: CommandParser'Pipeline
   , printRules :: Parser CLI'PrintRules
+  , test :: Parser CLI'Test
   }
 
 commandParser :: CommandParser
@@ -302,6 +309,9 @@ commandParser =
           <> command commandNames.pipeline'.prepareTests commandParserInfo.pipeline'.prepareTests
           <> command commandNames.pipeline'.printDataizeConfigs commandParserInfo.pipeline'.printDataizeConfigs
       )
+  test = do
+    rulePaths <- many $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules.|])
+    pure CLI'Test{..}
 
 data CommandParserInfo'Pipeline = CommandParserInfo'Pipeline
   { report :: ParserInfo CLI'Pipeline
@@ -316,6 +326,7 @@ data CommandParserInfo = CommandParserInfo
   , printRules :: ParserInfo CLI
   , pipeline :: ParserInfo CLI
   , pipeline' :: CommandParserInfo'Pipeline
+  , test :: ParserInfo CLI
   }
 
 commandParserInfo :: CommandParserInfo
@@ -332,6 +343,7 @@ commandParserInfo =
           , prepareTests = info (CLI'Pipeline'PrepareTests' <$> commandParser.pipeline'.prepareTests) (progDesc "Prepare EO test files for the pipeline.")
           , printDataizeConfigs = info (CLI'Pipeline'PrintDataizeConfigs' <$> commandParser.pipeline'.printDataizeConfigs) (progDesc [fmt|Print configs for the `normalizer {commandNames.dataize}` command.|])
           }
+    , test = info (CLI'Test' <$> commandParser.test) (progDesc "Run unit tests in given files with user-defined rules.")
     }
 
 data CommandNames'Pipeline = CommandNames'Pipeline
@@ -347,6 +359,7 @@ data CommandNames = CommandNames
   , printRules :: String
   , pipeline :: String
   , pipeline' :: CommandNames'Pipeline
+  , test :: String
   }
 
 commandNames :: CommandNames
@@ -363,6 +376,7 @@ commandNames =
           , prepareTests = "prepare-tests"
           , printDataizeConfigs = "print-dataize-configs"
           }
+    , test = "test"
     }
 
 cli :: Parser CLI
@@ -373,6 +387,7 @@ cli =
         <> command commandNames.dataize commandParserInfo.dataize
         <> command commandNames.pipeline commandParserInfo.pipeline
         <> command commandNames.printRules commandParserInfo.printRules
+        <> command commandNames.test commandParserInfo.test
     )
 
 cliOpts :: ParserInfo CLI
@@ -693,3 +708,9 @@ main = withUtf8 do
     CLI'Pipeline' (CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs{..}) -> do
       config <- decodeFileThrow @_ @PipelineConfig configFile
       PrintConfigs.printDataizeConfigs config phiPrefixesToStrip singleLine
+    CLI'Test' (CLI'Test{..}) ->
+      evalSpec defaultConfig (spec rulePaths)
+        >>= \(config, spec') ->
+          readConfig config []
+            >>= runSpecForest spec'
+            >>= evaluateResult

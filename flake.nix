@@ -210,6 +210,7 @@
                       "normalizer/metrics.md"
                       "normalizer/transform.md"
                       "normalizer/print-rules.md"
+                      "normalizer/test.md"
                       "contributing.md"
                     ]}
 

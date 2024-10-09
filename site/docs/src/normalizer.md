@@ -20,4 +20,6 @@ Available commands:
   dataize                  Dataize a PHI program.
   pipeline                 Run pipeline-related commands.
   print-rules              Print rules in LaTeX format.
+  test                     Run unit tests in given files with user-defined
+                           rules.
 ```

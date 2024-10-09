@@ -1,6 +1,6 @@
 cabal-version: 1.24
 
--- This file has been generated from package.yaml by hpack version 0.36.0.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -167,6 +167,8 @@ library
       Language.EO.Phi.Syntax.Print
       Language.EO.Phi.TH
       Language.EO.Phi.ToLaTeX
+      Language.EO.Test.Yaml
+      Language.EO.Test.YamlSpec
   other-modules:
       Paths_eo_phi_normalizer
   hs-source-dirs:
@@ -194,6 +196,8 @@ library
     , filepath
     , generic-lens
     , hashable
+    , hspec
+    , hspec-core
     , lens
     , mtl
     , regex-compat
@@ -235,6 +239,8 @@ executable normalizer
     , filepath
     , generic-lens
     , hashable
+    , hspec
+    , hspec-core
     , lens
     , mtl
     , optparse-applicative
@@ -278,6 +284,8 @@ test-suite doctests
       Language.EO.Phi.Syntax.Skel
       Language.EO.Phi.TH
       Language.EO.Phi.ToLaTeX
+      Language.EO.Test.Yaml
+      Language.EO.Test.YamlSpec
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test/doctests
@@ -307,6 +315,8 @@ test-suite doctests
     , filepath
     , generic-lens
     , hashable
+    , hspec
+    , hspec-core
     , lens
     , mtl
     , regex-compat
@@ -327,7 +337,6 @@ test-suite spec
       Language.EO.YamlSpec
       Spec
       Test.EO.Phi
-      Test.EO.Yaml
       Test.Metrics.Phi
       Paths_eo_phi_normalizer
   hs-source-dirs:
@@ -358,6 +367,7 @@ test-suite spec
     , generic-lens
     , hashable
     , hspec
+    , hspec-core
     , hspec-discover
     , lens
     , mtl
